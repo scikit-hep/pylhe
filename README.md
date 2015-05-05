@@ -9,3 +9,6 @@ extra: visualization of hard process
       print e['eventinfo']
       for particle e['particles']:
         print particle
+
+example:
+http://nbviewer.ipython.org/github/lukasheinrich/pylhe/blob/master/zpeak.ipynb
