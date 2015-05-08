@@ -1,8 +1,8 @@
 #pylhe
 
-small and thin python interface to Les Houches Event (LHE) files.
+small and thin python interface to read Les Houches Event (LHE) files.
 
-extra: visualization of hard process
+extra: graphical visualization of event.
 
     import pylhe
     for e in pylhe.readLHE('myevents.lhe'):
