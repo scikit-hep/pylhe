@@ -75,7 +75,7 @@ def visualize(event,outputname):
   for i,p in enumerate(event.particles):
       g.add_node(i,attr_dict=p.__dict__)
       name = pypdt.particle(p.id).name
-      greek = ['gamma','nu','mu','tau','rho','Xi','Sigma','Lambda','omega','Omega','Alpha','psi','phi','pi']
+      greek = ['gamma','nu','mu','tau','rho','Xi','Sigma','Lambda','omega','Omega','Alpha','psi','phi','pi','chi']
       for greekname in greek:
         if greekname in name:
           name = name.replace(greekname,'\\'+greekname)
