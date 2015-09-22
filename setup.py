@@ -5,7 +5,7 @@ setup(
   version = '0.0.3',
   description = 'small package to get structured data out of Les Houches Event files',
   author = 'Lukas Heinrich',
-  author_email = 'lukas.heinrich@cern.com',
+  author_email = 'lukas.heinrich@cern.ch',
   packages = find_packages(),
   install_requires = [
     'networkx',
