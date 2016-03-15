@@ -49,9 +49,9 @@ def loads():
     pass
   
 import xml.etree.ElementTree as ET
-def readLHE(file):
+def readLHE(thefile):
     try:
-        for event,element in ET.iterparse(file,events=['end']):      
+        for event,element in ET.iterparse(thefile,events=['end']):      
             if element.tag == 'event':
                 data = element.text.split('\n')[1:-1]
                 eventdata,particles = data[0],data[1:]
@@ -69,7 +69,6 @@ import networkx as nx
 import pypdt
 import tex2pix
 import subprocess
-import shutil
 def visualize(event,outputname):
     g = nx.DiGraph()
     for i,p in enumerate(event.particles):
