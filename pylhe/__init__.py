@@ -71,23 +71,23 @@ import tex2pix
 import subprocess
 import shutil
 def visualize(event,outputname):
-  g = nx.DiGraph()
-  for i,p in enumerate(event.particles):
-      g.add_node(i,attr_dict=p.__dict__)
-      name = pypdt.particle(p.id).name
-      greek = ['gamma','nu','mu','tau','rho','Xi','Sigma','Lambda','omega','Omega','Alpha','psi','phi','pi','chi']
-      for greekname in greek:
-          if greekname in name:
-              name = name.replace(greekname,'\\'+greekname)
-      if 'susy-' in name:
-          name = name.replace('susy-','\\tilde ')
-      g.node[i].update(texlbl = "${}$".format(name))
-  for i,p in enumerate(event.particles):
-      for mom in p.mothers():
-          g.add_edge(event.particles.index(mom),i)
-  nx.write_dot(g,'event.dot')
-  p = subprocess.Popen(['dot2tex','event.dot'], stdout = subprocess.PIPE)
-  tex2pix.Renderer(texfile = p.stdout).mkpdf(outputname)
-  subprocess.check_call(['pdfcrop',outputname,outputname])
-  # shutil.move('event-cropped.pdf','event.pdf')
-  os.remove('event.dot')
+    g = nx.DiGraph()
+    for i,p in enumerate(event.particles):
+        g.add_node(i,attr_dict=p.__dict__)
+        name = pypdt.particle(p.id).name
+        greek = ['gamma','nu','mu','tau','rho','Xi','Sigma','Lambda','omega','Omega','Alpha','psi','phi','pi','chi']
+        for greekname in greek:
+            if greekname in name:
+                name = name.replace(greekname,'\\'+greekname)
+        if 'susy-' in name:
+            name = name.replace('susy-','\\tilde ')
+        g.node[i].update(texlbl = "${}$".format(name))
+    for i,p in enumerate(event.particles):
+        for mom in p.mothers():
+            g.add_edge(event.particles.index(mom),i)
+    nx.write_dot(g,'event.dot')
+    p = subprocess.Popen(['dot2tex','event.dot'], stdout = subprocess.PIPE)
+    tex2pix.Renderer(texfile = p.stdout).mkpdf(outputname)
+    subprocess.check_call(['pdfcrop',outputname,outputname])
+    # shutil.move('event-cropped.pdf','event.pdf')
+    os.remove('event.dot')
