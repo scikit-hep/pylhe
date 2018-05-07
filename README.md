@@ -1,4 +1,4 @@
-#pylhe
+# pylhe -- python LHE interface
 
 [![DOI](https://zenodo.org/badge/34966492.svg)](https://zenodo.org/badge/latestdoi/34966492)
 
