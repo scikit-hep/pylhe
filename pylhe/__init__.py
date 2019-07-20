@@ -62,7 +62,7 @@ def readLHE(thefile):
                 yield LHEEvent(eventinfo,particle_objs)
     
     except ET.ParseError:
-        print "WARNING. Parse Error."
+        print("WARNING. Parse Error.")
         return
     
 import networkx as nx
