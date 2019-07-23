@@ -29,7 +29,7 @@ class LHEParticle(object):
     def __init__(self, **kwargs):
         if not set(kwargs.keys()) == set(self.fieldnames):
             raise RuntimeError
-        for k,v in kwargs.iteritems():
+        for k,v in kwargs.items():
             setattr(self,k,v)
     
     @classmethod
