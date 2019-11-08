@@ -17,7 +17,9 @@ setup(
     description="small package to get structured data out of Les Houches Event files",
     author="Lukas Heinrich",
     author_email="lukas.heinrich@cern.ch",
-    packages=find_packages(),
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
+    include_package_data=True,
     install_requires=["networkx", "tex2pix", "pypdt"],
     extras_require=extras_require,
 )
