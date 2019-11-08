@@ -30,8 +30,12 @@ jobs:
     - name: Lint with Pyflakes
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
       run: |
-        pyflakes pylhe
+        pyflakes src
     - name: Lint with Black
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
       run: |
         black --check --diff --verbose .
+    - name: Check MANIFEST
+      if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
+      run: |
+        check-manifest
