@@ -8,3 +8,11 @@ exclude = '''
   | build
 )/
 '''
+
+[tool.check-manifest]
+ignore = [
+    'examples*',
+    '.*',
+    'pyproject.toml',
+    'CODE_OF_CONDUCT.md',
+]
