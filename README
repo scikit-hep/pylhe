@@ -1,7 +1,0 @@
-small and thin python interface to read Les Houches Event (LHE) files. Additionally supports graphical visualization of event as graphs.
-
-GitHub:
-https://github.com/lukasheinrich/pylhe
-
-Example:
-http://nbviewer.ipython.org/github/lukasheinrich/pylhe/blob/master/zpeak.ipynb
