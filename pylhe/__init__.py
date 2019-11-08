@@ -133,9 +133,9 @@ def readLHEInit(thefile):
                 if child.tag == "weightgroup" and child.attrib != {}:
                     try:
                         wg_type = child.attrib["type"]
-                    except Exception:
+                    except KeyError:
                         print("weightgroup must have attribute 'type'")
-                        sys.exit(1)
+                        raise
                     _temp = {"attrib": child.attrib}
                     _temp["weights"] = {}
                     # Iterate over all weights in this weightgroup
@@ -144,9 +144,9 @@ def readLHEInit(thefile):
                             continue
                         try:
                             wg_id = w.attrib["id"]
-                        except Exception:
+                        except KeyError:
                             print("weight must have attribute 'id'")
-                            sys.exit(1)
+                            raise
                         _w = {"attrib": w.attrib}
                         _w["name"] = w.text.strip()
                         _temp["weights"][wg_id] = _w
