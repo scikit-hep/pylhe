@@ -1,5 +1,14 @@
 from setuptools import setup,find_packages
 
+extras_require = {
+    'develop': [
+        'pre-commit',
+        'black;python_version>="3.6"',  # Black is Python3 only
+        'twine',
+    ],
+}
+extras_require['complete'] = sorted(set(sum(extras_require.values(), [])))
+
 setup(
   name = 'pylhe',
   version = '0.0.4',
@@ -11,5 +20,6 @@ setup(
     'networkx',
     'tex2pix',
     'pypdt'
-  ]
+  ],
+    extras_require=extras_require,
 )
