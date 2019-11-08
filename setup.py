@@ -2,6 +2,8 @@ from setuptools import setup, find_packages
 
 extras_require = {
     "develop": [
+        "check-manifest",
+        "pyflakes",
         "pre-commit",
         "black;python_version>='3.6'",  # Black is Python3 only
         "twine",

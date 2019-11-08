@@ -117,7 +117,7 @@ def loads():
 def readLHEInit(thefile):
     """
     Read the init blocks. Return dict. This encodes the weight group
-    and related things according to https://arxiv.org/pdf/1405.1067.pdf
+    and related things according to https://arxiv.org/abs/1405.1067
     This function returns a dict.
     """
     initDict = {}
@@ -133,9 +133,9 @@ def readLHEInit(thefile):
                 if child.tag == "weightgroup" and child.attrib != {}:
                     try:
                         wg_type = child.attrib["type"]
-                    except Exception, e:
-                        print "weightgroup must have attribute 'type'"
-                        sys.exit(1)
+                    except KeyError:
+                        print("weightgroup must have attribute 'type'")
+                        raise
                     _temp = {"attrib": child.attrib}
                     _temp["weights"] = {}
                     # Iterate over all weights in this weightgroup
@@ -144,9 +144,9 @@ def readLHEInit(thefile):
                             continue
                         try:
                             wg_id = w.attrib["id"]
-                        except Exception, e:
-                            print "weight must have attribute 'id'"
-                            sys.exit(1)
+                        except KeyError:
+                            print("weight must have attribute 'id'")
+                            raise
                         _w = {"attrib": w.attrib}
                         _w["name"] = w.text.strip()
                         _temp["weights"][wg_id] = _w
@@ -168,9 +168,8 @@ def readLHE(thefile):
                 for p in particles:
                     particle_objs += [LHEParticle.fromstring(p)]
                 yield LHEEvent(eventinfo, particle_objs)
-
     except ET.ParseError:
-        print ("WARNING. Parse Error.")
+        print("WARNING. Parse Error.")
         return
 
 
@@ -206,9 +205,8 @@ def readLHEWithAttributes(thefile):
                     eventdict["weights"],
                     eventdict["attrib"],
                 )
-
     except ET.ParseError:
-        print "WARNING. Parse Error."
+        print("WARNING. Parse Error.")
         return
 
 
