@@ -134,7 +134,7 @@ def readLHEInit(thefile):
                     try:
                         wg_type = child.attrib["type"]
                     except Exception, e:
-                        print "weightgroup must have attribute 'type'"
+                        print("weightgroup must have attribute 'type'")
                         sys.exit(1)
                     _temp = {"attrib": child.attrib}
                     _temp["weights"] = {}
@@ -145,7 +145,7 @@ def readLHEInit(thefile):
                         try:
                             wg_id = w.attrib["id"]
                         except Exception, e:
-                            print "weight must have attribute 'id'"
+                            print("weight must have attribute 'id'")
                             sys.exit(1)
                         _w = {"attrib": w.attrib}
                         _w["name"] = w.text.strip()
@@ -170,7 +170,7 @@ def readLHE(thefile):
                 yield LHEEvent(eventinfo, particle_objs)
 
     except ET.ParseError:
-        print ("WARNING. Parse Error.")
+        print("WARNING. Parse Error.")
         return
 
 
@@ -208,7 +208,7 @@ def readLHEWithAttributes(thefile):
                 )
 
     except ET.ParseError:
-        print "WARNING. Parse Error."
+        print("WARNING. Parse Error.")
         return
 
 
