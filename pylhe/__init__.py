@@ -117,7 +117,7 @@ def loads():
 def readLHEInit(thefile):
     """
     Read the init blocks. Return dict. This encodes the weight group
-    and related things according to https://arxiv.org/pdf/1405.1067.pdf
+    and related things according to https://arxiv.org/abs/1405.1067
     This function returns a dict.
     """
     initDict = {}
