@@ -1,0 +1,10 @@
+# Ignore everything
+**
+
+# Except the following
+!/docker/**
+!/src/**
+!/LICENSE
+!/pyproject.toml
+!/README.md
+!/setup.py
