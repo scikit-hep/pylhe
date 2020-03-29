@@ -27,4 +27,6 @@ setup(
     include_package_data=True,
     install_requires=["networkx", "tex2pix", "pypdt"],
     extras_require=extras_require,
+    dependency_links=[],
+    use_scm_version=lambda: {"local_scheme": lambda version: ""},
 )
