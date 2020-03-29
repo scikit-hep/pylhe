@@ -13,7 +13,7 @@ extras_require["complete"] = sorted(set(sum(extras_require.values(), [])))
 
 setup(
     name="pylhe",
-    version="0.0.4",
+    version="0.0.5",
     description="small package to get structured data out of Les Houches Event files",
     author="Lukas Heinrich",
     author_email="lukas.heinrich@cern.ch",
