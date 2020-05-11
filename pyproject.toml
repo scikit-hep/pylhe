@@ -11,8 +11,8 @@ exclude = '''
 
 [tool.check-manifest]
 ignore = [
-    'examples*',
-    'docker*',
+    'examples/**',
+    'docker/**',
     '.*',
     'pyproject.toml',
     'CODE_OF_CONDUCT.md',
