@@ -1,4 +1,5 @@
 ARG BASE_IMAGE=python:3.7-slim
+# hadolint ignore=DL3006
 FROM ${BASE_IMAGE} as base
 
 FROM base as builder
