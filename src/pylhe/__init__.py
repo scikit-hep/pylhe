@@ -12,11 +12,17 @@ class LHEFile(object):
 
 
 class LHEEvent(object):
-    def __init__(self, eventinfo, particles, weights=None, attributes=None):
+    def __init__(self,
+                 eventinfo,
+                 particles,
+                 weights=None,
+                 attributes=None,
+                 optional=None):
         self.eventinfo = eventinfo
         self.particles = particles
         self.weights = weights
         self.attributes = attributes
+        self.optional = optional
         for p in self.particles:
             p.event = self
 
@@ -125,7 +131,9 @@ def readLHEInit(thefile):
         if element.tag == "init":
             data = element.text.split("\n")[1:-1]
             initDict["initInfo"] = LHEInit.fromstring(data[0])
-            initDict["procInfo"] = [LHEProcInfo.fromstring(d) for d in data[1:]]
+            initDict["procInfo"] = [
+                LHEProcInfo.fromstring(d) for d in data[1:]
+            ]
         if element.tag == "initrwgt":
             initDict["weightgroup"] = {}
             for child in element:
@@ -173,7 +181,7 @@ def readLHE(thefile):
         return
 
 
-def readLHEWithAttributes(thefile):
+def readLHEWithAttributes(thefile, parse_optional=False):
     """
     Iterate through file, similar to readLHE but also set
     weights and attributes.
@@ -191,20 +199,20 @@ def readLHEWithAttributes(thefile):
                 for p in particles:
                     if not p.strip().startswith("#"):
                         eventdict["particles"] += [LHEParticle.fromstring(p)]
+                    elif parse_optional:
+                        if "optional" not in list(eventdict.keys()):
+                            eventdict["optional"] = []
+                        eventdict["optional"].append(p.strip())
                 for sub in element:
                     if sub.tag == "rwgt":
                         for r in sub:
                             if r.tag == "wgt":
                                 eventdict["weights"][r.attrib["id"]] = float(
-                                    r.text.strip()
-                                )
+                                    r.text.strip())
                 # yield eventdict
-                yield LHEEvent(
-                    eventdict["eventinfo"],
-                    eventdict["particles"],
-                    eventdict["weights"],
-                    eventdict["attrib"],
-                )
+                yield LHEEvent(eventdict["eventinfo"], eventdict["particles"],
+                               eventdict["weights"], eventdict["attrib"],
+                               eventdict["optional"])
     except ET.ParseError:
         print("WARNING. Parse Error.")
         return
