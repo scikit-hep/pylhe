@@ -210,6 +210,8 @@ def readLHEWithAttributes(thefile, parse_optional=False):
                                 eventdict["weights"][r.attrib["id"]] = float(
                                     r.text.strip())
                 # yield eventdict
+                if not parse_optional:
+                    eventdict["optional"] = None
                 yield LHEEvent(eventdict["eventinfo"], eventdict["particles"],
                                eventdict["weights"], eventdict["attrib"],
                                eventdict["optional"])
