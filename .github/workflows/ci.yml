@@ -30,7 +30,7 @@ jobs:
     - name: Unit Tests
       run: |
         python -m pip install pytest
-        py.test --junitxml=./reports/junit.xml -o junit_suite_name=pylhe
+        py.test --junitxml=./reports/junit.xml -o junit_suite_name=pylhe $GITHUB_WORKSPACE
     - name: Coverage
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
       run: |
