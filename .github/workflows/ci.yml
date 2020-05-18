@@ -29,11 +29,13 @@ jobs:
         python -m pip list
     - name: Unit Tests
       run: |
+        ls
         python -m pip install pytest
         py.test --junitxml=./reports/junit.xml -o junit_suite_name=pylhe $GITHUB_WORKSPACE
     - name: Coverage
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
       run: |
+        ls
         py.test --cov ./ --cov-report term-missing --cov-report xml:reports/coverage.xml --cov-report html:reports/coverage
     - name: Lint with Pyflakes
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
