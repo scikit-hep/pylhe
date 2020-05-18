@@ -34,7 +34,7 @@ jobs:
     - name: Coverage
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
       run: |
-        py.test --cov ./ --cov-report term-missing --cov-report xml:reports/coverage.xml --cov-report html:reports/coverage
+        py.test --cov $GITHUB_WORKSPACE --cov-report term-missing --cov-report xml:reports/coverage.xml --cov-report html:reports/coverage
     - name: Lint with Pyflakes
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
       run: |
