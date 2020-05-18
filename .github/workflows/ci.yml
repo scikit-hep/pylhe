@@ -35,7 +35,7 @@ jobs:
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
       run: |
         python -m pip install pytest-cov
-        py.test --cov $GITHUB_WORKSPACE --cov-report term-missing --cov-report xml:reports/coverage.xml --cov-report html:reports/coverage
+        python -m pytest --cov $GITHUB_WORKSPACE --cov-report term-missing --cov-report xml:reports/coverage.xml --cov-report html:reports/coverage
     # - name: Upload Coverage
     #   uses: codecov/codevoc-action@v1
     #   with:
