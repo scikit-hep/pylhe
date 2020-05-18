@@ -29,7 +29,9 @@ jobs:
         python -m pip list
     - name: Unit Tests
       run: |
-        python -m pip install pytest
+        python -m pip install --upgrade pip setuptools wheel pytest
+        python -m pip install -q --no-cache-dir -e .[complete]
+        python -m pip list
         py.test --junitxml=./reports/junit.xml -o junit_suite_name=pylhe pylhe
     - name: Coverage
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
