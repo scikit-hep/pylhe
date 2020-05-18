@@ -33,6 +33,7 @@ jobs:
         py.test --junitxml=./reports/junit.xml -o junit_suite_name=pylhe pylhe
     - name: Coverage
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
+      run: |
         py.test --cov ./ --cov-report term-missing --cov-report xml:reports/coverage.xml --cov-report html:reports/coverage
     - name: Lint with Pyflakes
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
