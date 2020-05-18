@@ -181,7 +181,7 @@ def readLHE(thefile):
         return
 
 
-def readLHEWithAttributes(thefile, parse_optional=False):
+def readLHEWithAttributes(thefile):
     """
     Iterate through file, similar to readLHE but also set
     weights and attributes.
@@ -196,12 +196,11 @@ def readLHEWithAttributes(thefile, parse_optional=False):
                 eventdict["particles"] = []
                 eventdict["weights"] = {}
                 eventdict["attrib"] = element.attrib
+                eventdict["optional"] = []
                 for p in particles:
                     if not p.strip().startswith("#"):
                         eventdict["particles"] += [LHEParticle.fromstring(p)]
-                    elif parse_optional:
-                        if "optional" not in list(eventdict.keys()):
-                            eventdict["optional"] = []
+                    else:
                         eventdict["optional"].append(p.strip())
                 for sub in element:
                     if sub.tag == "rwgt":
@@ -210,8 +209,6 @@ def readLHEWithAttributes(thefile, parse_optional=False):
                                 eventdict["weights"][r.attrib["id"]] = float(
                                     r.text.strip())
                 # yield eventdict
-                if not parse_optional:
-                    eventdict["optional"] = None
                 yield LHEEvent(eventdict["eventinfo"], eventdict["particles"],
                                eventdict["weights"], eventdict["attrib"],
                                eventdict["optional"])
