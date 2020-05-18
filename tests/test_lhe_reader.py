@@ -1,14 +1,5 @@
 #!/usr/bin/env python
 # coding=utf-8
-# Filename: test_lhe_reader.py
-
-__author__ = "Johannes Schumann"
-__copyright__ = "Copyright 2020, Johannes Schumann"
-__credits__ = []
-__license__ = "MIT"
-__maintainer__ = "Johannes Schumann"
-__email__ = "jschumann@km3net.de"
-__status__ = "Development"
 
 import pytest
 import pylhe
