@@ -3,11 +3,10 @@
 
 import pytest
 import pylhe
+import skhep_testdata
 from os.path import dirname, join
 
-TEST_DATA_DIR = join(dirname(__file__), 'test_data')
-TEST_FILE = join(TEST_DATA_DIR, 'EventOutput.Pert.00000001.lhe')
-
+TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 
 def test_event_count():
     assert pylhe.readNumEvents(TEST_FILE) == 791
