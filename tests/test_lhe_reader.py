@@ -1,7 +1,6 @@
 import pytest
 import pylhe
 import skhep_testdata
-from os.path import dirname, join
 
 TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 
