@@ -1,4 +1,9 @@
 from setuptools import setup, find_packages
+from pathlib import Path
+
+this_directory = Path(__file__).parent.resolve()
+with open(Path(this_directory).joinpath("README.md"), encoding="utf-8") as readme_md:
+    long_description = readme_md.read()
 
 extras_require = {
     "test": [
@@ -20,6 +25,13 @@ setup(
     name="pylhe",
     version="0.0.5",
     description="small package to get structured data out of Les Houches Event files",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/scikit-hep/pylhe",
+    project_urls={
+        "Source": "https://github.com/scikit-hep/pylhe",
+        "Tracker": "https://github.com/scikit-hep/pylhe/issues",
+    },
     author="Lukas Heinrich",
     author_email="lukas.heinrich@cern.ch",
     package_dir={"": "src"},
