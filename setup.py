@@ -1,14 +1,19 @@
 from setuptools import setup, find_packages
 
 extras_require = {
-    "develop": [
+    "test": [
+        "pytest",
+        "pytest-cov>=2.5.1",
+        "scikit-hep-testdata",
+        "pydocstyle",
         "check-manifest",
         "pyflakes",
-        "pre-commit",
         "black;python_version>='3.6'",  # Black is Python3 only
-        "twine",
     ],
 }
+extras_require["develop"] = sorted(
+    set(extras_require["test"] + ["pre-commit", "twine"])
+)
 extras_require["complete"] = sorted(set(sum(extras_require.values(), [])))
 
 setup(
