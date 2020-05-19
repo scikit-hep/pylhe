@@ -7,7 +7,7 @@ extras_require = {
         "scikit-hep-testdata",
         "pydocstyle",
         "check-manifest",
-        "pyflakes",
+        "flake8",
         "black;python_version>='3.6'",  # Black is Python3 only
     ],
 }
