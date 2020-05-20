@@ -12,12 +12,9 @@ class LHEFile(object):
 
 
 class LHEEvent(object):
-    def __init__(self,
-                 eventinfo,
-                 particles,
-                 weights=None,
-                 attributes=None,
-                 optional=None):
+    def __init__(
+        self, eventinfo, particles, weights=None, attributes=None, optional=None
+    ):
         self.eventinfo = eventinfo
         self.particles = particles
         self.weights = weights
@@ -131,9 +128,7 @@ def readLHEInit(thefile):
         if element.tag == "init":
             data = element.text.split("\n")[1:-1]
             initDict["initInfo"] = LHEInit.fromstring(data[0])
-            initDict["procInfo"] = [
-                LHEProcInfo.fromstring(d) for d in data[1:]
-            ]
+            initDict["procInfo"] = [LHEProcInfo.fromstring(d) for d in data[1:]]
         if element.tag == "initrwgt":
             initDict["weightgroup"] = {}
             for child in element:
@@ -207,11 +202,16 @@ def readLHEWithAttributes(thefile):
                         for r in sub:
                             if r.tag == "wgt":
                                 eventdict["weights"][r.attrib["id"]] = float(
-                                    r.text.strip())
+                                    r.text.strip()
+                                )
                 # yield eventdict
-                yield LHEEvent(eventdict["eventinfo"], eventdict["particles"],
-                               eventdict["weights"], eventdict["attrib"],
-                               eventdict["optional"])
+                yield LHEEvent(
+                    eventdict["eventinfo"],
+                    eventdict["particles"],
+                    eventdict["weights"],
+                    eventdict["attrib"],
+                    eventdict["optional"],
+                )
     except ET.ParseError:
         print("WARNING. Parse Error.")
         return
