@@ -1,5 +1,7 @@
 graft src
 
 include LICENSE
+exclude pytest.ini
 
+global-exclude test_*.py
 global-exclude __pycache__ *.py[cod]
