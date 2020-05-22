@@ -45,7 +45,7 @@ jobs:
     #     env_vars: OS,PYTHON
     #     name: codecov-umbrella
     #     fail_ci_if_error: true
-    - name: Lint with Pyflakes
+    - name: Lint with flake8
       if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
       run: |
         python -m pyflakes src
