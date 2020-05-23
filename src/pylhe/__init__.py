@@ -1,9 +1,9 @@
 import os
 import xml.etree.ElementTree as ET
 import networkx as nx
-import pypdt
 import tex2pix
 import subprocess
+from particle import Particle
 
 
 class LHEFile(object):
@@ -232,36 +232,20 @@ def visualize(event, outputname):
     g = nx.DiGraph()
     for i, p in enumerate(event.particles):
         g.add_node(i, attr_dict=p.__dict__)
-        name = str(int(p.id)) if pypdt.particle(p.id) is None else pypdt.particle(p.id).name
-        greek = [
-            "gamma",
-            "nu",
-            "mu",
-            "tau",
-            "rho",
-            "Xi",
-            "Sigma",
-            "Lambda",
-            "omega",
-            "Omega",
-            "Alpha",
-            "psi",
-            "phi",
-            "pi",
-            "chi",
-        ]
-        for greekname in greek:
-            if greekname in name:
-                name = name.replace(greekname, '\\\\' + greekname)
-        if "susy-" in name:
-            name = name.replace("susy-", '\\\\tilde ')
-        g.node[i].update(texlbl="${}$".format(name))
+        try:
+          iid = int(p.id)
+          name = str(iid) if Particle.from_pdgid(iid) is None else Particle.from_pdgid(iid).latex_name
+          texlbl = "${}$".format(name)
+        except:
+          texlbl = str(p.id)
+        g.nodes[i].update(texlbl = texlbl)
     for i, p in enumerate(event.particles):
         for mom in p.mothers():
             g.add_edge(event.particles.index(mom), i)
     nx.nx_pydot.write_dot(g, "event.dot")
       
     p = subprocess.Popen(["dot2tex", "event.dot"], stdout=subprocess.PIPE)
-    tex2pix.Renderer(texfile=p.stdout).mkpdf(outputname)
+    tex = p.stdout.read().decode()
+    tex2pix.Renderer(tex).mkpdf(outputname)
     subprocess.check_call(["pdfcrop", outputname, outputname])
     os.remove("event.dot")
