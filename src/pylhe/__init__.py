@@ -12,11 +12,14 @@ class LHEFile(object):
 
 
 class LHEEvent(object):
-    def __init__(self, eventinfo, particles, weights=None, attributes=None):
+    def __init__(
+        self, eventinfo, particles, weights=None, attributes=None, optional=None
+    ):
         self.eventinfo = eventinfo
         self.particles = particles
         self.weights = weights
         self.attributes = attributes
+        self.optional = optional
         for p in self.particles:
             p.event = self
 
@@ -188,9 +191,12 @@ def readLHEWithAttributes(thefile):
                 eventdict["particles"] = []
                 eventdict["weights"] = {}
                 eventdict["attrib"] = element.attrib
+                eventdict["optional"] = []
                 for p in particles:
                     if not p.strip().startswith("#"):
                         eventdict["particles"] += [LHEParticle.fromstring(p)]
+                    else:
+                        eventdict["optional"].append(p.strip())
                 for sub in element:
                     if sub.tag == "rwgt":
                         for r in sub:
@@ -204,6 +210,7 @@ def readLHEWithAttributes(thefile):
                     eventdict["particles"],
                     eventdict["weights"],
                     eventdict["attrib"],
+                    eventdict["optional"],
                 )
     except ET.ParseError:
         print("WARNING. Parse Error.")
