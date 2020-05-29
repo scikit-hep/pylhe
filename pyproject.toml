@@ -1,3 +1,14 @@
+[build-system]
+# Minimum requirements for the build system to execute.
+requires = [
+    "wheel",
+    "setuptools>=30.3.0",
+    "attrs>=17.1",
+    "setuptools_scm>=1.15.0",
+    "setuptools_scm_git_archive>=1.0",
+]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 88
 include = '\.pyi?$'
