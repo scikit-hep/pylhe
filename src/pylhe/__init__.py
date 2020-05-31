@@ -4,6 +4,8 @@ import networkx as nx
 import tex2pix
 import subprocess
 from particle import Particle
+from particle.pdgid import is_SUSY
+from particle.converters.bimap import DirectionalMaps
 
 
 class LHEFile(object):
@@ -233,17 +235,28 @@ def visualize(event, outputname):
     for i, p in enumerate(event.particles):
         g.add_node(i, attr_dict=p.__dict__)
         try:
-          iid = int(p.id)
-          name = str(iid) if Particle.from_pdgid(iid) is None else Particle.from_pdgid(iid).latex_name
-          texlbl = "${}$".format(name)
+            iid = int(p.id)
+            if is_SUSY(iid):
+                # for SUSY particles, cf. https://github.com/scikit-hep/pylhe/pull/27#issuecomment-633127984
+                _PDGID2PDGNameMap, _PDGName2PDGIDMap = DirectionalMaps(
+                    "PDGID", "LATEXNAME", converters=(int, str)
+                )
+                name = _PDGID2PDGNameMap[iid]
+            else:
+                name = (
+                    str(iid)
+                    if Particle.from_pdgid(iid) is None
+                    else Particle.from_pdgid(iid).latex_name
+                )
+            texlbl = "${}$".format(name)
         except:
-          texlbl = str(p.id)
-        g.nodes[i].update(texlbl = texlbl)
+            texlbl = str(p.id)
+        g.nodes[i].update(texlbl=texlbl)
     for i, p in enumerate(event.particles):
         for mom in p.mothers():
             g.add_edge(event.particles.index(mom), i)
     nx.nx_pydot.write_dot(g, "event.dot")
-      
+
     p = subprocess.Popen(["dot2tex", "event.dot"], stdout=subprocess.PIPE)
     tex = p.stdout.read().decode()
     tex2pix.Renderer(tex).mkpdf(outputname)
