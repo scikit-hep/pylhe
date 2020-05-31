@@ -25,6 +25,9 @@ class LHEEvent(object):
         for p in self.particles:
             p.event = self
 
+    def visualize(self, outputname):
+        visualize(self, outputname)
+
 
 class LHEEventInfo(object):
     fieldnames = ["nparticles", "pid", "weight", "scale", "aqed", "aqcd"]
