@@ -27,10 +27,6 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install -q --no-cache-dir -e .[test]
         python -m pip list
-    - name: Check MANIFEST
-      if: matrix.python-version == 3.7 && matrix.os == 'ubuntu-latest'
-      run: |
-        check-manifest
 
   docker:
 
