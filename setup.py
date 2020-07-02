@@ -4,7 +4,7 @@ extras_require = {
     "test": [
         "pytest",
         "pytest-cov>=2.5.1",
-        "scikit-hep-testdata",
+        "scikit-hep-testdata>=0.3.1",
         "pydocstyle",
         "check-manifest",
         "flake8",
