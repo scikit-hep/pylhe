@@ -25,6 +25,8 @@ ignore = [
     'examples/**',
     'docker/**',
     '.*',
+    'test_*.py',
+    'pytest.ini',
     'pyproject.toml',
     'CODE_OF_CONDUCT.md',
 ]
