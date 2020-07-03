@@ -22,9 +22,12 @@ exclude = '''
 
 [tool.check-manifest]
 ignore = [
-    'examples/**',
-    'docker/**',
+    'examples/*',
+    'tests/*',
+    'docker/*',
     '.*',
     'pyproject.toml',
+    'pytest.ini',
+    'codecov.yml',
     'CODE_OF_CONDUCT.md',
 ]
