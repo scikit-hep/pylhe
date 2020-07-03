@@ -27,6 +27,16 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install -q --no-cache-dir -e .[test]
         python -m pip list
+    - name: Test with pytest
+      run: |
+        python -m pytest -r sx tests/
+    - name: Report coverage with Codecov
+      if: github.event_name == 'push' && matrix.python-version == 3.8 && matrix.os == 'ubuntu-latest'
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: pylhe
 
   docker:
 
