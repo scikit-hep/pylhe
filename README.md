@@ -10,3 +10,17 @@
 [![Code Coverage](https://codecov.io/gh/scikit-hep/pylhe/graph/badge.svg?branch=master)](https://codecov.io/gh/scikit-hep/pylhe?branch=master)
 
 Small and thin Python interface to read [Les Houches Event (LHE)](https://inspirehep.net/record/725284) files
+
+## Citation
+
+The preferred BibTeX entry for citation of `pylhe` is
+
+```
+@software{pylhe,
+  author = "{Heinrich, Lukas}",
+  title = "{pylhe: v0.0.5}",
+  version = {v0.0.5},
+  doi = {10.5281/zenodo.1217031},
+  url = {https://github.com/scikit-hep/pylhe},
+}
+```
