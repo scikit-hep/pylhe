@@ -3,8 +3,6 @@ import xml.etree.ElementTree as ET
 import networkx as nx
 import tex2pix
 import subprocess
-from particle import Particle
-from particle.pdgid import is_SUSY
 from particle.converters.bimap import DirectionalMaps
 
 
@@ -176,8 +174,8 @@ def readLHE(thefile):
                 for p in particles:
                     particle_objs += [LHEParticle.fromstring(p)]
                 yield LHEEvent(eventinfo, particle_objs)
-    except ET.ParseError:
-        print("WARNING. Parse Error.")
+    except ET.ParseError as e:
+        print("WARNING. Parse Error:", e)
         return
 
 
@@ -234,26 +232,20 @@ def readNumEvents(file):
 
 
 def visualize(event, outputname):
+    # retrieve mapping of PDG ID to particle name as LaTeX string
+    _PDGID2LaTeXNameMap, _ = DirectionalMaps(    
+        "PDGID", "LATEXNAME", converters=(int, str)
+    )
+    # draw graph
     g = nx.DiGraph()
     for i, p in enumerate(event.particles):
         g.add_node(i, attr_dict=p.__dict__)
         try:
             iid = int(p.id)
-            if is_SUSY(iid):
-                # for SUSY particles, cf. https://github.com/scikit-hep/pylhe/pull/27#issuecomment-633127984
-                _PDGID2PDGNameMap, _PDGName2PDGIDMap = DirectionalMaps(
-                    "PDGID", "LATEXNAME", converters=(int, str)
-                )
-                name = _PDGID2PDGNameMap[iid]
-            else:
-                name = (
-                    str(iid)
-                    if Particle.from_pdgid(iid) is None
-                    else Particle.from_pdgid(iid).latex_name
-                )
+            name = _PDGID2LaTeXNameMap[iid]
             texlbl = "${}$".format(name)
         except:
-            texlbl = str(p.id)
+            texlbl = str(int(p.id))
         g.nodes[i].update(texlbl=texlbl)
     for i, p in enumerate(event.particles):
         for mom in p.mothers():
@@ -265,3 +257,5 @@ def visualize(event, outputname):
     tex2pix.Renderer(tex).mkpdf(outputname)
     subprocess.check_call(["pdfcrop", outputname, outputname])
     os.remove("event.dot")
+
+    
