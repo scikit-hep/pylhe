@@ -233,7 +233,7 @@ def readNumEvents(file):
 
 def visualize(event, outputname):
     # retrieve mapping of PDG ID to particle name as LaTeX string
-    _PDGID2LaTeXNameMap, _ = DirectionalMaps(    
+    _PDGID2LaTeXNameMap, _ = DirectionalMaps(
         "PDGID", "LATEXNAME", converters=(int, str)
     )
     # draw graph
@@ -257,5 +257,3 @@ def visualize(event, outputname):
     tex2pix.Renderer(tex).mkpdf(outputname)
     subprocess.check_call(["pdfcrop", outputname, outputname])
     os.remove("event.dot")
-
-    
