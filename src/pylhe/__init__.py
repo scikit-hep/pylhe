@@ -233,9 +233,9 @@ def readNumEvents(file):
 
 def visualize(event, outputname):
     """
-    create a PDF with a visualisation of the LHE event record as a directed graph
+    Create a PDF with a visualisation of the LHE event record as a directed graph
     """
-    
+
     # retrieve mapping of PDG ID to particle name as LaTeX string
     _PDGID2LaTeXNameMap, _ = DirectionalMaps(
         "PDGID", "LATEXNAME", converters=(int, str)
