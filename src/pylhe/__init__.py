@@ -1,9 +1,9 @@
 import os
 import xml.etree.ElementTree as ET
 import networkx as nx
-import pypdt
 import tex2pix
 import subprocess
+from particle.converters.bimap import DirectionalMaps
 
 
 class LHEFile(object):
@@ -22,6 +22,9 @@ class LHEEvent(object):
         self.optional = optional
         for p in self.particles:
             p.event = self
+
+    def visualize(self, outputname):
+        visualize(self, outputname)
 
 
 class LHEEventInfo(object):
@@ -171,8 +174,8 @@ def readLHE(thefile):
                 for p in particles:
                     particle_objs += [LHEParticle.fromstring(p)]
                 yield LHEEvent(eventinfo, particle_objs)
-    except ET.ParseError:
-        print("WARNING. Parse Error.")
+    except ET.ParseError as e:
+        print("WARNING. Parse Error:", e)
         return
 
 
@@ -229,38 +232,32 @@ def readNumEvents(file):
 
 
 def visualize(event, outputname):
+    """
+    Create a PDF with a visualisation of the LHE event record as a directed graph
+    """
+
+    # retrieve mapping of PDG ID to particle name as LaTeX string
+    _PDGID2LaTeXNameMap, _ = DirectionalMaps(
+        "PDGID", "LATEXNAME", converters=(int, str)
+    )
+    # draw graph
     g = nx.DiGraph()
     for i, p in enumerate(event.particles):
         g.add_node(i, attr_dict=p.__dict__)
-        name = pypdt.particle(p.id).name
-        greek = [
-            "gamma",
-            "nu",
-            "mu",
-            "tau",
-            "rho",
-            "Xi",
-            "Sigma",
-            "Lambda",
-            "omega",
-            "Omega",
-            "Alpha",
-            "psi",
-            "phi",
-            "pi",
-            "chi",
-        ]
-        for greekname in greek:
-            if greekname in name:
-                name = name.replace(greekname, "\\" + greekname)
-        if "susy-" in name:
-            name = name.replace("susy-", "\\tilde ")
-        g.node[i].update(texlbl="${}$".format(name))
+        try:
+            iid = int(p.id)
+            name = _PDGID2LaTeXNameMap[iid]
+            texlbl = "${}$".format(name)
+        except KeyError:
+            texlbl = str(int(p.id))
+        g.nodes[i].update(texlbl=texlbl)
     for i, p in enumerate(event.particles):
         for mom in p.mothers():
             g.add_edge(event.particles.index(mom), i)
-    nx.write_dot(g, "event.dot")
+    nx.nx_pydot.write_dot(g, "event.dot")
+
     p = subprocess.Popen(["dot2tex", "event.dot"], stdout=subprocess.PIPE)
-    tex2pix.Renderer(texfile=p.stdout).mkpdf(outputname)
+    tex = p.stdout.read().decode()
+    tex2pix.Renderer(tex).mkpdf(outputname)
     subprocess.check_call(["pdfcrop", outputname, outputname])
     os.remove("event.dot")
