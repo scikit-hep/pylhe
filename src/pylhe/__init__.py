@@ -248,7 +248,7 @@ def visualize(event, outputname):
             iid = int(p.id)
             name = _PDGID2LaTeXNameMap[iid]
             texlbl = "${}$".format(name)
-        except:
+        except KeyError:
             texlbl = str(int(p.id))
         g.nodes[i].update(texlbl=texlbl)
     for i, p in enumerate(event.particles):
