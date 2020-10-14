@@ -18,8 +18,8 @@ The preferred BibTeX entry for citation of `pylhe` is
 ```
 @software{pylhe,
   author = "{Heinrich, Lukas}",
-  title = "{pylhe: v0.0.5}",
-  version = {v0.0.5},
+  title = "{pylhe: v0.0.6}",
+  version = {v0.0.6},
   doi = {10.5281/zenodo.1217031},
   url = {https://github.com/scikit-hep/pylhe},
 }
