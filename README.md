@@ -4,8 +4,10 @@
 [![DOI](https://zenodo.org/badge/34966492.svg)](https://zenodo.org/badge/latestdoi/34966492)
 [![Scikit-HEP](https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg)](https://scikit-hep.org/)
 
-[![GitHub Actions Status](https://github.com/lukasheinrich/pylhe/workflows/CI/CD/badge.svg)](https://github.com/lukasheinrich/pylhe/actions)
 [![PyPI version](https://badge.fury.io/py/pylhe.svg)](https://badge.fury.io/py/pylhe)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/pylhe.svg)](https://pypi.org/project/pylhe/)
+
+[![GitHub Actions Status](https://github.com/lukasheinrich/pylhe/workflows/CI/CD/badge.svg)](https://github.com/lukasheinrich/pylhe/actions)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Code Coverage](https://codecov.io/gh/scikit-hep/pylhe/graph/badge.svg?branch=master)](https://codecov.io/gh/scikit-hep/pylhe?branch=master)
 
