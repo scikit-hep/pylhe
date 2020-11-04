@@ -30,7 +30,7 @@ jobs:
         python -m pip list
     - name: Install external pacakges
       run: |
-        sudo apt-get install -y graphviz texlive-latex-base
+        sudo apt-get install -y graphviz texlive-latex-base dvipng
     - name: Test with pytest
       run: |
         python -m pytest -r sx tests/
