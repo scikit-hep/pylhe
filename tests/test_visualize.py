@@ -8,5 +8,6 @@ def test_visualize(tmpdir):
     events = pylhe.readLHEWithAttributes(lhe_file)
     start_event = 1
     stop_event = 2
+    filename = tmpdir.join(f"event{start_event}.pdf")
     for idx, event in enumerate(itertools.islice(events, start_event, stop_event)):
-        pylhe.visualize(event, tmpdir.join(f"event{idx+start_event}.pdf"))
+        pylhe.visualize(event, filename)
