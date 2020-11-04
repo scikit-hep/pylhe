@@ -257,8 +257,7 @@ def visualize(event, outputname):
     nx.nx_pydot.write_dot(g, "event.dot")
 
     p = subprocess.Popen(["dot2tex", "event.dot"], stdout=subprocess.PIPE)
-    # TODO: Remove explicit str wrapping once Python 2 dropped
-    tex = str(p.stdout.read().decode())
+    tex = p.stdout.read().decode()
     tex2pix.Renderer(tex).mkpdf(outputname)
     subprocess.check_call(["pdfcrop", outputname, outputname])
     os.remove("event.dot")
