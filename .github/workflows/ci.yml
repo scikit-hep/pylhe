@@ -28,6 +28,9 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install -q --no-cache-dir -e .[test]
         python -m pip list
+    - name: Install external pacakges
+      run: |
+        apt install -y graphviz
     - name: Test with pytest
       run: |
         python -m pytest -r sx tests/
