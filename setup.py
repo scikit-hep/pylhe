@@ -6,13 +6,14 @@ extras_require["lint"] = sorted(set(["flake8", "black;python_version>='3.6'"]))
 extras_require["viz"] = sorted(set(["pygraphviz", "pydot", "dot2tex"]))
 extras_require["test"] = sorted(
     set(
-        extras_require["lint"]
+        extras_require["viz"]
         + ["pytest", "pytest-cov>=2.5.1", "scikit-hep-testdata>=0.3.1", "pydocstyle"]
     )
 )
 extras_require["develop"] = sorted(
     set(
-        extras_require["test"]
+        extras_require["lint"]
+        + extras_require["test"]
         + ["pre-commit", "check-manifest", "bump2version~=1.0", "twine"]
     )
 )
