@@ -42,7 +42,7 @@ class LHEEventInfo(object):
 
 
 class LHEParticle(object):
-    fieldnames = fieldnames = [
+    fieldnames = [
         "id",
         "status",
         "mother1",
