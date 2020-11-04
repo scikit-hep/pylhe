@@ -29,8 +29,14 @@ jobs:
         python -m pip install -q --no-cache-dir -e .[test]
         python -m pip list
     - name: Install external pacakges
-      run: |
-        sudo apt-get install -y graphviz texlive-latex-base texlive-fonts-recommended texlive-fonts-extra dvipng
+      run: >-
+        sudo apt-get install -y
+        graphviz
+        texlive-latex-base
+        texlive-fonts-recommended
+        texlive-fonts-extra
+        dvipng
+        pdfcrop
     - name: Test with pytest
       run: |
         python -m pytest -r sx tests/
