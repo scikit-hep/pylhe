@@ -13,6 +13,22 @@
 
 Small and thin Python interface to read [Les Houches Event (LHE)](https://inspirehep.net/record/725284) files
 
+## Install
+
+To install `pylhe` from PyPI you can just do
+
+```
+python -m pip install pylhe
+```
+
+and to get the required libraries to be able to visualize events install with the "viz" extra
+
+```
+python -m pip install pylhe[viz]
+```
+
+The visualization capabilities require external dependencies of [Graphviz](https://graphviz.org/) and LaTeX.
+
 ## Citation
 
 The preferred BibTeX entry for citation of `pylhe` is
