@@ -9,6 +9,7 @@ def test_visualize(tmpdir):
     start_event = 1
     stop_event = 2
     # TODO: Use f-strings once Python 2 dropped
-    filename = tmpdir.join("event{}.pdf".format(start_event))
+    # TODO: Remove explicit str wrapping once Python 2 dropped
+    filename = str(tmpdir.join("event{}.pdf".format(start_event)))
     for idx, event in enumerate(itertools.islice(events, start_event, stop_event)):
         pylhe.visualize(event, filename)
