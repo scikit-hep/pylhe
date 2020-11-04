@@ -36,8 +36,8 @@ The preferred BibTeX entry for citation of `pylhe` is
 ```
 @software{pylhe,
   author = "{Heinrich, Lukas}",
-  title = "{pylhe: v0.1.0}",
-  version = {v0.1.0},
+  title = "{pylhe: v0.2.0}",
+  version = {v0.2.0},
   doi = {10.5281/zenodo.1217031},
   url = {https://github.com/scikit-hep/pylhe},
 }
