@@ -6,12 +6,12 @@ import subprocess
 from particle.converters.bimap import DirectionalMaps
 
 
-class LHEFile(object):
+class LHEFile:
     def __init__(self):
         pass
 
 
-class LHEEvent(object):
+class LHEEvent:
     def __init__(
         self, eventinfo, particles, weights=None, attributes=None, optional=None
     ):
@@ -27,7 +27,7 @@ class LHEEvent(object):
         visualize(self, outputname)
 
 
-class LHEEventInfo(object):
+class LHEEventInfo:
     fieldnames = ["nparticles", "pid", "weight", "scale", "aqed", "aqcd"]
 
     def __init__(self, **kwargs):
@@ -41,7 +41,7 @@ class LHEEventInfo(object):
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
-class LHEParticle(object):
+class LHEParticle:
     fieldnames = [
         "id",
         "status",
@@ -73,7 +73,7 @@ class LHEParticle(object):
         mothers = []
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
-        for idx in set([first_idx, second_idx]):
+        for idx in {first_idx, second_idx}:
             if idx >= 0:
                 mothers.append(self.event.particles[idx])
         return mothers
@@ -247,7 +247,7 @@ def visualize(event, outputname):
         try:
             iid = int(p.id)
             name = _PDGID2LaTeXNameMap[iid]
-            texlbl = "${}$".format(name)
+            texlbl = f"${name}$"
         except KeyError:
             texlbl = str(int(p.id))
         g.nodes[i].update(texlbl=texlbl)
