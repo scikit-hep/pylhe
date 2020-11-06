@@ -1,9 +1,9 @@
 from setuptools import setup
 
 extras_require = {}
-extras_require["lint"] = sorted(set(["flake8", "black;python_version>='3.6'"]))
+extras_require["lint"] = sorted({"flake8", "black;python_version>='3.6'"})
 # c.f. https://networkx.org/documentation/stable/install.html#optional-packages
-extras_require["viz"] = sorted(set(["pydot", "dot2tex"]))
+extras_require["viz"] = sorted({"pydot", "dot2tex"})
 extras_require["test"] = sorted(
     set(
         extras_require["viz"]
