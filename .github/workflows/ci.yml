@@ -28,9 +28,9 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install -q --no-cache-dir -e .[test]
         python -m pip list
+        sudo apt-get update -y
     - name: Install external pacakges
       run: >-
-        sudo apt-get update -y
         sudo apt-get install -y
         graphviz
         texlive-latex-base
