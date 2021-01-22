@@ -13,7 +13,6 @@ repos:
     - id: debug-statements
     - id: end-of-file-fixer
     - id: mixed-line-ending
-    - id: requirements-txt-fixer
     - id: trailing-whitespace
 -   repo: https://github.com/psf/black
     rev: 20.8b1
