@@ -15,16 +15,17 @@ TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 @pytest.fixture(scope="session")
 def testdata_gzip_file():
     test_data = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
-    tmp_path = NamedTemporaryFile()
+    tmp_file = NamedTemporaryFile()
+    tmp_path = Path(tmp_file.name)
 
     # create a file that is basically pylhe-testfile-pr29.lhe.gz
     with open(test_data, "rb") as readfile:
         with gzip.open(tmp_path, "wb") as writefile:
             copyfileobj(readfile, writefile)
-    yield Path(tmp_path.name)
+    yield tmp_path
 
     # teardown
-    os.remove(Path(tmp_path.name))
+    os.remove(tmp_path)
 
 
 def test_gzip_open(tmpdir, testdata_gzip_file):
