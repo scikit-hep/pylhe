@@ -2,6 +2,7 @@ import gzip
 import os
 import subprocess
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import networkx as nx
 import tex2pix
@@ -126,7 +127,7 @@ def _open_gzip_file(filepath):
     """
     Checks to see if a file is compressed, and if so, open it with gzip
     """
-    if not filepath.lower().endswith(".gz"):
+    if not Path(filepath).name.lower().endswith(".gz"):
         return filepath
 
     with gzip.open(filepath, "r") as gzip_file:
