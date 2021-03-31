@@ -1,7 +1,7 @@
 import gzip
 import os
+import shutil
 from pathlib import Path
-from shutil import copyfileobj
 from tempfile import NamedTemporaryFile
 
 import pytest
@@ -15,13 +15,15 @@ TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 @pytest.fixture(scope="session")
 def testdata_gzip_file():
     test_data = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
+    # Create a tmp path that is named with .gz
     tmp_file = NamedTemporaryFile()
-    tmp_path = Path(tmp_file.name)
+    tmp_path = Path(Path(tmp_file.name).parent.joinpath("pylhe-testfile-pr29.lhe.gz"))
+    shutil.copy(tmp_file.name, tmp_path)
 
-    # create a file that is basically pylhe-testfile-pr29.lhe.gz
+    # create pylhe-testfile-pr29.lhe.gz
     with open(test_data, "rb") as readfile:
         with gzip.open(tmp_path, "wb") as writefile:
-            copyfileobj(readfile, writefile)
+            shutil.copyfileobj(readfile, writefile)
     yield tmp_path
 
     # teardown
