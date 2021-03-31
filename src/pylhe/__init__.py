@@ -123,34 +123,34 @@ def loads():
     pass
 
 
-def _open_gzip_file(filepath):
+def _open_gzip_file(fileobj):
     """
     Checks to see if a file is compressed, and if so, open it with gzip
     """
-    if not Path(filepath).name.lower().endswith(".gz"):
-        return filepath
+    if not Path(fileobj).name.lower().endswith(".gz"):
+        return fileobj
 
-    with open(filepath, "rb") as gzip_file:
+    with open(fileobj, "rb") as gzip_file:
         header = gzip_file.read(2)
     gzip_magic_number = b"\x1f\x8b"
     if header != gzip_magic_number:
         raise OSError(
-            f"Input file {filepath} is not a compressed file.\n"
-            + f"{filepath} has header of {header} and not gzip's {gzip_magic_number}.\n"
+            f"Input file {fileobj} is not a compressed file.\n"
+            + f"{fileobj} has header of {header} and not gzip's {gzip_magic_number}.\n"
         )
 
-    return gzip.open(filepath, "r")
+    return gzip.open(fileobj, "r")
 
 
-def readLHEInit(filepath):
+def readLHEInit(fileobj):
     """
     Read the init blocks. Return dict. This encodes the weight group
     and related things according to https://arxiv.org/abs/1405.1067
     This function returns a dict.
     """
-    filepath = _open_gzip_file(filepath)
+    fileobj = _open_gzip_file(fileobj)
     initDict = {}
-    for event, element in ET.iterparse(filepath, events=["end"]):
+    for event, element in ET.iterparse(fileobj, events=["end"]):
         if element.tag == "init":
             data = element.text.split("\n")[1:-1]
             initDict["initInfo"] = LHEInit.fromstring(data[0])
@@ -186,10 +186,10 @@ def readLHEInit(filepath):
     return initDict
 
 
-def readLHE(filepath):
-    filepath = _open_gzip_file(filepath)
+def readLHE(fileobj):
+    fileobj = _open_gzip_file(fileobj)
     try:
-        for event, element in ET.iterparse(filepath, events=["end"]):
+        for event, element in ET.iterparse(fileobj, events=["end"]):
             if element.tag == "event":
                 data = element.text.split("\n")[1:-1]
                 eventdata, particles = data[0], data[1:]
@@ -203,14 +203,14 @@ def readLHE(filepath):
         return
 
 
-def readLHEWithAttributes(filepath):
+def readLHEWithAttributes(fileobj):
     """
     Iterate through file, similar to readLHE but also set
     weights and attributes.
     """
-    filepath = _open_gzip_file(filepath)
+    fileobj = _open_gzip_file(fileobj)
     try:
-        for event, element in ET.iterparse(filepath, events=["end"]):
+        for event, element in ET.iterparse(fileobj, events=["end"]):
             if element.tag == "event":
                 eventdict = {}
                 data = element.text.split("\n")[1:-1]
