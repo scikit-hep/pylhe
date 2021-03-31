@@ -1,6 +1,8 @@
 import gzip
 import os
+from pathlib import Path
 from shutil import copyfileobj
+from tempfile import NamedTemporaryFile
 
 import pytest
 import skhep_testdata
@@ -10,15 +12,25 @@ import pylhe
 TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 
 
-def test_gzip_open(tmpdir):
-    assert pylhe._open_gzip_file(TEST_FILE) == TEST_FILE
+@pytest.fixture(scope="session")
+def testdata_gzip_file():
+    test_data = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
+    tmp_path = NamedTemporaryFile()
 
-    tmp_path = tmpdir.join("pylhe-testfile-pr29.lhe.gz")
-    with open(TEST_FILE, "rb") as readfile:
+    # create a file that is basically pylhe-testfile-pr29.lhe.gz
+    with open(test_data, "rb") as readfile:
         with gzip.open(tmp_path, "wb") as writefile:
             copyfileobj(readfile, writefile)
-    assert pylhe._open_gzip_file(tmp_path)
-    os.remove(tmp_path)  # Don't keep around even if in /tmp
+    yield Path(tmp_path.name)
+
+    # teardown
+    os.remove(Path(tmp_path.name))
+
+
+def test_gzip_open(tmpdir, testdata_gzip_file):
+    assert pylhe._open_gzip_file(TEST_FILE) == TEST_FILE
+
+    assert pylhe._open_gzip_file(testdata_gzip_file)
 
     tmp_path = tmpdir.join("notrealfile.lhe")
     assert pylhe._open_gzip_file(tmp_path) == tmp_path
