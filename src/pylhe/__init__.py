@@ -130,11 +130,15 @@ def _open_gzip_file(filepath):
     if not Path(filepath).name.lower().endswith(".gz"):
         return filepath
 
-    with gzip.open(filepath, "r") as gzip_file:
-        try:
-            gzip_file.read(1)
-        except (OSError, gzip.BadGzipFile) as err:
-            raise err(f"Input file {filepath} is not a compressed file.\n")
+    with open(filepath, "rb") as gzip_file:
+        header = gzip_file.read(2)
+
+    gzip_magic_number = b"\x1f\x8b"
+    if header != gzip_magic_number:
+        raise OSError(
+            f"Input file {filepath} is not a compressed file.\n"
+            + f"{filepath} has header of {header} and not gzip's {gzip_magic_number}.\n"
+        )
     return gzip.open(filepath, "r")
 
 
