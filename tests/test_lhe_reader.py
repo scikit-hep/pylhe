@@ -59,3 +59,8 @@ def test_lhe_init():
     assert init_info["PDFsetB"] == pytest.approx(6.0)
     assert init_info["weightingStrategy"] == pytest.approx(7.0)
     assert init_info["numProcesses"] == pytest.approx(8.0)
+
+
+def test_readLHE(testdata_gzip_file):
+    assert pylhe.readLHE(TEST_FILE)
+    assert pylhe.readLHE(testdata_gzip_file)
