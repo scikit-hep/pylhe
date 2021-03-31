@@ -134,7 +134,7 @@ def _open_gzip_file(filepath):
             gzip_file.read(1)
         except (OSError, gzip.BadGzipFile) as err:
             raise err(f"Input file {filepath} is not a compressed file.\n")
-        return gzip_file
+    return gzip.open(filepath, "r")
 
 
 def readLHEInit(filepath):
