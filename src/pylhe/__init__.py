@@ -4,6 +4,7 @@ import networkx as nx
 import tex2pix
 import subprocess
 from particle.converters.bimap import DirectionalMaps
+import gzip
 
 
 class LHEFile:
@@ -120,14 +121,30 @@ def loads():
     pass
 
 
-def readLHEInit(thefile):
+def _open_gzip_file(filepath):
+    """
+    Checks to see if a file is compressed, and if so, open it with gzip
+    """
+    if not filepath.lower().endswith(".gz"):
+        return filepath
+
+    with gzip.open(filepath, "r") as gzip_file:
+        try:
+            gzip_file.read(1)
+        except (OSError, gzip.BadGzipFile) as err:
+            raise err(f"Input file {filepath} is not a compressed file.\n")
+        return gzip_file
+
+
+def readLHEInit(filepath):
     """
     Read the init blocks. Return dict. This encodes the weight group
     and related things according to https://arxiv.org/abs/1405.1067
     This function returns a dict.
     """
+    filepath = _open_gzip_file(filepath)
     initDict = {}
-    for event, element in ET.iterparse(thefile, events=["end"]):
+    for event, element in ET.iterparse(filepath, events=["end"]):
         if element.tag == "init":
             data = element.text.split("\n")[1:-1]
             initDict["initInfo"] = LHEInit.fromstring(data[0])
@@ -163,9 +180,10 @@ def readLHEInit(thefile):
     return initDict
 
 
-def readLHE(thefile):
+def readLHE(filepath):
+    filepath = _open_gzip_file(filepath)
     try:
-        for event, element in ET.iterparse(thefile, events=["end"]):
+        for event, element in ET.iterparse(filepath, events=["end"]):
             if element.tag == "event":
                 data = element.text.split("\n")[1:-1]
                 eventdata, particles = data[0], data[1:]
@@ -179,13 +197,14 @@ def readLHE(thefile):
         return
 
 
-def readLHEWithAttributes(thefile):
+def readLHEWithAttributes(filepath):
     """
     Iterate through file, similar to readLHE but also set
     weights and attributes.
     """
+    filepath = _open_gzip_file(filepath)
     try:
-        for event, element in ET.iterparse(thefile, events=["end"]):
+        for event, element in ET.iterparse(filepath, events=["end"]):
             if element.tag == "event":
                 eventdict = {}
                 data = element.text.split("\n")[1:-1]
