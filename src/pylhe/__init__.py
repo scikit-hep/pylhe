@@ -4,6 +4,7 @@ import networkx as nx
 import tex2pix
 import subprocess
 from particle.converters.bimap import DirectionalMaps
+import gzip
 
 
 class LHEFile:
