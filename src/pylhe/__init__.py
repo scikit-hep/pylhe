@@ -132,13 +132,13 @@ def _open_gzip_file(filepath):
 
     with open(filepath, "rb") as gzip_file:
         header = gzip_file.read(2)
-
     gzip_magic_number = b"\x1f\x8b"
     if header != gzip_magic_number:
         raise OSError(
             f"Input file {filepath} is not a compressed file.\n"
             + f"{filepath} has header of {header} and not gzip's {gzip_magic_number}.\n"
         )
+
     return gzip.open(filepath, "r")
 
 

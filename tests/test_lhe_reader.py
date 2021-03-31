@@ -7,6 +7,8 @@ TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 
 
 def test_gzip_open(tmpdir):
+    assert pylhe._open_gzip_file(TEST_FILE) == TEST_FILE
+
     tmp_path = tmpdir.join("notrealfile.lhe")
     assert pylhe._open_gzip_file(tmp_path) == tmp_path
 
