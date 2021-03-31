@@ -1,3 +1,7 @@
+import gzip
+import os
+from shutil import copyfileobj
+
 import pytest
 import skhep_testdata
 
@@ -8,6 +12,13 @@ TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 
 def test_gzip_open(tmpdir):
     assert pylhe._open_gzip_file(TEST_FILE) == TEST_FILE
+
+    tmp_path = tmpdir.join("pylhe-testfile-pr29.lhe.gz")
+    with open(TEST_FILE, "rb") as readfile:
+        with gzip.open(tmp_path, "wb") as writefile:
+            copyfileobj(readfile, writefile)
+    assert pylhe._open_gzip_file(tmp_path)
+    os.remove(tmp_path)  # Don't keep around even if in /tmp
 
     tmp_path = tmpdir.join("notrealfile.lhe")
     assert pylhe._open_gzip_file(tmp_path) == tmp_path
