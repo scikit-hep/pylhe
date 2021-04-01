@@ -31,17 +31,17 @@ def testdata_gzip_file():
 
 
 def test_gzip_open(tmpdir, testdata_gzip_file):
-    assert pylhe._open_gzip_file(TEST_FILE) == TEST_FILE
+    assert pylhe._extract_gzip_file(TEST_FILE) == TEST_FILE
 
-    assert pylhe._open_gzip_file(testdata_gzip_file)
+    assert pylhe._extract_gzip_file(testdata_gzip_file)
 
     tmp_path = tmpdir.join("notrealfile.lhe")
-    assert pylhe._open_gzip_file(tmp_path) == tmp_path
+    assert pylhe._extract_gzip_file(tmp_path) == tmp_path
 
     tmp_path = tmpdir.join("notrealfile.lhe.gz")
     tmp_path.write("")
     with pytest.raises(OSError):
-        pylhe._open_gzip_file(tmp_path)
+        pylhe._extract_gzip_file(tmp_path)
 
 
 def test_event_count():
