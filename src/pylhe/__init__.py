@@ -135,7 +135,7 @@ def _extract_fileobj(fileobj):
     Returns:
         pathlib.PosixPath or gzip.GzipFile: An uncompressed file object.
     """
-    if not Path(fileobj).name.lower().endswith(".gz"):
+    if Path(fileobj).suffix != ".gz":
         return fileobj
 
     # Verify actually a gzip file
