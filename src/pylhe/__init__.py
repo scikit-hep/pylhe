@@ -2,7 +2,6 @@ import gzip
 import os
 import subprocess
 import xml.etree.ElementTree as ET
-from pathlib import Path
 
 import networkx as nx
 import tex2pix
@@ -135,20 +134,13 @@ def _extract_fileobj(fileobj):
     Returns:
         pathlib.PosixPath or gzip.GzipFile: An uncompressed file object.
     """
-    if Path(fileobj).suffix != ".gz":
-        return fileobj
-
-    # Verify actually a gzip file
     with open(fileobj, "rb") as gzip_file:
         header = gzip_file.read(2)
     gzip_magic_number = b"\x1f\x8b"
-    if header != gzip_magic_number:
-        raise OSError(
-            f"Input file {fileobj} is not a compressed file.\n"
-            + f"{fileobj} has header of {header} and not gzip's {gzip_magic_number}.\n"
-        )
 
-    return gzip.GzipFile(filename=Path(fileobj))
+    if header == gzip_magic_number:
+        fileobj = gzip.GzipFile(fileobj)
+    return fileobj
 
 
 def readLHEInit(fileobj):
