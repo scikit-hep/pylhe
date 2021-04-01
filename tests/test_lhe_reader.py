@@ -32,7 +32,10 @@ def test_gzip_open(tmpdir, testdata_gzip_file):
 
     assert pylhe._extract_fileobj(testdata_gzip_file)
 
+    assert isinstance(pylhe._extract_fileobj(TEST_FILE), str)
+    assert isinstance(pylhe._extract_fileobj(Path(TEST_FILE)), Path)
     assert isinstance(pylhe._extract_fileobj(testdata_gzip_file), gzip.GzipFile)
+    assert isinstance(pylhe._extract_fileobj(Path(testdata_gzip_file)), gzip.GzipFile)
 
     assert pylhe.readLHEInit(TEST_FILE) == pylhe.readLHEInit(testdata_gzip_file)
 
