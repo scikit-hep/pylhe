@@ -122,36 +122,39 @@ def loads():
     pass
 
 
-def _extract_fileobj(fileobj):
+def _extract_fileobj(filepath):
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
     so that the uncompressed file can be returned.
+    It returns a filename or file object containing XML data that will be
+    ingested by ``xml.etree.ElementTree.iterparse``.
 
     Args:
-        fileobj: A file path or a Python file object.
+        filepath: A path-like object or str.
 
     Returns:
-        pathlib.PosixPath or gzip.GzipFile: An uncompressed file object.
+        pathlib.PosixPath or gzip.GzipFile: A filename or file object containing
+          XML data.
     """
-    with open(fileobj, "rb") as gzip_file:
+    with open(filepath, "rb") as gzip_file:
         header = gzip_file.read(2)
     gzip_magic_number = b"\x1f\x8b"
 
-    return gzip.GzipFile(fileobj) if header == gzip_magic_number else fileobj
+    return gzip.GzipFile(filepath) if header == gzip_magic_number else filepath
 
 
-def readLHEInit(fileobj):
+def readLHEInit(filepath):
     """
     Read and return the init blocks. This encodes the weight group
     and related things according to https://arxiv.org/abs/1405.1067
 
     Args:
-        fileobj: A file path or a Python file object.
+        filepath: A path-like object or str.
 
     Returns:
         dict: Dictionary containing the init blocks of the LHE file.
     """
-    fileobj = _extract_fileobj(fileobj)
+    fileobj = _extract_fileobj(filepath)
     initDict = {}
     for event, element in ET.iterparse(fileobj, events=["end"]):
         if element.tag == "init":
@@ -189,8 +192,8 @@ def readLHEInit(fileobj):
     return initDict
 
 
-def readLHE(fileobj):
-    fileobj = _extract_fileobj(fileobj)
+def readLHE(filepath):
+    fileobj = _extract_fileobj(filepath)
     try:
         for event, element in ET.iterparse(fileobj, events=["end"]):
             if element.tag == "event":
@@ -206,12 +209,12 @@ def readLHE(fileobj):
         return
 
 
-def readLHEWithAttributes(fileobj):
+def readLHEWithAttributes(filepath):
     """
     Iterate through file, similar to readLHE but also set
     weights and attributes.
     """
-    fileobj = _extract_fileobj(fileobj)
+    fileobj = _extract_fileobj(filepath)
     try:
         for event, element in ET.iterparse(fileobj, events=["end"]):
             if element.tag == "event":
