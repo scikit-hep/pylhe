@@ -169,20 +169,20 @@ def readLHEInit(filepath):
                         except KeyError:
                             print("weightgroup must have attribute 'type'")
                             raise
-                        _temp = {"attrib": child.attrib}
-                        _temp["weights"] = {}
+                        _temp = {"attrib": child.attrib, "weights": {}}
                         # Iterate over all weights in this weightgroup
                         for w in child:
-                            if not w.tag == "weight":
+                            if w.tag != "weight":
                                 continue
                             try:
                                 wg_id = w.attrib["id"]
                             except KeyError:
                                 print("weight must have attribute 'id'")
                                 raise
-                            _w = {"attrib": w.attrib}
-                            _w["name"] = w.text.strip()
-                            _temp["weights"][wg_id] = _w
+                            _temp["weights"][wg_id] = {
+                                "attrib": w.attrib,
+                                "name": w.text.strip(),
+                            }
 
                         initDict["weightgroup"][wg_type] = _temp
             if element.tag == "event":
