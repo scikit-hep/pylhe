@@ -71,13 +71,11 @@ class LHEParticle:
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
     def mothers(self):
-        mothers = []
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
-        for idx in {first_idx, second_idx}:
-            if idx >= 0:
-                mothers.append(self.event.particles[idx])
-        return mothers
+        return [
+            self.event.particles[idx] for idx in {first_idx, second_idx} if idx >= 0
+        ]
 
 
 class LHEInit(dict):
@@ -200,12 +198,10 @@ def readLHE(filepath):
                     data = element.text.split("\n")[1:-1]
                     eventdata, particles = data[0], data[1:]
                     eventinfo = LHEEventInfo.fromstring(eventdata)
-                    particle_objs = []
-                    for p in particles:
-                        particle_objs += [LHEParticle.fromstring(p)]
+                    particle_objs = [LHEParticle.fromstring(p) for p in particles]
                     yield LHEEvent(eventinfo, particle_objs)
-    except ET.ParseError as e:
-        print("WARNING. Parse Error:", e)
+    except ET.ParseError as excep:
+        print("WARNING. Parse Error:", excep)
         return
 
 
