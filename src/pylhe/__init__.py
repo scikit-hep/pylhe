@@ -68,8 +68,7 @@ class LHEParticle:
 
     @classmethod
     def fromstring(cls, string):
-        obj = cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
-        return obj
+        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
     def mothers(self):
         mothers = []
