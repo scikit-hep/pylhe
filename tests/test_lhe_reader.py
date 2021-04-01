@@ -34,8 +34,8 @@ def test_gzip_open(tmpdir, testdata_gzip_file):
 
     # Needs path-like object, not a fileobj
     with pytest.raises(TypeError):
-        with open(TEST_FILE, "rb") as readfile:
-            pylhe._extract_fileobj(readfile)
+        with open(TEST_FILE, "rb") as fileobj:
+            pylhe._extract_fileobj(fileobj)
 
     assert isinstance(pylhe._extract_fileobj(TEST_FILE), str)
     assert isinstance(pylhe._extract_fileobj(Path(TEST_FILE)), Path)
