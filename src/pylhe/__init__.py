@@ -123,7 +123,7 @@ def loads():
     pass
 
 
-def _extract_gzip_file(fileobj):
+def _extract_fileobj(fileobj):
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
     so that the uncompressed file can be returned.
@@ -159,7 +159,7 @@ def readLHEInit(fileobj):
     and related things according to https://arxiv.org/abs/1405.1067
     This function returns a dict.
     """
-    fileobj = _extract_gzip_file(fileobj)
+    fileobj = _extract_fileobj(fileobj)
     initDict = {}
     for event, element in ET.iterparse(fileobj, events=["end"]):
         if element.tag == "init":
@@ -198,7 +198,7 @@ def readLHEInit(fileobj):
 
 
 def readLHE(fileobj):
-    fileobj = _extract_gzip_file(fileobj)
+    fileobj = _extract_fileobj(fileobj)
     try:
         for event, element in ET.iterparse(fileobj, events=["end"]):
             if element.tag == "event":
@@ -219,7 +219,7 @@ def readLHEWithAttributes(fileobj):
     Iterate through file, similar to readLHE but also set
     weights and attributes.
     """
-    fileobj = _extract_gzip_file(fileobj)
+    fileobj = _extract_fileobj(fileobj)
     try:
         for event, element in ET.iterparse(fileobj, events=["end"]):
             if element.tag == "event":
