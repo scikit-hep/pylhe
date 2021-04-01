@@ -129,10 +129,11 @@ def _extract_gzip_file(fileobj):
     so that the uncompressed file can be returned.
 
     Args:
-        fileobj: A file object that can be a file or a compressed file.
+        fileobj: A file object that can be a file, file object, or a
+          compressed file.
 
     Returns:
-        file: An uncompressed file.
+        pathlib.PosixPath or gzip.GzipFile: An uncompressed file object.
     """
     if not Path(fileobj).name.lower().endswith(".gz"):
         return fileobj
@@ -147,10 +148,9 @@ def _extract_gzip_file(fileobj):
             + f"{fileobj} has header of {header} and not gzip's {gzip_magic_number}.\n"
         )
 
-    with gzip.open(fileobj, "rb") as readfile:
-        extracted_file = readfile.read()
-
-    return extracted_file
+    with gzip.open(fileobj, "rb") as gzip_file:
+        gzip_fileobj = gzip.GzipFile(filename=gzip_file.filename)
+    return gzip_fileobj
 
 
 def readLHEInit(fileobj):
