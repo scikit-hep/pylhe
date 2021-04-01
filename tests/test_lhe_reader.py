@@ -28,8 +28,7 @@ def testdata_gzip_file():
 
 
 def test_gzip_open(tmpdir, testdata_gzip_file):
-    assert pylhe._extract_fileobj(TEST_FILE) == TEST_FILE
-
+    assert pylhe._extract_fileobj(TEST_FILE)
     assert pylhe._extract_fileobj(testdata_gzip_file)
 
     # Needs path-like object, not a fileobj
@@ -37,11 +36,13 @@ def test_gzip_open(tmpdir, testdata_gzip_file):
         with open(TEST_FILE, "rb") as fileobj:
             pylhe._extract_fileobj(fileobj)
 
-    assert isinstance(pylhe._extract_fileobj(TEST_FILE), str)
-    assert isinstance(pylhe._extract_fileobj(Path(TEST_FILE)), Path)
+    with open(TEST_FILE, "rb") as fileobj:
+        assert isinstance(pylhe._extract_fileobj(TEST_FILE), type(fileobj))
+        assert isinstance(pylhe._extract_fileobj(Path(TEST_FILE)), type(fileobj))
     assert isinstance(pylhe._extract_fileobj(testdata_gzip_file), gzip.GzipFile)
     assert isinstance(pylhe._extract_fileobj(Path(testdata_gzip_file)), gzip.GzipFile)
 
+    # Verify uncompressed and compressed both work
     assert pylhe.readLHEInit(TEST_FILE) == pylhe.readLHEInit(testdata_gzip_file)
 
 
