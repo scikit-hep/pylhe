@@ -35,13 +35,9 @@ def test_gzip_open(tmpdir, testdata_gzip_file):
 
     assert pylhe._extract_fileobj(testdata_gzip_file)
 
-    tmp_path = tmpdir.join("notrealfile.lhe")
-    assert pylhe._extract_fileobj(tmp_path) == tmp_path
+    assert isinstance(pylhe._extract_fileobj(testdata_gzip_file), gzip.GzipFile)
 
-    tmp_path = tmpdir.join("notrealfile.lhe.gz")
-    tmp_path.write("")
-    with pytest.raises(OSError):
-        pylhe._extract_fileobj(tmp_path)
+    assert pylhe.readLHEInit(TEST_FILE) == pylhe.readLHEInit(testdata_gzip_file)
 
 
 def test_event_count():
