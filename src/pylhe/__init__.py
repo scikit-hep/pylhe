@@ -33,7 +33,7 @@ class LHEEventInfo:
     fieldnames = ["nparticles", "pid", "weight", "scale", "aqed", "aqcd"]
 
     def __init__(self, **kwargs):
-        if not set(kwargs.keys()) == set(self.fieldnames):
+        if set(kwargs.keys()) != set(self.fieldnames):
             raise RuntimeError
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -61,7 +61,7 @@ class LHEParticle:
     ]
 
     def __init__(self, **kwargs):
-        if not set(kwargs.keys()) == set(self.fieldnames):
+        if set(kwargs.keys()) != set(self.fieldnames):
             raise RuntimeError
         for k, v in kwargs.items():
             setattr(self, k, v)
