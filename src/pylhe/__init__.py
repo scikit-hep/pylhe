@@ -138,9 +138,7 @@ def _extract_fileobj(fileobj):
         header = gzip_file.read(2)
     gzip_magic_number = b"\x1f\x8b"
 
-    if header == gzip_magic_number:
-        fileobj = gzip.GzipFile(fileobj)
-    return fileobj
+    return gzip.GzipFile(fileobj) if header == gzip_magic_number else fileobj
 
 
 def readLHEInit(fileobj):
