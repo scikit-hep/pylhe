@@ -128,8 +128,7 @@ def _extract_fileobj(fileobj):
     so that the uncompressed file can be returned.
 
     Args:
-        fileobj: A file object that can be a file, file object, or a
-          compressed file.
+        fileobj: A file path or a Python file object.
 
     Returns:
         pathlib.PosixPath or gzip.GzipFile: An uncompressed file object.
@@ -143,9 +142,14 @@ def _extract_fileobj(fileobj):
 
 def readLHEInit(fileobj):
     """
-    Read the init blocks. Return dict. This encodes the weight group
+    Read and return the init blocks. This encodes the weight group
     and related things according to https://arxiv.org/abs/1405.1067
-    This function returns a dict.
+
+    Args:
+        fileobj: A file path or a Python file object.
+
+    Returns:
+        dict: Dictionary containing the init blocks of the LHE file.
     """
     fileobj = _extract_fileobj(fileobj)
     initDict = {}
