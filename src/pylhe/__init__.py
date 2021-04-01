@@ -148,9 +148,7 @@ def _extract_fileobj(fileobj):
             + f"{fileobj} has header of {header} and not gzip's {gzip_magic_number}.\n"
         )
 
-    with gzip.open(fileobj, "rb") as gzip_file:
-        gzip_fileobj = gzip.GzipFile(filename=gzip_file.filename)
-    return gzip_fileobj
+    return gzip.GzipFile(filename=Path(fileobj).name)
 
 
 def readLHEInit(fileobj):
