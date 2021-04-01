@@ -15,12 +15,9 @@ TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 @pytest.fixture(scope="session")
 def testdata_gzip_file():
     test_data = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
-    # Create a tmp path that is named with .gz
-    tmp_file = NamedTemporaryFile()
-    tmp_path = Path(tmp_file.name).parent.joinpath("pylhe-testfile-pr29.lhe.gz")
-    shutil.copy(tmp_file.name, tmp_path)
+    tmp_path = Path(NamedTemporaryFile().name)
 
-    # create pylhe-testfile-pr29.lhe.gz
+    # create what is basically pylhe-testfile-pr29.lhe.gz
     with open(test_data, "rb") as readfile:
         with gzip.open(tmp_path, "wb") as writefile:
             shutil.copyfileobj(readfile, writefile)
