@@ -17,7 +17,7 @@ def testdata_gzip_file():
     test_data = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
     # Create a tmp path that is named with .gz
     tmp_file = NamedTemporaryFile()
-    tmp_path = Path(Path(tmp_file.name).parent.joinpath("pylhe-testfile-pr29.lhe.gz"))
+    tmp_path = Path(tmp_file.name).parent.joinpath("pylhe-testfile-pr29.lhe.gz")
     shutil.copy(tmp_file.name, tmp_path)
 
     # create pylhe-testfile-pr29.lhe.gz
