@@ -251,11 +251,9 @@ def readNumEvents(file):
     """
     Moderately efficent way to get the number of events stored in file.
     """
-    N = 0
-    for event, element in ET.iterparse(file, events=["end"]):
-        if element.tag == "event":
-            N += 1
-    return N
+    return sum(
+        element.tag == "event" for event, element in ET.iterparse(file, events=["end"])
+    )
 
 
 def visualize(event, outputname):
