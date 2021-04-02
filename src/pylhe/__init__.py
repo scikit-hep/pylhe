@@ -33,7 +33,7 @@ class LHEEventInfo:
     fieldnames = ["nparticles", "pid", "weight", "scale", "aqed", "aqcd"]
 
     def __init__(self, **kwargs):
-        if not set(kwargs.keys()) == set(self.fieldnames):
+        if set(kwargs.keys()) != set(self.fieldnames):
             raise RuntimeError
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -61,24 +61,21 @@ class LHEParticle:
     ]
 
     def __init__(self, **kwargs):
-        if not set(kwargs.keys()) == set(self.fieldnames):
+        if set(kwargs.keys()) != set(self.fieldnames):
             raise RuntimeError
         for k, v in kwargs.items():
             setattr(self, k, v)
 
     @classmethod
     def fromstring(cls, string):
-        obj = cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
-        return obj
+        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
     def mothers(self):
-        mothers = []
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
-        for idx in {first_idx, second_idx}:
-            if idx >= 0:
-                mothers.append(self.event.particles[idx])
-        return mothers
+        return [
+            self.event.particles[idx] for idx in {first_idx, second_idx} if idx >= 0
+        ]
 
 
 class LHEInit(dict):
@@ -172,20 +169,20 @@ def readLHEInit(filepath):
                         except KeyError:
                             print("weightgroup must have attribute 'type'")
                             raise
-                        _temp = {"attrib": child.attrib}
-                        _temp["weights"] = {}
+                        _temp = {"attrib": child.attrib, "weights": {}}
                         # Iterate over all weights in this weightgroup
                         for w in child:
-                            if not w.tag == "weight":
+                            if w.tag != "weight":
                                 continue
                             try:
                                 wg_id = w.attrib["id"]
                             except KeyError:
                                 print("weight must have attribute 'id'")
                                 raise
-                            _w = {"attrib": w.attrib}
-                            _w["name"] = w.text.strip()
-                            _temp["weights"][wg_id] = _w
+                            _temp["weights"][wg_id] = {
+                                "attrib": w.attrib,
+                                "name": w.text.strip(),
+                            }
 
                         initDict["weightgroup"][wg_type] = _temp
             if element.tag == "event":
@@ -201,12 +198,10 @@ def readLHE(filepath):
                     data = element.text.split("\n")[1:-1]
                     eventdata, particles = data[0], data[1:]
                     eventinfo = LHEEventInfo.fromstring(eventdata)
-                    particle_objs = []
-                    for p in particles:
-                        particle_objs += [LHEParticle.fromstring(p)]
+                    particle_objs = [LHEParticle.fromstring(p) for p in particles]
                     yield LHEEvent(eventinfo, particle_objs)
-    except ET.ParseError as e:
-        print("WARNING. Parse Error:", e)
+    except ET.ParseError as excep:
+        print("WARNING. Parse Error:", excep)
         return
 
 
@@ -256,11 +251,9 @@ def readNumEvents(file):
     """
     Moderately efficent way to get the number of events stored in file.
     """
-    N = 0
-    for event, element in ET.iterparse(file, events=["end"]):
-        if element.tag == "event":
-            N += 1
-    return N
+    return sum(
+        element.tag == "event" for event, element in ET.iterparse(file, events=["end"])
+    )
 
 
 def visualize(event, outputname):
