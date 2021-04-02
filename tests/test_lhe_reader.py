@@ -46,8 +46,9 @@ def test_gzip_open(tmpdir, testdata_gzip_file):
     assert pylhe.readLHEInit(TEST_FILE) == pylhe.readLHEInit(testdata_gzip_file)
 
 
-def test_event_count():
+def test_event_count(testdata_gzip_file):
     assert pylhe.readNumEvents(TEST_FILE) == 791
+    assert pylhe.readNumEvents(testdata_gzip_file) == 791
 
 
 def test_lhe_init():
