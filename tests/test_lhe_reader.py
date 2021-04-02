@@ -42,16 +42,15 @@ def test_gzip_open(tmpdir, testdata_gzip_file):
     assert isinstance(pylhe._extract_fileobj(testdata_gzip_file), gzip.GzipFile)
     assert isinstance(pylhe._extract_fileobj(Path(testdata_gzip_file)), gzip.GzipFile)
 
-    # Verify uncompressed and compressed both work
-    assert pylhe.readLHEInit(TEST_FILE) == pylhe.readLHEInit(testdata_gzip_file)
-
 
 def test_event_count(testdata_gzip_file):
     assert pylhe.readNumEvents(TEST_FILE) == 791
-    assert pylhe.readNumEvents(testdata_gzip_file) == 791
+    assert pylhe.readNumEvents(TEST_FILE) == pylhe.readNumEvents(testdata_gzip_file)
 
 
-def test_lhe_init():
+def test_lhe_init(testdata_gzip_file):
+    assert pylhe.readLHEInit(TEST_FILE) == pylhe.readLHEInit(testdata_gzip_file)
+
     init_data = pylhe.readLHEInit(TEST_FILE)
     init_info = init_data["initInfo"]
     assert init_info["beamA"] == pytest.approx(1.0)
