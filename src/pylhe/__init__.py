@@ -247,13 +247,15 @@ def readLHEWithAttributes(filepath):
         return
 
 
-def readNumEvents(file):
+def readNumEvents(filepath):
     """
     Moderately efficent way to get the number of events stored in file.
     """
-    return sum(
-        element.tag == "event" for event, element in ET.iterparse(file, events=["end"])
-    )
+    with _extract_fileobj(filepath) as fileobj:
+        return sum(
+            element.tag == "event"
+            for event, element in ET.iterparse(fileobj, events=["end"])
+        )
 
 
 def visualize(event, outputname):
