@@ -18,7 +18,7 @@ repos:
     rev: 20.8b1
     hooks:
     - id: black
--   repo: https://gitlab.com/pycqa/flake8
+-   repo: https://github.com/PyCQA/flake8
     rev: 3.9.0
     hooks:
     - id: flake8
@@ -27,7 +27,7 @@ repos:
     hooks:
     - id: pyupgrade
 -   repo: https://github.com/nbQA-dev/nbQA
-    rev: 0.5.9
+    rev: 0.6.0
     hooks:
     - id: nbqa-black
       additional_dependencies: [black==20.8b1]
