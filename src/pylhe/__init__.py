@@ -7,6 +7,7 @@ import networkx as nx
 import tex2pix
 from particle.converters.bimap import DirectionalMaps
 
+from .awkward import register_awkward,to_akward
 
 class LHEFile:
     def __init__(self):
