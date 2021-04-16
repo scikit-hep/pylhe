@@ -1,6 +1,5 @@
-import numpy as np
-import vector as vc
 import awkward as ak
+import vector as vc
 
 
 def register_awkward():
