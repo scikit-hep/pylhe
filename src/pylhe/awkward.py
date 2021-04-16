@@ -32,10 +32,9 @@ def to_akward(event_iterable):
                             }.items():
                                 builder.field(f).real(getattr(p, k))
                         for fname in p.fieldnames:
-                            if not fname in ["px", "py", "pz", "e"]:
+                            if fname not in ["px", "py", "pz", "e"]:
                                 builder.field(fname).real(getattr(p, fname))
-    arr = builder.snapshot()
-    return arr
+    return builder.snapshot()
 
 
 class Particle:
