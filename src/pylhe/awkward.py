@@ -1,9 +1,9 @@
 import awkward as ak
-import vector as vc
+import vector
 
 
 def register_awkward():
-    vc.register_awkward()
+    vector.register_awkward()
     ak.mixin_class(ak.behavior)(Particle)
     ak.mixin_class(ak.behavior)(Event)
     ak.mixin_class(ak.behavior)(EventInfo)
