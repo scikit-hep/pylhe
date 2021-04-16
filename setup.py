@@ -1,5 +1,9 @@
 from setuptools import setup
 
+install_requires = [
+    'awkward'
+]
+
 extras_require = {}
 extras_require["lint"] = sorted({"flake8", "black"})
 # c.f. https://networkx.org/documentation/stable/install.html#optional-packages
@@ -25,6 +29,7 @@ extras_require["develop"] = sorted(
 extras_require["complete"] = sorted(set(sum(extras_require.values(), [])))
 
 setup(
+    install_requires = install_requires,
     extras_require=extras_require,
     use_scm_version=lambda: {"local_scheme": lambda version: ""},
 )
