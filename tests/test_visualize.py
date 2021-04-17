@@ -1,6 +1,8 @@
-import pylhe
-import skhep_testdata
 import itertools
+
+import skhep_testdata
+
+import pylhe
 
 
 def test_visualize(tmpdir):
