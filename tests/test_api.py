@@ -4,7 +4,7 @@ import pylhe
 
 
 def test_top_level_api():
-    if version_info > (3, 6):
+    if version_info >= (3, 7):
         assert dir(pylhe) == [
             "LHEEvent",
             "LHEEventInfo",
