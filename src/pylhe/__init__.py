@@ -16,6 +16,7 @@ __all__ = [
     "LHEInit",
     "LHEParticle",
     "LHEProcInfo",
+    "loads",
     "readLHE",
     "readLHEInit",
     "readLHEWithAttributes",
@@ -26,29 +27,10 @@ __all__ = [
 ]
 
 
-def __dir__():
-    return __all__
-
-
-__all__ = [
-    "LHEEvent",
-    "LHEEventInfo",
-    "LHEFile",
-    "LHEInit",
-    "LHEParticle",
-    "LHEProcInfo",
-    "loads",
-    "readLHE",
-    "readLHEInit",
-    "readLHEWithAttributes",
-    "readNumEvents",
-    "visualize",
-]
-
-
 # Python 3.7+
 def __dir__():
     return __all__
+
 
 class LHEFile:
     def __init__(self):

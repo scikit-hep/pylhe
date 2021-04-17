@@ -4,6 +4,7 @@ import vector
 __all__ = ["register_awkward", "to_akward"]
 
 
+# Python 3.7+
 def __dir__():
     return __all__
 
