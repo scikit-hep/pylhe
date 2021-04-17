@@ -2,7 +2,6 @@ import gzip
 import os
 import subprocess
 import xml.etree.ElementTree as ET
-from sys import version_info
 
 import networkx as nx
 import tex2pix
@@ -23,11 +22,10 @@ __all__ = [
     "visualize",
 ]
 
-# Python 3.7+ feature
-if version_info >= (3, 7):
 
-    def __dir__():
-        return __all__
+# Python 3.7+
+def __dir__():
+    return __all__
 
 
 class LHEFile:
