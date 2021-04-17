@@ -1,24 +1,27 @@
 from sys import version_info
 
+import pytest
+
 import pylhe
 
+python37plus_only = pytest.mark.skipif(
+    version_info < (3, 7), reason="requires Python3.7+"
+)
 
+
+@python37plus_only
 def test_top_level_api():
-    if version_info >= (3, 7):
-        assert dir(pylhe) == [
-            "LHEEvent",
-            "LHEEventInfo",
-            "LHEFile",
-            "LHEInit",
-            "LHEParticle",
-            "LHEProcInfo",
-            "loads",
-            "readLHE",
-            "readLHEInit",
-            "readLHEWithAttributes",
-            "readNumEvents",
-            "visualize",
-        ]
-    else:
-        print(dir(pylhe))
-        assert dir(pylhe)
+    assert dir(pylhe) == [
+        "LHEEvent",
+        "LHEEventInfo",
+        "LHEFile",
+        "LHEInit",
+        "LHEParticle",
+        "LHEProcInfo",
+        "loads",
+        "readLHE",
+        "readLHEInit",
+        "readLHEWithAttributes",
+        "readNumEvents",
+        "visualize",
+    ]
