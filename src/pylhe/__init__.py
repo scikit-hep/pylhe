@@ -7,8 +7,6 @@ import networkx as nx
 import tex2pix
 from particle.converters.bimap import DirectionalMaps
 
-from .awkward import register_awkward, to_akward
-
 __all__ = [
     "LHEEvent",
     "LHEEventInfo",
@@ -16,12 +14,11 @@ __all__ = [
     "LHEInit",
     "LHEParticle",
     "LHEProcInfo",
+    "loads",
     "readLHE",
     "readLHEInit",
     "readLHEWithAttributes",
     "readNumEvents",
-    "register_awkward",
-    "to_akward",
     "visualize",
 ]
 
