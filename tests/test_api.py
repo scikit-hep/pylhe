@@ -24,11 +24,11 @@ def test_top_level_api():
         "readLHEWithAttributes",
         "readNumEvents",
         "register_awkward",
-        "to_akward",
+        "to_awkward",
         "visualize",
     ]
 
 
 @python37plus_only
 def test_awkward_api():
-    assert dir(pylhe.awkward) == ["register_awkward", "to_akward"]
+    assert dir(pylhe.awkward) == ["register_awkward", "to_awkward"]

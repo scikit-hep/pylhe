@@ -1,7 +1,7 @@
 import awkward as ak
 import vector
 
-__all__ = ["register_awkward", "to_akward"]
+__all__ = ["register_awkward", "to_awkward"]
 
 
 # Python 3.7+
@@ -16,7 +16,7 @@ def register_awkward():
     ak.mixin_class(ak.behavior)(EventInfo)
 
 
-def to_akward(event_iterable):
+def to_awkward(event_iterable):
     builder = ak.ArrayBuilder()
     for event in event_iterable:
         with builder.record(name="Event"):
