@@ -1,6 +1,12 @@
 import awkward as ak
 import vector
 
+__all__ = ["register_awkward", "to_akward"]
+
+
+def __dir__():
+    return __all__
+
 
 def register_awkward():
     vector.register_awkward()
