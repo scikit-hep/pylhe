@@ -7,7 +7,29 @@ import networkx as nx
 import tex2pix
 from particle.converters.bimap import DirectionalMaps
 
-from .awkward import register_awkward, to_akward
+from .awkward import register_awkward, to_awkward
+
+__all__ = [
+    "LHEEvent",
+    "LHEEventInfo",
+    "LHEFile",
+    "LHEInit",
+    "LHEParticle",
+    "LHEProcInfo",
+    "loads",
+    "readLHE",
+    "readLHEInit",
+    "readLHEWithAttributes",
+    "readNumEvents",
+    "register_awkward",
+    "to_awkward",
+    "visualize",
+]
+
+
+# Python 3.7+
+def __dir__():
+    return __all__
 
 
 class LHEFile:

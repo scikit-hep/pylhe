@@ -1,41 +1,47 @@
-import numpy as np
-import vector as vc
 import awkward as ak
+import vector
+
+__all__ = ["register_awkward", "to_awkward"]
+
+
+# Python 3.7+
+def __dir__():
+    return __all__
 
 
 def register_awkward():
-    vc.register_awkward()
+    vector.register_awkward()
     ak.mixin_class(ak.behavior)(Particle)
     ak.mixin_class(ak.behavior)(Event)
     ak.mixin_class(ak.behavior)(EventInfo)
 
 
-def to_akward(event_iterable):
+def to_awkward(event_iterable):
     builder = ak.ArrayBuilder()
-    for e in event_iterable:
+    for event in event_iterable:
         with builder.record(name="Event"):
             builder.field("eventinfo")
             with builder.record(name="EventInfo"):
-                for fname in e.eventinfo.fieldnames:
-                    builder.field(fname).real(getattr(e.eventinfo, fname))
+                for fname in event.eventinfo.fieldnames:
+                    builder.field(fname).real(getattr(event.eventinfo, fname))
             builder.field("particles")
             with builder.list():
-                for p in e.particles:
+                for particle in event.particles:
                     with builder.record(name="Particle"):
                         builder.field("vector")
                         with builder.record(name="Momentum4D"):
-                            for f, k in {
+                            spatial_momentum_map = {
                                 "x": "px",
                                 "y": "py",
                                 "z": "pz",
                                 "t": "e",
-                            }.items():
-                                builder.field(f).real(getattr(p, k))
-                        for fname in p.fieldnames:
-                            if not fname in ["px", "py", "pz", "e"]:
-                                builder.field(fname).real(getattr(p, fname))
-    arr = builder.snapshot()
-    return arr
+                            }
+                            for key, value in spatial_momentum_map.items():
+                                builder.field(key).real(getattr(particle, value))
+                        for fname in particle.fieldnames:
+                            if fname not in ["px", "py", "pz", "e"]:
+                                builder.field(fname).real(getattr(particle, fname))
+    return builder.snapshot()  # awkward array
 
 
 class Particle:
