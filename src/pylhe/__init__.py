@@ -316,8 +316,6 @@ def visualize(event, outputname):
 
 
 # Deprecated APIs
-
-
 def _deprecated_api_warning(deprecated_api, new_api, deprecated_release):
     warn(
         f"{deprecated_api} is deprecated in favor of {new_api} as of pylhe v{deprecated_release} and will be removed in the next release."
