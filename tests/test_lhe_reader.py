@@ -1,6 +1,7 @@
 import gzip
 import os
 import shutil
+import warnings
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -68,3 +69,42 @@ def test_lhe_init(testdata_gzip_file):
 def test_read_lhe(testdata_gzip_file):
     assert pylhe.read_lhe(TEST_FILE)
     assert pylhe.read_lhe(testdata_gzip_file)
+
+
+# test deprecation warnings
+def test_deprecated_apis(testdata_gzip_file):
+    with warnings.catch_warnings(record=True) as _warning:
+        # Cause all warnings to always be triggered
+        warnings.simplefilter("always")
+        pylhe.readLHE(TEST_FILE)
+        assert len(_warning) == 1
+        assert issubclass(_warning[-1].category, DeprecationWarning)
+        assert "readLHE is deprecated in favor of read_lhe" in str(_warning[-1].message)
+
+    with warnings.catch_warnings(record=True) as _warning:
+        warnings.simplefilter("always")
+        pylhe.readLHEInit(TEST_FILE)
+        assert len(_warning) == 1
+        assert issubclass(_warning[-1].category, DeprecationWarning)
+        assert "readLHEInit is deprecated in favor of read_lhe_init" in str(
+            _warning[-1].message
+        )
+
+    with warnings.catch_warnings(record=True) as _warning:
+        warnings.simplefilter("always")
+        pylhe.readLHEWithAttributes(TEST_FILE)
+        assert len(_warning) == 1
+        assert issubclass(_warning[-1].category, DeprecationWarning)
+        assert (
+            "readLHEWithAttributes is deprecated in favor of read_lhe_with_attributes"
+            in str(_warning[-1].message)
+        )
+
+    with warnings.catch_warnings(record=True) as _warning:
+        warnings.simplefilter("always")
+        pylhe.readNumEvents(TEST_FILE)
+        assert len(_warning) == 1
+        assert issubclass(_warning[-1].category, DeprecationWarning)
+        assert "readNumEvents is deprecated in favor of read_num_events" in str(
+            _warning[-1].message
+        )
