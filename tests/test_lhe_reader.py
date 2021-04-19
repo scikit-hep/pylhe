@@ -44,14 +44,14 @@ def test_gzip_open(tmpdir, testdata_gzip_file):
 
 
 def test_event_count(testdata_gzip_file):
-    assert pylhe.readNumEvents(TEST_FILE) == 791
-    assert pylhe.readNumEvents(TEST_FILE) == pylhe.readNumEvents(testdata_gzip_file)
+    assert pylhe.read_num_events(TEST_FILE) == 791
+    assert pylhe.read_num_events(TEST_FILE) == pylhe.read_num_events(testdata_gzip_file)
 
 
 def test_lhe_init(testdata_gzip_file):
-    assert pylhe.readLHEInit(TEST_FILE) == pylhe.readLHEInit(testdata_gzip_file)
+    assert pylhe.read_lhe_init(TEST_FILE) == pylhe.read_lhe_init(testdata_gzip_file)
 
-    init_data = pylhe.readLHEInit(TEST_FILE)
+    init_data = pylhe.read_lhe_init(TEST_FILE)
     init_info = init_data["initInfo"]
     assert init_info["beamA"] == pytest.approx(1.0)
     assert init_info["beamB"] == pytest.approx(2.0)
@@ -65,6 +65,6 @@ def test_lhe_init(testdata_gzip_file):
     assert init_info["numProcesses"] == pytest.approx(8.0)
 
 
-def test_readLHE(testdata_gzip_file):
-    assert pylhe.readLHE(TEST_FILE)
-    assert pylhe.readLHE(testdata_gzip_file)
+def test_read_lhe(testdata_gzip_file):
+    assert pylhe.read_lhe(TEST_FILE)
+    assert pylhe.read_lhe(testdata_gzip_file)
