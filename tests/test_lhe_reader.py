@@ -43,7 +43,7 @@ def test_gzip_open(tmpdir, testdata_gzip_file):
     assert isinstance(pylhe._extract_fileobj(Path(testdata_gzip_file)), gzip.GzipFile)
 
 
-def test_event_count(testdata_gzip_file):
+def test_read_num_events(testdata_gzip_file):
     assert pylhe.read_num_events(TEST_FILE) == 791
     assert pylhe.read_num_events(TEST_FILE) == pylhe.read_num_events(testdata_gzip_file)
 

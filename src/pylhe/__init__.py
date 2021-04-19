@@ -2,6 +2,7 @@ import gzip
 import os
 import subprocess
 import xml.etree.ElementTree as ET
+from warnings import warn
 
 import networkx as nx
 import tex2pix
@@ -315,17 +316,34 @@ def visualize(event, outputname):
 
 
 # Deprecated APIs
+
+
+def _deprecated_api_warning(deprecated_api, new_api, deprecated_release):
+    warn(
+        f"{deprecated_api} is deprecated in favor of {new_api} as of pylhe v{deprecated_release} and will be removed in the next release."
+        + f" Please use {new_api}.",
+        DeprecationWarning,
+        stacklevel=3,  # Raise to user level
+    )
+
+
 def readLHE(filepath):
-    read_lhe(filepath)
+    _deprecated_api_warning("readLHE", "read_lhe", "0.2.2")
+    return read_lhe(filepath)
 
 
 def readLHEInit(filepath):
-    read_lhe_init(filepath)
+    _deprecated_api_warning("readLHEInit", "read_lhe_init", "0.2.2")
+    return read_lhe_init(filepath)
 
 
 def readLHEWithAttributes(filepath):
-    read_lhe_with_attributes(filepath)
+    _deprecated_api_warning(
+        "readLHEWithAttributes", "read_lhe_with_attributes", "0.2.2"
+    )
+    return read_lhe_with_attributes(filepath)
 
 
 def readNumEvents(filepath):
-    read_num_events(filepath)
+    _deprecated_api_warning("readNumEvents", "read_num_events", "0.2.2")
+    return read_num_events(filepath)
