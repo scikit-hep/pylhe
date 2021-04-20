@@ -17,10 +17,10 @@ __all__ = [
     "LHEParticle",
     "LHEProcInfo",
     "loads",
-    "readLHE",
-    "readLHEInit",
-    "readLHEWithAttributes",
-    "readNumEvents",
+    "read_lhe",
+    "read_lhe_init",
+    "read_lhe_with_attributes",
+    "read_num_events",
     "register_awkward",
     "to_awkward",
     "visualize",
@@ -165,7 +165,7 @@ def _extract_fileobj(filepath):
     )
 
 
-def readLHEInit(filepath):
+def read_lhe_init(filepath):
     """
     Read and return the init blocks. This encodes the weight group
     and related things according to https://arxiv.org/abs/1405.1067
@@ -214,7 +214,7 @@ def readLHEInit(filepath):
     return initDict
 
 
-def readLHE(filepath):
+def read_lhe(filepath):
     try:
         with _extract_fileobj(filepath) as fileobj:
             for event, element in ET.iterparse(fileobj, events=["end"]):
@@ -229,9 +229,9 @@ def readLHE(filepath):
         return
 
 
-def readLHEWithAttributes(filepath):
+def read_lhe_with_attributes(filepath):
     """
-    Iterate through file, similar to readLHE but also set
+    Iterate through file, similar to read_lhe but also set
     weights and attributes.
     """
     try:
@@ -271,9 +271,9 @@ def readLHEWithAttributes(filepath):
         return
 
 
-def readNumEvents(filepath):
+def read_num_events(filepath):
     """
-    Moderately efficent way to get the number of events stored in file.
+    Moderately efficient way to get the number of events stored in file.
     """
     with _extract_fileobj(filepath) as fileobj:
         return sum(
