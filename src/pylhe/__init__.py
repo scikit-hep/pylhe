@@ -7,9 +7,11 @@ import networkx as nx
 import tex2pix
 from particle.converters.bimap import DirectionalMaps
 
+from ._version import version as __version__
 from .awkward import register_awkward, to_awkward
 
 __all__ = [
+    "__version__",
     "LHEEvent",
     "LHEEventInfo",
     "LHEFile",
