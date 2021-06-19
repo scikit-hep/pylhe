@@ -26,12 +26,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install build check-manifest twine
+        python -m pip list
     - name: Check MANIFEST
       run: |
         check-manifest
-    - name: Build a binary wheel and a source tarball
+    - name: Build a sdist and a wheel
       run: |
-        python -m build --sdist --wheel --outdir dist/ .
+        python -m build --outdir dist/ .
     - name: Verify history available for dev versions
       run: |
         wheel_name=$(find dist/ -iname "*.whl" -printf "%f\n")
