@@ -12,6 +12,7 @@ python37plus_only = pytest.mark.skipif(
 @python37plus_only
 def test_top_level_api():
     assert dir(pylhe) == [
+        "__version__",
         "LHEEvent",
         "LHEEventInfo",
         "LHEFile",
