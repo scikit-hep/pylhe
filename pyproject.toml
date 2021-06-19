@@ -15,6 +15,7 @@ exclude = '''
     \.git
   | .eggs
   | build
+  | src/pylhe/_version.py
 )/
 '''
 
