@@ -10,7 +10,7 @@ local_scheme = "no-local-version"
 [tool.black]
 line-length = 88
 include = '\.pyi?$'
-exclude = '''
+extend-exclude = '''
 /(
     \.git
   | .eggs
