@@ -26,12 +26,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install build check-manifest twine
+        python -m pip list
     - name: Check MANIFEST
       run: |
         check-manifest
-    - name: Build a binary wheel and a source tarball
+    - name: Build a sdist and a wheel
       run: |
-        python -m build --sdist --wheel --outdir dist/ .
+        python -m build --outdir dist/ .
     - name: Verify history available for dev versions
       run: |
         wheel_name=$(find dist/ -iname "*.whl" -printf "%f\n")
@@ -47,12 +48,12 @@ jobs:
     - name: Publish distribution 📦 to Test PyPI
       # every PR will trigger a push event on master, so check the push event is actually coming from master
       if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'scikit-hep/pylhe'
-      uses: pypa/gh-action-pypi-publish@v1.4.1
+      uses: pypa/gh-action-pypi-publish@v1.4.2
       with:
         password: ${{ secrets.test_pypi_password }}
         repository_url: https://test.pypi.org/legacy/
     - name: Publish distribution 📦 to PyPI
       if: github.event_name == 'release' && github.event.action == 'published' && github.repository == 'scikit-hep/pylhe'
-      uses: pypa/gh-action-pypi-publish@v1.4.1
+      uses: pypa/gh-action-pypi-publish@v1.4.2
       with:
         password: ${{ secrets.pypi_password }}
