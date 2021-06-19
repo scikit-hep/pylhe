@@ -1,3 +1,4 @@
+src/pylhe/_version.py
 MANIFEST
 build
 dist

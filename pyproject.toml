@@ -1,22 +1,21 @@
 [build-system]
 # Minimum requirements for the build system to execute.
-requires = [
-    "wheel",
-    "setuptools>=30.3.0",
-    "attrs>=17.1",
-    "setuptools_scm>=1.15.0",
-    "setuptools_scm_git_archive>=1.0",
-]
+requires = ["wheel", "setuptools>=30.3.0", "attrs>=17.1", "setuptools_scm[toml]>=3.4"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/pylhe/_version.py"
+local_scheme = "no-local-version"
 
 [tool.black]
 line-length = 88
 include = '\.pyi?$'
-exclude = '''
+extend-exclude = '''
 /(
     \.git
   | .eggs
   | build
+  | src/pylhe/_version.py
 )/
 '''
 
