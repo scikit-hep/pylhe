@@ -32,3 +32,7 @@ def test_top_level_api():
 @python37plus_only
 def test_awkward_api():
     assert dir(pylhe.awkward) == ["register_awkward", "to_awkward"]
+
+
+def test_load_version():
+    assert pylhe.__version__
