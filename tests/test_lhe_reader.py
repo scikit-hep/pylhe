@@ -1,6 +1,5 @@
 import gzip
 import os
-import shutil
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -13,45 +12,67 @@ TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 
 
 @pytest.fixture(scope="session")
-def testdata_gzip_file():
-    test_data = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
+def testdata_file():
+    test_data = Path(skhep_testdata.data_path("pylhe-drell-yan-ll-lhe.gz"))
     tmp_path = Path(NamedTemporaryFile().name)
 
-    # create what is basically pylhe-testfile-pr29.lhe.gz
-    with open(test_data, "rb") as readfile:
-        with gzip.open(tmp_path, "wb") as writefile:
-            shutil.copyfileobj(readfile, writefile)
+    # create what is basically pylhe-drell-yan-ll-lhe.lhe
+    with gzip.open(test_data, "rb") as readfile:
+        with open(tmp_path, "wb") as writefile:
+            writefile.write(readfile.read())
     yield tmp_path
 
     # teardown
     os.remove(tmp_path)
 
 
-def test_gzip_open(tmpdir, testdata_gzip_file):
-    assert pylhe._extract_fileobj(TEST_FILE)
+# @pytest.fixture(scope="session")
+# def testdata_gzip_file():
+#     test_data = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
+#     tmp_path = Path(NamedTemporaryFile().name)
+
+#     # create what is basically pylhe-testfile-pr29.lhe.gz
+#     with open(test_data, "rb") as readfile:
+#         with gzip.open(tmp_path, "wb") as writefile:
+#             shutil.copyfileobj(readfile, writefile)
+#     yield tmp_path
+
+#     # teardown
+#     os.remove(tmp_path)
+
+
+@pytest.fixture(scope="session")
+def testdata_gzip_file():
+    yield Path(skhep_testdata.data_path("pylhe-drell-yan-ll-lhe.gz"))
+
+
+def test_gzip_open(tmpdir, testdata_file, testdata_gzip_file):
+    assert pylhe._extract_fileobj(testdata_file)
     assert pylhe._extract_fileobj(testdata_gzip_file)
 
     # Needs path-like object, not a fileobj
     with pytest.raises(TypeError):
-        with open(TEST_FILE, "rb") as fileobj:
+        with open(testdata_file, "rb") as fileobj:
             pylhe._extract_fileobj(fileobj)
 
-    with open(TEST_FILE, "rb") as fileobj:
-        assert isinstance(pylhe._extract_fileobj(TEST_FILE), type(fileobj))
-        assert isinstance(pylhe._extract_fileobj(Path(TEST_FILE)), type(fileobj))
+    with open(testdata_file, "rb") as fileobj:
+        assert isinstance(pylhe._extract_fileobj(testdata_file), type(fileobj))
+        assert isinstance(pylhe._extract_fileobj(Path(testdata_file)), type(fileobj))
     assert isinstance(pylhe._extract_fileobj(testdata_gzip_file), gzip.GzipFile)
     assert isinstance(pylhe._extract_fileobj(Path(testdata_gzip_file)), gzip.GzipFile)
 
 
-def test_read_num_events(testdata_gzip_file):
-    assert pylhe.read_num_events(TEST_FILE) == 791
-    assert pylhe.read_num_events(TEST_FILE) == pylhe.read_num_events(testdata_gzip_file)
+def test_read_num_events(testdata_file, testdata_gzip_file):
+    assert pylhe.read_num_events(testdata_file) == 10000
+    assert pylhe.read_num_events(testdata_file) == pylhe.read_num_events(
+        testdata_gzip_file
+    )
 
 
-def test_lhe_init(testdata_gzip_file):
-    assert pylhe.read_lhe_init(TEST_FILE) == pylhe.read_lhe_init(testdata_gzip_file)
+def test_lhe_init(testdata_file, testdata_gzip_file):
+    assert pylhe.read_lhe_init(testdata_file) == pylhe.read_lhe_init(testdata_gzip_file)
 
-    init_data = pylhe.read_lhe_init(TEST_FILE)
+    init_data = pylhe.read_lhe_init(testdata_file)
     init_info = init_data["initInfo"]
     assert init_info["beamA"] == pytest.approx(1.0)
     assert init_info["beamB"] == pytest.approx(2.0)
@@ -65,6 +86,6 @@ def test_lhe_init(testdata_gzip_file):
     assert init_info["numProcesses"] == pytest.approx(8.0)
 
 
-def test_read_lhe(testdata_gzip_file):
-    assert pylhe.read_lhe(TEST_FILE)
+def test_read_lhe(testdata_file, testdata_gzip_file):
+    assert pylhe.read_lhe(testdata_file)
     assert pylhe.read_lhe(testdata_gzip_file)
