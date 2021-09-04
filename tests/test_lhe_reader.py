@@ -8,12 +8,10 @@ import skhep_testdata
 
 import pylhe
 
-TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
-
 
 @pytest.fixture(scope="session")
 def testdata_file():
-    test_data = Path(skhep_testdata.data_path("pylhe-drell-yan-ll-lhe.gz"))
+    test_data = skhep_testdata.data_path("pylhe-drell-yan-ll-lhe.gz")
     tmp_path = Path(NamedTemporaryFile().name)
 
     # create what is basically pylhe-drell-yan-ll-lhe.lhe
@@ -26,6 +24,7 @@ def testdata_file():
     os.remove(tmp_path)
 
 
+# TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 # @pytest.fixture(scope="session")
 # def testdata_gzip_file():
 #     test_data = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
