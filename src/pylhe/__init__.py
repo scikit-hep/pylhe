@@ -224,7 +224,7 @@ def read_lhe(filepath):
                     data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventinfo = LHEEventInfo.fromstring(eventdata)
-                    particles = particles[:int(eventinfo.nparticles)]
+                    particles = particles[: int(eventinfo.nparticles)]
                     particle_objs = [LHEParticle.fromstring(p) for p in particles]
                     yield LHEEvent(eventinfo, particle_objs)
     except ET.ParseError as excep:
@@ -246,12 +246,18 @@ def read_lhe_with_attributes(filepath):
                     eventdata, particles = data[0], data[1:]
                     eventdict["eventinfo"] = LHEEventInfo.fromstring(eventdata)
                     eventinfo.nparticles = int(eventinfo.nparticles)
-                    eventdict["particles"] = [LHEParticle.fromstring(p) for p in particles[:eventinfo.nparticles]]
+                    eventdict["particles"] = [
+                        LHEParticle.fromstring(p)
+                        for p in particles[: eventinfo.nparticles]
+                    ]
                     eventdict["weights"] = {}
                     eventdict["attrib"] = element.attrib
                     eventdict["optional"] = []
                     if len(particles) > eventinfo.nparticles:
-                        eventdict["optional"] = [p.strip() for p in eventinfo.nparticles[eventinfo.nparticles:]]
+                        eventdict["optional"] = [
+                            p.strip()
+                            for p in eventinfo.nparticles[eventinfo.nparticles :]
+                        ]
                     for sub in element:
                         if sub.tag == "rwgt":
                             for r in sub:
