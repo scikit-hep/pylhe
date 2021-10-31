@@ -221,9 +221,10 @@ def read_lhe(filepath):
         with _extract_fileobj(filepath) as fileobj:
             for event, element in ET.iterparse(fileobj, events=["end"]):
                 if element.tag == "event":
-                    data = element.text.split("\n")[1:-1]
+                    data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventinfo = LHEEventInfo.fromstring(eventdata)
+                    particles = particles[:int(eventinfo.nparticles)]
                     particle_objs = [LHEParticle.fromstring(p) for p in particles]
                     yield LHEEvent(eventinfo, particle_objs)
     except ET.ParseError as excep:
@@ -241,18 +242,16 @@ def read_lhe_with_attributes(filepath):
             for event, element in ET.iterparse(fileobj, events=["end"]):
                 if element.tag == "event":
                     eventdict = {}
-                    data = element.text.split("\n")[1:-1]
+                    data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventdict["eventinfo"] = LHEEventInfo.fromstring(eventdata)
-                    eventdict["particles"] = []
+                    eventinfo.nparticles = int(eventinfo.nparticles)
+                    eventdict["particles"] = [LHEParticle.fromstring(p) for p in particles[:eventinfo.nparticles]]
                     eventdict["weights"] = {}
                     eventdict["attrib"] = element.attrib
                     eventdict["optional"] = []
-                    for p in particles:
-                        if not p.strip().startswith("#"):
-                            eventdict["particles"] += [LHEParticle.fromstring(p)]
-                        else:
-                            eventdict["optional"].append(p.strip())
+                    if len(particles) > eventinfo.nparticles:
+                        eventdict["optional"] = [p.strip() for p in eventinfo.nparticles[eventinfo.nparticles:]]
                     for sub in element:
                         if sub.tag == "rwgt":
                             for r in sub:
