@@ -43,9 +43,9 @@ repos:
     rev: 1.2.2
     hooks:
     - id: nbqa-pyupgrade
-      additional_dependencies: [pyupgrade==2.29.0]
+      additional_dependencies: [pyupgrade==2.29.1]
       args: ["--py36-plus"]
     - id: nbqa-isort
-      additional_dependencies: [isort==5.9.3]
+      additional_dependencies: [isort==5.10.1]
     - id: nbqa-black
-      additional_dependencies: [black==21.9b0]
+      additional_dependencies: [black==21.12b0]
