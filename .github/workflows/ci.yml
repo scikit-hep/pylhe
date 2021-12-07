@@ -30,7 +30,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        python -m pip --quiet install --editable .[test]
+        python -m pip --quiet install .[test]
         python -m pip list
 
     - name: Install external pacakges
