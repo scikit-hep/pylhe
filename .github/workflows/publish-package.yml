@@ -18,21 +18,26 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Set up Python 3.9
+
+    - name: Set up Python 3.10
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: '3.10'
+
     - name: Install python-build, check-manifest, and twine
       run: |
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install build check-manifest twine
         python -m pip list
+
     - name: Check MANIFEST
       run: |
         check-manifest
+
     - name: Build a sdist and a wheel
       run: |
-        python -m build --outdir dist/ .
+        python -m build .
+
     - name: Verify history available for dev versions
       run: |
         wheel_name=$(find dist/ -iname "*.whl" -printf "%f\n")
@@ -43,10 +48,16 @@ jobs:
           return 1
         fi
         echo "python-build named built distribution: ${wheel_name}"
+
     - name: Verify the distribution
       run: twine check dist/*
+
     - name: List contents of sdist
-      run: tar --list --file dist/pylhe-*.tar.gz
+      run: python -m tarfile --list dist/pylhe-*.tar.gz
+
+    - name: List contents of wheel
+      run: python -m zipfile --list dist/pylhe-*.whl
+
     - name: Publish distribution 📦 to Test PyPI
       # every PR will trigger a push event on master, so check the push event is actually coming from master
       if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'scikit-hep/pylhe'
@@ -54,6 +65,7 @@ jobs:
       with:
         password: ${{ secrets.test_pypi_password }}
         repository_url: https://test.pypi.org/legacy/
+
     - name: Publish distribution 📦 to PyPI
       if: github.event_name == 'release' && github.event.action == 'published' && github.repository == 'scikit-hep/pylhe'
       uses: pypa/gh-action-pypi-publish@v1.4.2
