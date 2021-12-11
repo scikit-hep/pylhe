@@ -245,19 +245,15 @@ def read_lhe_with_attributes(filepath):
                     data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventdict["eventinfo"] = LHEEventInfo.fromstring(eventdata)
-                    eventinfo.nparticles = int(eventinfo.nparticles)
-                    eventdict["particles"] = [
-                        LHEParticle.fromstring(p)
-                        for p in particles[: eventinfo.nparticles]
-                    ]
+                    eventdict["particles"] = []
                     eventdict["weights"] = {}
                     eventdict["attrib"] = element.attrib
                     eventdict["optional"] = []
-                    if len(particles) > eventinfo.nparticles:
-                        eventdict["optional"] = [
-                            p.strip()
-                            for p in eventinfo.nparticles[eventinfo.nparticles :]
-                        ]
+                    for p in particles:
+                        if not p.strip().startswith("#"):
+                            eventdict["particles"] += [LHEParticle.fromstring(p)]
+                        else:
+                            eventdict["optional"].append(p.strip())
                     for sub in element:
                         if sub.tag == "rwgt":
                             for r in sub:
