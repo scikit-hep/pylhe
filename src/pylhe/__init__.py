@@ -190,11 +190,13 @@ def read_lhe_init(filepath):
                 for child in element:
                     # Find all weightgroups
                     if child.tag == "weightgroup" and child.attrib != {}:
-                        try:
+                        if 'type' in child.attrib:
                             wg_type = child.attrib["type"]
-                        except KeyError:
+                        elif 'name' in child.attrib:
+                            wg_type = child.attrib["name"]
+                        else:
                             print("weightgroup must have attribute 'type'")
-                            raise
+                            raise KeyError
                         _temp = {"attrib": child.attrib, "weights": {}}
                         # Iterate over all weights in this weightgroup
                         for w in child:
