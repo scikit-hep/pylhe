@@ -190,9 +190,9 @@ def read_lhe_init(filepath):
                 for child in element:
                     # Find all weightgroups
                     if child.tag == "weightgroup" and child.attrib != {}:
-                        if 'type' in child.attrib:
+                        if "type" in child.attrib:
                             wg_type = child.attrib["type"]
-                        elif 'name' in child.attrib:
+                        elif "name" in child.attrib:
                             wg_type = child.attrib["name"]
                         else:
                             print("weightgroup must have attribute 'type'")
