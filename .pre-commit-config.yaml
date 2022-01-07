@@ -37,7 +37,7 @@ repos:
 -   repo: https://github.com/psf/black
     rev: 21.12b0
     hooks:
-    - id: black
+    - id: black-jupyter
 
 -   repo: https://github.com/nbQA-dev/nbQA
     rev: 1.2.2
@@ -47,5 +47,3 @@ repos:
       args: ["--py36-plus"]
     - id: nbqa-isort
       additional_dependencies: [isort==5.10.1]
-    - id: nbqa-black
-      additional_dependencies: [black==21.12b0]
