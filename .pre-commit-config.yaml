@@ -35,12 +35,12 @@ repos:
     - id: flake8
 
 -   repo: https://github.com/psf/black
-    rev: 21.12b0
+    rev: 22.1.0
     hooks:
     - id: black-jupyter
 
 -   repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.2.2
+    rev: 1.2.3
     hooks:
     - id: nbqa-pyupgrade
       additional_dependencies: [pyupgrade==2.31.0]
