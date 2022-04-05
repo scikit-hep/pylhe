@@ -48,7 +48,7 @@ jobs:
 
     - name: Report coverage with Codecov
       if: github.event_name == 'push' && matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
         file: ./coverage.xml
         flags: unittests
