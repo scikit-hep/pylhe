@@ -48,7 +48,7 @@ jobs:
       run: |
         pytest -r sx tests/
 
-      # Report coverage for oldest and newest Python tested to deal with version differences
+      # Report coverage for oldest and newest Python tested to guard against version differences
     - name: Report core project coverage with Codecov
       if: >-
         github.event_name != 'schedule' &&
