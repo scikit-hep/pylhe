@@ -48,12 +48,16 @@ jobs:
       run: |
         pytest -r sx tests/
 
-    - name: Report coverage with Codecov
-      if: github.event_name == 'push' && matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
+      # Report coverage for oldest and newest Python tested to deal with version differences
+    - name: Report core project coverage with Codecov
+      if: >-
+        github.event_name != 'schedule' &&
+        (matrix.python-version == '3.6' || matrix.python-version == '3.10') &&
+        matrix.os == 'ubuntu-latest'
       uses: codecov/codecov-action@v2
       with:
-        file: ./coverage.xml
-        flags: unittests
+        files: ./coverage.xml
+        flags: unittests-${{ matrix.python-version }}
         name: pylhe
 
   docker:
