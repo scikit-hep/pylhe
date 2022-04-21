@@ -36,9 +36,7 @@ def __dir__():
 
 
 # retrieve mapping of PDG ID to particle name as LaTeX string
-_PDGID2LaTeXNameMap, _ = DirectionalMaps(
-    "PDGID", "LATEXNAME", converters=(int, str)
-    )
+_PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
 
 
 class LHEFile:
@@ -79,6 +77,7 @@ class LHEEvent:
         """
         Navigate the particles in the event and produce a Digraph in the DOT language.
         """
+
         def safe_html_name(name):
             """
             Get a safe HTML name from the LaTex name.
@@ -98,15 +97,17 @@ class LHEEvent:
             except KeyError:
                 texlbl = str(int(p.id))
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
-            self._graph.node(str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl)
+            self._graph.node(
+                str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
+            )
         for i, p in enumerate(self.particles):
             for mom in p.mothers():
                 self._graph.edge(str(self.particles.index(mom)), str(i))
 
     def _repr_mimebundle_(
         self,
-        include = None,
-        exclude = None,
+        include=None,
+        exclude=None,
         **kwargs,
     ):
         """
@@ -360,6 +361,7 @@ def visualize(event, outputname):
     )
     # draw graph
     import networkx as nx
+
     g = nx.DiGraph()
     for i, p in enumerate(event.particles):
         g.add_node(i, attr_dict=p.__dict__)
