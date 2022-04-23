@@ -1,6 +1,5 @@
 import itertools
 
-import graphviz
 import skhep_testdata
 
 import pylhe
@@ -18,10 +17,9 @@ def test_visualize(tmpdir):
 
 
 def test_LHEEvent_graph():
-    events = pylhe.read_lhe(TEST_FILE)
+    events = pylhe.read_lhe_with_attributes(TEST_FILE)
     # Get the first event
     e = next(events)
-
-    assert isinstance(e.graph, graphviz.dot.Digraph)
-    # ... it contains 5 pions
-    assert e.graph.source.count("&#x03c0;") == 5
+    # ... it contains 8 pions and a proton
+    assert e.graph.source.count("&#x03c0;") == 8
+    assert "<td>p</td>" in e.graph.source
