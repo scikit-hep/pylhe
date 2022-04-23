@@ -1,10 +1,9 @@
 import itertools
-import graphviz
 
+import graphviz
 import skhep_testdata
 
 import pylhe
-
 
 TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 
