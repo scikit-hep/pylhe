@@ -68,3 +68,13 @@ def test_lhe_init(testdata_gzip_file):
 def test_read_lhe(testdata_gzip_file):
     assert pylhe.read_lhe(TEST_FILE)
     assert pylhe.read_lhe(testdata_gzip_file)
+
+
+def test_issue_102():
+    """
+    Test a file containing lines starting with "#aMCatNLO".
+    """
+    test_file = skhep_testdata.data_path("pylhe-testlhef3.lhe")
+
+    assert pylhe.read_num_events(test_file) == 59
+    assert pylhe.read_lhe(test_file).__sizeof__() == pylhe.read_lhe_with_attributes(test_file).__sizeof__()
