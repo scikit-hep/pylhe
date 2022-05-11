@@ -77,4 +77,7 @@ def test_issue_102():
     test_file = skhep_testdata.data_path("pylhe-testlhef3.lhe")
 
     assert pylhe.read_num_events(test_file) == 59
-    assert pylhe.read_lhe(test_file).__sizeof__() == pylhe.read_lhe_with_attributes(test_file).__sizeof__()
+    assert (
+        pylhe.read_lhe(test_file).__sizeof__()
+        == pylhe.read_lhe_with_attributes(test_file).__sizeof__()
+    )
