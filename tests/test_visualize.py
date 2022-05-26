@@ -23,5 +23,6 @@ def test_LHEEvent_graph():
     # Get the first event
     event = next(events)
     # ... it contains 8 pions and a proton
+    # pi unicode charecter is '&#x03c0;'
     assert event.graph.source.count("&#x03c0;") == 8
     assert "<td>p</td>" in event.graph.source
