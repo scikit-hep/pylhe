@@ -4,11 +4,11 @@ import skhep_testdata
 
 import pylhe
 
-TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
-
 
 def test_visualize(tmpdir):
-    events = pylhe.read_lhe_with_attributes(TEST_FILE)
+    lhe_file = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
+    events = pylhe.read_lhe_with_attributes(lhe_file)
+
     start_event = 1
     stop_event = 2
     filename = tmpdir.join(f"event{start_event}.pdf")
@@ -17,9 +17,11 @@ def test_visualize(tmpdir):
 
 
 def test_LHEEvent_graph():
-    events = pylhe.read_lhe_with_attributes(TEST_FILE)
+    lhe_file = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
+    events = pylhe.read_lhe_with_attributes(lhe_file)
+
     # Get the first event
-    e = next(events)
+    event = next(events)
     # ... it contains 8 pions and a proton
-    assert e.graph.source.count("&#x03c0;") == 8
-    assert "<td>p</td>" in e.graph.source
+    assert event.graph.source.count("&#x03c0;") == 8
+    assert "<td>p</td>" in event.graph.source
