@@ -3,8 +3,10 @@ import os
 import subprocess
 import xml.etree.ElementTree as ET
 
+import graphviz
 import networkx as nx
 import tex2pix
+from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 
 from ._version import version as __version__
@@ -34,6 +36,10 @@ def __dir__():
     return __all__
 
 
+# retrieve mapping of PDG ID to particle name as LaTeX string
+_PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
+
+
 class LHEFile:
     def __init__(self):
         pass
@@ -50,9 +56,70 @@ class LHEEvent:
         self.optional = optional
         for p in self.particles:
             p.event = self
+        self._graph = None
 
-    def visualize(self, outputname):
-        visualize(self, outputname)
+    @property
+    def graph(self):
+        """
+        Get the `graphviz.Digraph` object.
+        The user now has full control ...
+
+        E.g., see the source with my_LHEEvent_instance.graph.source.
+
+        When not in notebooks the graph can easily be visualized with the
+        `graphviz.Digraph.render` or `graphviz.Digraph.view` functions, e.g.:
+        my_LHEEvent_instance.graph.render(filename="test", format="pdf", view=True, cleanup=True)
+        """
+        if self._graph is None:
+            self._build_graph()
+        return self._graph
+
+    def _build_graph(self):
+        """
+        Navigate the particles in the event and produce a Digraph in the DOT language.
+        """
+
+        def safe_html_name(name):
+            """
+            Get a safe HTML name from the LaTex name.
+            """
+            try:
+                return latex_to_html_name(name)
+            except Exception:
+                return name
+
+        self._graph = graphviz.Digraph()
+        for i, p in enumerate(self.particles):
+            try:
+                iid = int(p.id)
+                name = _PDGID2LaTeXNameMap[iid]
+                texlbl = f"${name}$"
+                label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{safe_html_name(name)}</td></tr></table>>'
+            except KeyError:
+                texlbl = str(int(p.id))
+                label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
+            self._graph.node(
+                str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
+            )
+        for i, p in enumerate(self.particles):
+            for mom in p.mothers():
+                self._graph.edge(str(self.particles.index(mom)), str(i))
+
+    def _repr_mimebundle_(
+        self,
+        include=None,
+        exclude=None,
+        **kwargs,
+    ):
+        """
+        IPython display helper.
+        """
+        try:
+            return self.graph._repr_mimebundle_(
+                include=include, exclude=exclude, **kwargs
+            )
+        except AttributeError:
+            return {"image/svg+xml": self.graph._repr_svg_()}  # for graphviz < 0.19
 
 
 class LHEEventInfo:
@@ -294,7 +361,7 @@ def visualize(event, outputname):
     _PDGID2LaTeXNameMap, _ = DirectionalMaps(
         "PDGID", "LATEXNAME", converters=(int, str)
     )
-    # draw graph
+
     g = nx.DiGraph()
     for i, p in enumerate(event.particles):
         g.add_node(i, attr_dict=p.__dict__)
