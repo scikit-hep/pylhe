@@ -171,6 +171,7 @@ def read_lhe_init(filepath):
     """
     Read and return the init blocks. This encodes the weight group
     and related things according to https://arxiv.org/abs/1405.1067
+    LHEF version information also read and returned.
 
     Args:
         filepath: A path-like object or str.
@@ -180,7 +181,9 @@ def read_lhe_init(filepath):
     """
     initDict = {}
     with _extract_fileobj(filepath) as fileobj:
-        for event, element in ET.iterparse(fileobj, events=["end"]):
+        for event, element in ET.iterparse(fileobj, events=["start"]):
+            if element.tag == "LesHouchesEvents":
+                initDict["version"] = element.attrib["version"]
             if element.tag == "init":
                 data = element.text.split("\n")[1:-1]
                 initDict["initInfo"] = LHEInit.fromstring(data[0])
@@ -193,8 +196,11 @@ def read_lhe_init(filepath):
                         try:
                             wg_type = child.attrib["type"]
                         except KeyError:
-                            print("weightgroup must have attribute 'type'")
-                            raise
+                            try: 
+                                wg_type = child.attrib["name"]
+                            except KeyError:
+                                print("weightgroup must have attribute 'type' or 'name'")
+                                raise
                         _temp = {"attrib": child.attrib, "weights": {}}
                         # Iterate over all weights in this weightgroup
                         for w in child:
@@ -224,7 +230,7 @@ def read_lhe(filepath):
                     data = element.text.split("\n")[1:-1]
                     eventdata, particles = data[0], data[1:]
                     eventinfo = LHEEventInfo.fromstring(eventdata)
-                    particle_objs = [LHEParticle.fromstring(p) for p in particles]
+                    particle_objs = [LHEParticle.fromstring(p) for p in particles if not p.strip().startswith("#")]
                     yield LHEEvent(eventinfo, particle_objs)
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
