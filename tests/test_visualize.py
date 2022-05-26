@@ -12,7 +12,7 @@ def test_visualize(tmpdir):
     start_event = 1
     stop_event = 2
     filename = tmpdir.join(f"event{start_event}.pdf")
-    for idx, event in enumerate(itertools.islice(events, start_event, stop_event)):
+    for event in itertools.islice(events, start_event, stop_event):
         pylhe.visualize(event, filename)
 
 
