@@ -9,8 +9,8 @@ import tex2pix
 from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 
-from ._version import version as __version__
-from .awkward import register_awkward, to_awkward
+from pylhe._version import version as __version__
+from pylhe.awkward import register_awkward, to_awkward
 
 __all__ = [
     "__version__",
