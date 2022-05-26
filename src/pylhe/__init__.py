@@ -4,6 +4,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 import graphviz
+import networkx as nx
 import tex2pix
 from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
@@ -359,8 +360,6 @@ def visualize(event, outputname):
     _PDGID2LaTeXNameMap, _ = DirectionalMaps(
         "PDGID", "LATEXNAME", converters=(int, str)
     )
-    # draw graph
-    import networkx as nx
 
     g = nx.DiGraph()
     for i, p in enumerate(event.particles):
