@@ -26,7 +26,6 @@ def test_top_level_api():
         "read_num_events",
         "register_awkward",
         "to_awkward",
-        "visualize",
     ]
 
 
