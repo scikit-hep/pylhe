@@ -3,11 +3,12 @@ from setuptools import setup
 extras_require = {}
 extras_require["lint"] = sorted({"flake8", "black"})
 extras_require["test"] = sorted(
-        {"pytest~=6.0",
+    {
+        "pytest~=6.0",
         "pytest-cov>=2.5.1",
         "scikit-hep-testdata>=0.3.1",
         "pydocstyle",
-        }
+    }
 )
 extras_require["develop"] = sorted(
     set(
