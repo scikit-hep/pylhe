@@ -2,8 +2,8 @@ import gzip
 import os
 import subprocess
 import xml.etree.ElementTree as ET
-import graphviz
 
+import graphviz
 from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 
