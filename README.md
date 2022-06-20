@@ -32,33 +32,32 @@ The visualization capabilities require external dependencies of [Graphviz](https
 
 ## Get started
 
-The example below provides a quick get-started. Full functionality can be inspected
-from the functions provided in the `pylhe` module.
+The example below provides a simple overview.
+Full functionality can be inspected from the functions provided in the `pylhe` module.
 
 ```python
 import itertools
-import pylhe
 
-# You can use LHE files from our scikit-hep-testdata package
+# You can use LHE files from scikit-hep-testdata
 from skhep_testdata import data_path
 
+import pylhe
+
 lhe_file = data_path("pylhe-testlhef3.lhe")
-
 events = pylhe.read_lhe_with_attributes(lhe_file)
-
 print(f"Number of events: {pylhe.read_num_events(lhe_file)}")
 
-# Get hold of event 1
+# Get event 1
 event = next(itertools.islice(events, 1, 2))
 
-# A DOT language graph of the event can be inspected as follows:
+# A DOT language graph of the event can be inspected as follows
 print(event.graph.source)
 
-# The graph is nicely displayed as SVG in notebooks:
+# The graph is nicely displayed as SVG in Jupyter notebooks
 event
 
-# If not in a notebook, or wishing to save the DOT graph under one of the available formats,
-# do for example (refer to the Graphviz documentation for more)
+# To save a DOT graph render the graph to a supported image format
+# (refer to the Graphviz documentation for more)
 event.graph.render(filename="test", format="png", cleanup=True)
 event.graph.render(filename="test", format="pdf", cleanup=True)
 ```
