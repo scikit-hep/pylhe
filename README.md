@@ -22,6 +22,8 @@ To install `pylhe` from PyPI you can just do
 python -m pip install pylhe
 ```
 
+The visualization capabilities require external dependencies of [Graphviz](https://graphviz.org/) and LaTeX.
+
 ## Get started
 
 The example below provides a simple overview.
