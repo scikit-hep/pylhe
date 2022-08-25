@@ -1,11 +1,7 @@
 import gzip
-import os
-import subprocess
 import xml.etree.ElementTree as ET
 
 import graphviz
-import networkx as nx
-import tex2pix
 from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 
@@ -27,7 +23,6 @@ __all__ = [
     "read_num_events",
     "register_awkward",
     "to_awkward",
-    "visualize",
 ]
 
 
@@ -350,35 +345,3 @@ def read_num_events(filepath):
             element.tag == "event"
             for event, element in ET.iterparse(fileobj, events=["end"])
         )
-
-
-def visualize(event, outputname):
-    """
-    Create a PDF with a visualisation of the LHE event record as a directed graph
-    """
-
-    # retrieve mapping of PDG ID to particle name as LaTeX string
-    _PDGID2LaTeXNameMap, _ = DirectionalMaps(
-        "PDGID", "LATEXNAME", converters=(int, str)
-    )
-
-    g = nx.DiGraph()
-    for i, p in enumerate(event.particles):
-        g.add_node(i, attr_dict=p.__dict__)
-        try:
-            iid = int(p.id)
-            name = _PDGID2LaTeXNameMap[iid]
-            texlbl = f"${name}$"
-        except KeyError:
-            texlbl = str(int(p.id))
-        g.nodes[i].update(texlbl=texlbl)
-    for i, p in enumerate(event.particles):
-        for mom in p.mothers():
-            g.add_edge(event.particles.index(mom), i)
-    nx.nx_pydot.write_dot(g, "event.dot")
-
-    p = subprocess.Popen(["dot2tex", "event.dot"], stdout=subprocess.PIPE)
-    tex = p.stdout.read().decode()
-    tex2pix.Renderer(tex).mkpdf(outputname)
-    subprocess.check_call(["pdfcrop", outputname, outputname])
-    os.remove("event.dot")
