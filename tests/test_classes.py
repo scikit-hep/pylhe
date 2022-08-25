@@ -8,12 +8,12 @@ TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 
 def test_LHEEventInfo_no_default_init():
     with pytest.raises(RuntimeError):
-        evt_info = LHEEventInfo()
+        _ = LHEEventInfo()
 
 
 def test_LHEParticle_no_default_init():
     with pytest.raises(RuntimeError):
-        p = LHEParticle()
+        _ = LHEParticle()
 
 
 def test_LHEFile():
