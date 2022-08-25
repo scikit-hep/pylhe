@@ -66,8 +66,15 @@ def test_lhe_init(testdata_gzip_file):
 
 
 def test_read_lhe(testdata_gzip_file):
-    assert pylhe.read_lhe(TEST_FILE)
     assert pylhe.read_lhe(testdata_gzip_file)
+
+
+def test_read_lhe_internals():
+    events = pylhe.read_lhe(TEST_FILE)
+
+    assert events
+    for e in events:
+        assert e is not None
 
 
 def test_issue_102():
