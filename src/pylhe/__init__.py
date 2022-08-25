@@ -121,7 +121,9 @@ class LHEEventInfo:
 
     def __init__(self, **kwargs):
         if set(kwargs.keys()) != set(self.fieldnames):
-            raise RuntimeError(f"LHEEventInfo constructor expects fields {self.fieldnames}! Got {kwargs.keys()}.")
+            raise RuntimeError(
+                f"LHEEventInfo constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
+            )
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -149,7 +151,9 @@ class LHEParticle:
 
     def __init__(self, **kwargs):
         if set(kwargs.keys()) != set(self.fieldnames):
-            raise RuntimeError(f"LHEParticle constructor expects fields {self.fieldnames}! Got {kwargs.keys()}.")
+            raise RuntimeError(
+                f"LHEParticle constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
+            )
         for k, v in kwargs.items():
             setattr(self, k, v)
 
