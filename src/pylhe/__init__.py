@@ -254,8 +254,13 @@ def read_lhe_init(filepath):
                         try:
                             wg_type = child.attrib["type"]
                         except KeyError:
-                            print("weightgroup must have attribute 'type'")
-                            raise
+                            try:
+                                wg_type = child.attrib["name"]
+                            except KeyError:
+                                print(
+                                    "weightgroup must have attribute 'type' or 'name'"
+                                )
+                                raise
                         _temp = {"attrib": child.attrib, "weights": {}}
                         # Iterate over all weights in this weightgroup
                         for w in child:
@@ -272,6 +277,8 @@ def read_lhe_init(filepath):
                             }
 
                         initDict["weightgroup"][wg_type] = _temp
+            if element.tag == "LesHouchesEvents":
+                initDict["version"] = element.attrib["version"]
             if element.tag == "event":
                 break
     return initDict
