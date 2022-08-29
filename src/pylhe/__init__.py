@@ -241,7 +241,7 @@ def read_lhe_init(filepath):
     """
     initDict = {}
     with _extract_fileobj(filepath) as fileobj:
-        for event, element in ET.iterparse(fileobj, events=["end"]):
+        for event, element in ET.iterparse(fileobj, events=["start", "end"]):
             if element.tag == "init":
                 data = element.text.split("\n")[1:-1]
                 initDict["initInfo"] = LHEInit.fromstring(data[0])
@@ -278,7 +278,7 @@ def read_lhe_init(filepath):
 
                         initDict["weightgroup"][wg_type] = _temp
             if element.tag == "LesHouchesEvents":
-                initDict["version"] = element.attrib["version"]
+                initDict["LHEVersion"] = float(element.attrib["version"])
             if element.tag == "event":
                 break
     return initDict
