@@ -16,7 +16,6 @@ __all__ = [
     "LHEInit",
     "LHEParticle",
     "LHEProcInfo",
-    "loads",
     "read_lhe",
     "read_lhe_init",
     "read_lhe_with_attributes",
@@ -122,7 +121,9 @@ class LHEEventInfo:
 
     def __init__(self, **kwargs):
         if set(kwargs.keys()) != set(self.fieldnames):
-            raise RuntimeError
+            raise RuntimeError(
+                f"LHEEventInfo constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
+            )
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -150,7 +151,9 @@ class LHEParticle:
 
     def __init__(self, **kwargs):
         if set(kwargs.keys()) != set(self.fieldnames):
-            raise RuntimeError
+            raise RuntimeError(
+                f"LHEParticle constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
+            )
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -201,10 +204,6 @@ class LHEProcInfo(dict):
     @classmethod
     def fromstring(cls, string):
         return dict(zip(cls.fieldnames, map(float, string.split())))
-
-
-def loads():
-    pass
 
 
 def _extract_fileobj(filepath):
