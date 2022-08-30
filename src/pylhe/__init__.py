@@ -337,17 +337,21 @@ def read_lhe_with_attributes(filepath):
                         eventdict["attrib"],
                         eventdict["optional"],
                     )
-    except ET.ParseError:
-        print("WARNING. Parse Error.")
+    except ET.ParseError as excep:
+        print("WARNING. Parse Error:", excep)
         return
 
 
 def read_num_events(filepath):
     """
-    Moderately efficient way to get the number of events stored in file.
+    Moderately efficient way to get the number of events stored in a file.
     """
-    with _extract_fileobj(filepath) as fileobj:
-        return sum(
-            element.tag == "event"
-            for event, element in ET.iterparse(fileobj, events=["end"])
-        )
+    try:
+        with _extract_fileobj(filepath) as fileobj:
+            return sum(
+                element.tag == "event"
+                for event, element in ET.iterparse(fileobj, events=["end"])
+            )
+    except ET.ParseError as excep:
+        print("WARNING. Parse Error:", excep)
+        return -1
