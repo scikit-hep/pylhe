@@ -1,19 +1,24 @@
 {
     "description": "small package to get structured data out of Les Houches Event files",
     "license": "Apache-2.0",
-    "title": "scikit-hep/pylhe: v0.2.1",
-    "version": "v0.2.1",
+    "title": "scikit-hep/pylhe: v0.3.0",
+    "version": "v0.3.0",
     "upload_type": "software",
     "creators": [
         {
-            "affiliation": "CERN",
+            "affiliation": "Technical University of Munich",
             "name": "Lukas Heinrich",
             "orcid": "0000-0002-4048-7584"
         },
         {
-            "affiliation": "University of Illinois at Urbana-Champaign",
+            "affiliation": "University of Wisconsin-Madison",
             "name": "Matthew Feickert",
             "orcid": "0000-0003-4124-7862"
+        },
+        {
+            "affiliation": "University of Liverpool",
+            "name": "Eduardo Rodrigues",
+            "orcid": "0000-0003-2846-7625"
         }
     ],
     "access_right": "open",
@@ -24,7 +29,7 @@
     "related_identifiers": [
         {
             "scheme": "url",
-            "identifier": "https://github.com/scikit-hep/pylhe/tree/v0.2.1",
+            "identifier": "https://github.com/scikit-hep/pylhe/tree/v0.3.0",
             "relation": "isSupplementTo"
         }
     ]

@@ -1,14 +1,12 @@
 import gzip
-import os
-import subprocess
 import xml.etree.ElementTree as ET
 
-import networkx as nx
-import tex2pix
+import graphviz
+from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 
-from ._version import version as __version__
-from .awkward import register_awkward, to_awkward
+from pylhe._version import version as __version__
+from pylhe.awkward import register_awkward, to_awkward
 
 __all__ = [
     "__version__",
@@ -18,20 +16,22 @@ __all__ = [
     "LHEInit",
     "LHEParticle",
     "LHEProcInfo",
-    "loads",
     "read_lhe",
     "read_lhe_init",
     "read_lhe_with_attributes",
     "read_num_events",
     "register_awkward",
     "to_awkward",
-    "visualize",
 ]
 
 
 # Python 3.7+
 def __dir__():
     return __all__
+
+
+# retrieve mapping of PDG ID to particle name as LaTeX string
+_PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
 
 
 class LHEFile:
@@ -50,9 +50,70 @@ class LHEEvent:
         self.optional = optional
         for p in self.particles:
             p.event = self
+        self._graph = None
 
-    def visualize(self, outputname):
-        visualize(self, outputname)
+    @property
+    def graph(self):
+        """
+        Get the `graphviz.Digraph` object.
+        The user now has full control ...
+
+        E.g., see the source with my_LHEEvent_instance.graph.source.
+
+        When not in notebooks the graph can easily be visualized with the
+        `graphviz.Digraph.render` or `graphviz.Digraph.view` functions, e.g.:
+        my_LHEEvent_instance.graph.render(filename="test", format="pdf", view=True, cleanup=True)
+        """
+        if self._graph is None:
+            self._build_graph()
+        return self._graph
+
+    def _build_graph(self):
+        """
+        Navigate the particles in the event and produce a Digraph in the DOT language.
+        """
+
+        def safe_html_name(name):
+            """
+            Get a safe HTML name from the LaTex name.
+            """
+            try:
+                return latex_to_html_name(name)
+            except Exception:
+                return name
+
+        self._graph = graphviz.Digraph()
+        for i, p in enumerate(self.particles):
+            try:
+                iid = int(p.id)
+                name = _PDGID2LaTeXNameMap[iid]
+                texlbl = f"${name}$"
+                label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{safe_html_name(name)}</td></tr></table>>'
+            except KeyError:
+                texlbl = str(int(p.id))
+                label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
+            self._graph.node(
+                str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
+            )
+        for i, p in enumerate(self.particles):
+            for mom in p.mothers():
+                self._graph.edge(str(self.particles.index(mom)), str(i))
+
+    def _repr_mimebundle_(
+        self,
+        include=None,
+        exclude=None,
+        **kwargs,
+    ):
+        """
+        IPython display helper.
+        """
+        try:
+            return self.graph._repr_mimebundle_(
+                include=include, exclude=exclude, **kwargs
+            )
+        except AttributeError:
+            return {"image/svg+xml": self.graph._repr_svg_()}  # for graphviz < 0.19
 
 
 class LHEEventInfo:
@@ -60,7 +121,9 @@ class LHEEventInfo:
 
     def __init__(self, **kwargs):
         if set(kwargs.keys()) != set(self.fieldnames):
-            raise RuntimeError
+            raise RuntimeError(
+                f"LHEEventInfo constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
+            )
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -88,7 +151,9 @@ class LHEParticle:
 
     def __init__(self, **kwargs):
         if set(kwargs.keys()) != set(self.fieldnames):
-            raise RuntimeError
+            raise RuntimeError(
+                f"LHEParticle constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
+            )
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -141,10 +206,6 @@ class LHEProcInfo(dict):
         return dict(zip(cls.fieldnames, map(float, string.split())))
 
 
-def loads():
-    pass
-
-
 def _extract_fileobj(filepath):
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
@@ -180,7 +241,7 @@ def read_lhe_init(filepath):
     """
     initDict = {}
     with _extract_fileobj(filepath) as fileobj:
-        for event, element in ET.iterparse(fileobj, events=["end"]):
+        for event, element in ET.iterparse(fileobj, events=["start", "end"]):
             if element.tag == "init":
                 data = element.text.split("\n")[1:-1]
                 initDict["initInfo"] = LHEInit.fromstring(data[0])
@@ -192,11 +253,14 @@ def read_lhe_init(filepath):
                     if child.tag == "weightgroup" and child.attrib != {}:
                         if "type" in child.attrib:
                             wg_type = child.attrib["type"]
-                        elif "name" in child.attrib:
-                            wg_type = child.attrib["name"]
-                        else:
-                            print("weightgroup must have attribute 'type'")
-                            raise KeyError
+                        except KeyError:
+                            try:
+                                wg_type = child.attrib["name"]
+                            except KeyError:
+                                print(
+                                    "weightgroup must have attribute 'type' or 'name'"
+                                )
+                                raise
                         _temp = {"attrib": child.attrib, "weights": {}}
                         # Iterate over all weights in this weightgroup
                         for w in child:
@@ -213,6 +277,8 @@ def read_lhe_init(filepath):
                             }
 
                         initDict["weightgroup"][wg_type] = _temp
+            if element.tag == "LesHouchesEvents":
+                initDict["LHEVersion"] = float(element.attrib["version"])
             if element.tag == "event":
                 break
     return initDict
@@ -223,9 +289,10 @@ def read_lhe(filepath):
         with _extract_fileobj(filepath) as fileobj:
             for event, element in ET.iterparse(fileobj, events=["end"]):
                 if element.tag == "event":
-                    data = element.text.split("\n")[1:-1]
+                    data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventinfo = LHEEventInfo.fromstring(eventdata)
+                    particles = particles[: int(eventinfo.nparticles)]
                     particle_objs = [LHEParticle.fromstring(p) for p in particles]
                     yield LHEEvent(eventinfo, particle_objs)
     except ET.ParseError as excep:
@@ -243,7 +310,7 @@ def read_lhe_with_attributes(filepath):
             for event, element in ET.iterparse(fileobj, events=["end"]):
                 if element.tag == "event":
                     eventdict = {}
-                    data = element.text.split("\n")[1:-1]
+                    data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventdict["eventinfo"] = LHEEventInfo.fromstring(eventdata)
                     eventdict["particles"] = []
@@ -270,49 +337,21 @@ def read_lhe_with_attributes(filepath):
                         eventdict["attrib"],
                         eventdict["optional"],
                     )
-    except ET.ParseError:
-        print("WARNING. Parse Error.")
+    except ET.ParseError as excep:
+        print("WARNING. Parse Error:", excep)
         return
 
 
 def read_num_events(filepath):
     """
-    Moderately efficient way to get the number of events stored in file.
+    Moderately efficient way to get the number of events stored in a file.
     """
-    with _extract_fileobj(filepath) as fileobj:
-        return sum(
-            element.tag == "event"
-            for event, element in ET.iterparse(fileobj, events=["end"])
-        )
-
-
-def visualize(event, outputname):
-    """
-    Create a PDF with a visualisation of the LHE event record as a directed graph
-    """
-
-    # retrieve mapping of PDG ID to particle name as LaTeX string
-    _PDGID2LaTeXNameMap, _ = DirectionalMaps(
-        "PDGID", "LATEXNAME", converters=(int, str)
-    )
-    # draw graph
-    g = nx.DiGraph()
-    for i, p in enumerate(event.particles):
-        g.add_node(i, attr_dict=p.__dict__)
-        try:
-            iid = int(p.id)
-            name = _PDGID2LaTeXNameMap[iid]
-            texlbl = f"${name}$"
-        except KeyError:
-            texlbl = str(int(p.id))
-        g.nodes[i].update(texlbl=texlbl)
-    for i, p in enumerate(event.particles):
-        for mom in p.mothers():
-            g.add_edge(event.particles.index(mom), i)
-    nx.nx_pydot.write_dot(g, "event.dot")
-
-    p = subprocess.Popen(["dot2tex", "event.dot"], stdout=subprocess.PIPE)
-    tex = p.stdout.read().decode()
-    tex2pix.Renderer(tex).mkpdf(outputname)
-    subprocess.check_call(["pdfcrop", outputname, outputname])
-    os.remove("event.dot")
+    try:
+        with _extract_fileobj(filepath) as fileobj:
+            return sum(
+                element.tag == "event"
+                for event, element in ET.iterparse(fileobj, events=["end"])
+            )
+    except ET.ParseError as excep:
+        print("WARNING. Parse Error:", excep)
+        return -1

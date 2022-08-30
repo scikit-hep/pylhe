@@ -9,7 +9,8 @@ import skhep_testdata
 
 import pylhe
 
-TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
+TEST_FILE_LHE_v1 = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
+TEST_FILE_LHE_v3 = skhep_testdata.data_path("pylhe-testlhef3.lhe")
 
 
 @pytest.fixture(scope="session")
@@ -28,30 +29,37 @@ def testdata_gzip_file():
 
 
 def test_gzip_open(tmpdir, testdata_gzip_file):
-    assert pylhe._extract_fileobj(TEST_FILE)
+    assert pylhe._extract_fileobj(TEST_FILE_LHE_v1)
     assert pylhe._extract_fileobj(testdata_gzip_file)
 
     # Needs path-like object, not a fileobj
     with pytest.raises(TypeError):
-        with open(TEST_FILE, "rb") as fileobj:
+        with open(TEST_FILE_LHE_v1, "rb") as fileobj:
             pylhe._extract_fileobj(fileobj)
 
-    with open(TEST_FILE, "rb") as fileobj:
-        assert isinstance(pylhe._extract_fileobj(TEST_FILE), type(fileobj))
-        assert isinstance(pylhe._extract_fileobj(Path(TEST_FILE)), type(fileobj))
+    with open(TEST_FILE_LHE_v1, "rb") as fileobj:
+        assert isinstance(pylhe._extract_fileobj(TEST_FILE_LHE_v1), type(fileobj))
+        assert isinstance(pylhe._extract_fileobj(Path(TEST_FILE_LHE_v1)), type(fileobj))
     assert isinstance(pylhe._extract_fileobj(testdata_gzip_file), gzip.GzipFile)
     assert isinstance(pylhe._extract_fileobj(Path(testdata_gzip_file)), gzip.GzipFile)
 
 
 def test_read_num_events(testdata_gzip_file):
-    assert pylhe.read_num_events(TEST_FILE) == 791
-    assert pylhe.read_num_events(TEST_FILE) == pylhe.read_num_events(testdata_gzip_file)
+    assert pylhe.read_num_events(TEST_FILE_LHE_v1) == 791
+    assert pylhe.read_num_events(TEST_FILE_LHE_v1) == pylhe.read_num_events(
+        testdata_gzip_file
+    )
 
 
-def test_lhe_init(testdata_gzip_file):
-    assert pylhe.read_lhe_init(TEST_FILE) == pylhe.read_lhe_init(testdata_gzip_file)
+def test_read_lhe_init(testdata_gzip_file):
+    assert pylhe.read_lhe_init(TEST_FILE_LHE_v1) == pylhe.read_lhe_init(
+        testdata_gzip_file
+    )
 
-    init_data = pylhe.read_lhe_init(TEST_FILE)
+    init_data = pylhe.read_lhe_init(TEST_FILE_LHE_v1)
+
+    assert init_data["LHEVersion"] == pytest.approx(1.0)
+
     init_info = init_data["initInfo"]
     assert init_info["beamA"] == pytest.approx(1.0)
     assert init_info["beamB"] == pytest.approx(2.0)
@@ -66,5 +74,23 @@ def test_lhe_init(testdata_gzip_file):
 
 
 def test_read_lhe(testdata_gzip_file):
-    assert pylhe.read_lhe(TEST_FILE)
     assert pylhe.read_lhe(testdata_gzip_file)
+
+
+def test_read_lhe_internals():
+    events = pylhe.read_lhe(TEST_FILE_LHE_v1)
+
+    assert events
+    for e in events:
+        assert e is not None
+
+
+def test_issue_102():
+    """
+    Test a file containing lines starting with "#aMCatNLO".
+    """
+    assert pylhe.read_num_events(TEST_FILE_LHE_v3) == 59
+    assert (
+        pylhe.read_lhe(TEST_FILE_LHE_v3).__sizeof__()
+        == pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3).__sizeof__()
+    )

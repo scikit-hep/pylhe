@@ -19,14 +19,12 @@ def test_top_level_api():
         "LHEParticle",
         "LHEProcInfo",
         "__version__",
-        "loads",
         "read_lhe",
         "read_lhe_init",
         "read_lhe_with_attributes",
         "read_num_events",
         "register_awkward",
         "to_awkward",
-        "visualize",
     ]
 
 
