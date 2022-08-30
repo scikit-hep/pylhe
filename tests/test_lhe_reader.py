@@ -8,6 +8,7 @@ import pytest
 import skhep_testdata
 
 import pylhe
+from pylhe import LHEEvent
 
 TEST_FILE_LHE_v1 = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 TEST_FILE_LHE_v3 = skhep_testdata.data_path("pylhe-testlhef3.lhe")
@@ -51,11 +52,16 @@ def test_read_num_events(testdata_gzip_file):
     )
 
 
-def test_read_lhe_init(testdata_gzip_file):
+def test_read_lhe_init_gzipped_file(testdata_gzip_file):
     assert pylhe.read_lhe_init(TEST_FILE_LHE_v1) == pylhe.read_lhe_init(
         testdata_gzip_file
     )
 
+
+def test_read_lhe_init_v1():
+    """
+    Test method read_lhe_init() on a LesHouchesEvents version="1.0" file.
+    """
     init_data = pylhe.read_lhe_init(TEST_FILE_LHE_v1)
 
     assert init_data["LHEVersion"] == pytest.approx(1.0)
@@ -72,17 +78,61 @@ def test_read_lhe_init(testdata_gzip_file):
     assert init_info["weightingStrategy"] == pytest.approx(7.0)
     assert init_info["numProcesses"] == pytest.approx(8.0)
 
-
-def test_read_lhe(testdata_gzip_file):
-    assert pylhe.read_lhe(testdata_gzip_file)
+    assert init_data["procInfo"] == []
 
 
-def test_read_lhe_internals():
+def test_read_lhe_init_v3():
+    """
+    Test method read_lhe_init() on a LesHouchesEvents version="3.0" file.
+    """
+    init_data = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
+
+    assert len(init_data["weightgroup"]) == 1
+    assert len(init_data["weightgroup"]["scale_variation"]["weights"]) == 9
+
+
+def test_read_lhe_v1():
+    """
+    Test method read_lhe() on a LesHouchesEvents version="1.0" file.
+    """
     events = pylhe.read_lhe(TEST_FILE_LHE_v1)
 
     assert events
     for e in events:
-        assert e is not None
+        assert isinstance(e, LHEEvent)
+
+
+def test_read_lhe_v3():
+    """
+    Test method read_lhe() on a LesHouchesEvents version="3.0" file.
+    """
+    events = pylhe.read_lhe(TEST_FILE_LHE_v3)
+
+    assert events
+    for e in events:
+        assert isinstance(e, LHEEvent)
+
+
+def test_read_lhe_with_attributes_v1():
+    """
+    Test method read_lhe_with_attributes() on a LesHouchesEvents version="1.0" file.
+    """
+    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v1)
+
+    assert events
+    for e in events:
+        assert isinstance(e, LHEEvent)
+
+
+def test_read_lhe_with_attributes_v3():
+    """
+    Test method read_lhe_with_attributes() on a LesHouchesEvents version="3.0" file.
+    """
+    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
+
+    assert events
+    for e in events:
+        assert isinstance(e, LHEEvent)
 
 
 def test_issue_102():
