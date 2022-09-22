@@ -10,7 +10,7 @@ def __dir__():
 
 
 def register_awkward():
-    """Register Awkwawrd behaviors for pylhe."""
+    """Register Awkward behaviors for pylhe."""
 
     vector.register_awkward()
     ak.mixin_class(ak.behavior)(Particle)
@@ -19,7 +19,7 @@ def register_awkward():
 
 
 def to_awkward(event_iterable):
-    """Convert iterarble of LHEEvents to Awkward-Array."""
+    """Convert iterable of LHEEvent instances to Awkward-Array."""
 
     builder = ak.ArrayBuilder()
     for event in event_iterable:
