@@ -1,7 +1,6 @@
 # pylhe: Python LHE interface
 
-<img src="https://user-images.githubusercontent.com/2318083/194557871-b863d51a-b9b0-4884-9331-1ce37a195588.png" alt="drawing" width="250"/>
-
+<img src="https://raw.githubusercontent.com/scikit-hep/pylhe/master/docs/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
 
 [![GitHub Project](https://img.shields.io/badge/GitHub--blue?style=social&logo=GitHub)](https://github.com/scikit-hep/pylhe)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1217031.svg)](https://doi.org/10.5281/zenodo.1217031)
