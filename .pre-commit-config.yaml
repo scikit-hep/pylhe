@@ -20,7 +20,7 @@ repos:
     - id: trailing-whitespace
 
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v2.37.3
+    rev: v2.38.2
     hooks:
     - id: pyupgrade
 
@@ -45,10 +45,10 @@ repos:
     - id: black-jupyter
 
 -   repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.4.0
+    rev: 1.5.2
     hooks:
     - id: nbqa-pyupgrade
-      additional_dependencies: [pyupgrade==2.37.3]
+      additional_dependencies: [pyupgrade==2.38.2]
       args: ["--py36-plus"]
     - id: nbqa-isort
       additional_dependencies: [isort==5.10.1]
