@@ -1,5 +1,7 @@
 # pylhe: Python LHE interface
 
+<img src="https://raw.githubusercontent.com/scikit-hep/pylhe/master/docs/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
+
 [![GitHub Project](https://img.shields.io/badge/GitHub--blue?style=social&logo=GitHub)](https://github.com/scikit-hep/pylhe)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1217031.svg)](https://doi.org/10.5281/zenodo.1217031)
 [![Scikit-HEP](https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg)](https://scikit-hep.org/)
@@ -23,38 +25,6 @@ python -m pip install pylhe
 ```
 
 The visualization capabilities require external dependencies of [Graphviz](https://graphviz.org/) and LaTeX.
-
-## Get started
-
-The example below provides a simple overview.
-Full functionality can be inspected from the functions provided in the `pylhe` module.
-
-```python
-import itertools
-
-# You can use LHE files from scikit-hep-testdata
-from skhep_testdata import data_path
-
-import pylhe
-
-lhe_file = data_path("pylhe-testlhef3.lhe")
-events = pylhe.read_lhe_with_attributes(lhe_file)
-print(f"Number of events: {pylhe.read_num_events(lhe_file)}")
-
-# Get event 1
-event = next(itertools.islice(events, 1, 2))
-
-# A DOT language graph of the event can be inspected as follows
-print(event.graph.source)
-
-# The graph is nicely displayed as SVG in Jupyter notebooks
-event
-
-# To save a DOT graph render the graph to a supported image format
-# (refer to the Graphviz documentation for more)
-event.graph.render(filename="test", format="png", cleanup=True)
-event.graph.render(filename="test", format="pdf", cleanup=True)
-```
 
 ## Get started
 
