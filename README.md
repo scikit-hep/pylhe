@@ -6,7 +6,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1217031.svg)](https://doi.org/10.5281/zenodo.1217031)
 [![Scikit-HEP](https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg)](https://scikit-hep.org/)
 
-[![PyPI version](https://badge.fury.io/py/pylhe.svg)](https://badge.fury.io/py/pylhe)
+[![PyPI version](https://img.shields.io/pypi/v/pylhe.svg)](https://pypi.python.org/pypi/pylhe)
+[![Conda-forge version](https://img.shields.io/conda/vn/conda-forge/pylhe.svg)](https://github.com/conda-forge/pylhe-feedstock)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/pylhe.svg)](https://pypi.org/project/pylhe/)
 
 [![GitHub Actions Status](https://github.com/lukasheinrich/pylhe/workflows/CI/CD/badge.svg)](https://github.com/lukasheinrich/pylhe/actions)
@@ -24,7 +25,7 @@ To install `pylhe` from PyPI you can just do
 python -m pip install pylhe
 ```
 
-The visualization capabilities require external dependencies of [Graphviz](https://graphviz.org/) and LaTeX.
+The visualization capabilities require the external dependency of [Graphviz](https://graphviz.org/).
 
 ## Get started
 
