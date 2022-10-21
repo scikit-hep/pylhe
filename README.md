@@ -6,7 +6,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1217031.svg)](https://doi.org/10.5281/zenodo.1217031)
 [![Scikit-HEP](https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg)](https://scikit-hep.org/)
 
-[![PyPI version](https://img.shields.io/pypi/v/pylhe.svg)](https://pypi.python.org/pypi/pylhe)
+[![PyPI version](https://img.shields.io/pypi/v/pylhe.svg)](https://pypi.org/project/pylhe/)
 [![Conda-forge version](https://img.shields.io/conda/vn/conda-forge/pylhe.svg)](https://github.com/conda-forge/pylhe-feedstock)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/pylhe.svg)](https://pypi.org/project/pylhe/)
 
