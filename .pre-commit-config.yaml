@@ -49,7 +49,7 @@ repos:
     rev: 1.5.3
     hooks:
     - id: nbqa-pyupgrade
-      additional_dependencies: [pyupgrade==2.38.2]
-      args: ["--py36-plus"]
+      additional_dependencies: [pyupgrade==3.2.0]
+      args: ["--py37-plus"]
     - id: nbqa-isort
       additional_dependencies: [isort==5.10.1]
