@@ -17,6 +17,18 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "lukasheinrich",
+      "name": "Lukas",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2318083?v=4",
+      "profile": "http://www.lukasheinrich.com",
+      "contributions": [
+        "maintenance",
+        "design",
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
