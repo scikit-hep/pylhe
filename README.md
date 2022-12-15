@@ -90,6 +90,9 @@ We hereby acknowledge the contributors that made this project possible ([emoji k
       <td align="center"><a href="https://github.com/ariaradick"><img src="https://avatars.githubusercontent.com/u/53235605?v=4?s=100" width="100px;" alt="ariaradick"/><br /><sub><b>ariaradick</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=ariaradick" title="Code">💻</a></td>
       <td align="center"><a href="https://github.com/jhgoh"><img src="https://avatars.githubusercontent.com/u/4388926?v=4?s=100" width="100px;" alt="Junghwan John Goh"/><br /><sub><b>Junghwan John Goh</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=jhgoh" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/fuenfundachtzig"><img src="https://avatars.githubusercontent.com/u/8006302?v=4?s=100" width="100px;" alt="fuenfundachtzig"/><br /><sub><b>fuenfundachtzig</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=fuenfundachtzig" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
