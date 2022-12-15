@@ -83,6 +83,7 @@ We hereby acknowledge the contributors that made this project possible ([emoji k
   <tbody>
     <tr>
       <td align="center"><a href="http://www.matthewfeickert.com/"><img src="https://avatars.githubusercontent.com/u/5142394?v=4?s=100" width="100px;" alt="Matthew Feickert"/><br /><sub><b>Matthew Feickert</b></sub></a><br /><a href="#maintenance-matthewfeickert" title="Maintenance">🚧</a> <a href="#design-matthewfeickert" title="Design">🎨</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=matthewfeickert" title="Code">💻</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=matthewfeickert" title="Documentation">📖</a></td>
+      <td align="center"><a href="http://www.lukasheinrich.com"><img src="https://avatars.githubusercontent.com/u/2318083?v=4?s=100" width="100px;" alt="Lukas"/><br /><sub><b>Lukas</b></sub></a><br /><a href="#maintenance-lukasheinrich" title="Maintenance">🚧</a> <a href="#design-lukasheinrich" title="Design">🎨</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=lukasheinrich" title="Code">💻</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=lukasheinrich" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
