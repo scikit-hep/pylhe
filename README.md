@@ -75,10 +75,17 @@ The preferred BibTeX entry for citation of `pylhe` is
 
 ## Contributors
 
-We would like to acknowledge the contributors that made this project possible ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+We hereby acknowledge the contributors that made this project possible ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center"><a href="http://www.matthewfeickert.com/"><img src="https://avatars.githubusercontent.com/u/5142394?v=4?s=100" width="100px;" alt="Matthew Feickert"/><br /><sub><b>Matthew Feickert</b></sub></a><br /><a href="#maintenance-matthewfeickert" title="Maintenance">🚧</a> <a href="#design-matthewfeickert" title="Design">🎨</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=matthewfeickert" title="Code">💻</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=matthewfeickert" title="Documentation">📖</a></td>
+    </tr>
+  </tbody>
+</table>
 
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
