@@ -1,7 +1,4 @@
 # pylhe: Python LHE interface
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 <img src="https://raw.githubusercontent.com/scikit-hep/pylhe/master/docs/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
 
