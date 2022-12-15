@@ -1,4 +1,7 @@
 # pylhe: Python LHE interface
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 <img src="https://raw.githubusercontent.com/scikit-hep/pylhe/master/docs/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
 
@@ -76,6 +79,21 @@ The preferred BibTeX entry for citation of `pylhe` is
 ## Contributors
 
 We would like to acknowledge the contributors that made this project possible ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center"><a href="http://www.matthewfeickert.com/"><img src="https://avatars.githubusercontent.com/u/5142394?v=4?s=100" width="100px;" alt="Matthew Feickert"/><br /><sub><b>Matthew Feickert</b></sub></a><br /><a href="#maintenance-matthewfeickert" title="Maintenance">🚧</a> <a href="#design-matthewfeickert" title="Design">🎨</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=matthewfeickert" title="Code">💻</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=matthewfeickert" title="Documentation">📖</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
