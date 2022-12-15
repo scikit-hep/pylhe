@@ -87,6 +87,7 @@ We hereby acknowledge the contributors that made this project possible ([emoji k
       <td align="center"><a href="http://cern.ch/eduardo.rodrigues"><img src="https://avatars.githubusercontent.com/u/5013581?v=4?s=100" width="100px;" alt="Eduardo Rodrigues"/><br /><sub><b>Eduardo Rodrigues</b></sub></a><br /><a href="#maintenance-eduardo-rodrigues" title="Maintenance">🚧</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=eduardo-rodrigues" title="Code">💻</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=eduardo-rodrigues" title="Documentation">📖</a></td>
       <td align="center"><a href="https://github.com/8me"><img src="https://avatars.githubusercontent.com/u/17862090?v=4?s=100" width="100px;" alt="Johannes Schumann"/><br /><sub><b>Johannes Schumann</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=8me" title="Code">💻</a></td>
       <td align="center"><a href="http://iscinumpy.dev"><img src="https://avatars.githubusercontent.com/u/4616906?v=4?s=100" width="100px;" alt="Henry Schreiner"/><br /><sub><b>Henry Schreiner</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=henryiii" title="Code">💻</a></td>
+      <td align="center"><a href="https://github.com/ariaradick"><img src="https://avatars.githubusercontent.com/u/53235605?v=4?s=100" width="100px;" alt="ariaradick"/><br /><sub><b>ariaradick</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=ariaradick" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
