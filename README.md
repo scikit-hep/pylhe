@@ -92,6 +92,7 @@ We hereby acknowledge the contributors that made this project possible ([emoji k
     </tr>
     <tr>
       <td align="center"><a href="https://github.com/fuenfundachtzig"><img src="https://avatars.githubusercontent.com/u/8006302?v=4?s=100" width="100px;" alt="fuenfundachtzig"/><br /><sub><b>fuenfundachtzig</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=fuenfundachtzig" title="Code">💻</a></td>
+      <td align="center"><a href="https://shantanu-gontia.github.io"><img src="https://avatars.githubusercontent.com/u/4872525?v=4?s=100" width="100px;" alt="Shantanu Gontia"/><br /><sub><b>Shantanu Gontia</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=shantanu-gontia" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
