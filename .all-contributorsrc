@@ -1,0 +1,105 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "matthewfeickert",
+      "name": "Matthew Feickert",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5142394?v=4",
+      "profile": "http://www.matthewfeickert.com/",
+      "contributions": [
+        "maintenance",
+        "design",
+        "code",
+        "doc"
+      ]
+    },
+    {
+      "login": "lukasheinrich",
+      "name": "Lukas",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2318083?v=4",
+      "profile": "http://www.lukasheinrich.com",
+      "contributions": [
+        "maintenance",
+        "design",
+        "code",
+        "doc"
+      ]
+    },
+    {
+      "login": "eduardo-rodrigues",
+      "name": "Eduardo Rodrigues",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5013581?v=4",
+      "profile": "http://cern.ch/eduardo.rodrigues",
+      "contributions": [
+        "maintenance",
+        "code",
+        "doc"
+      ]
+    },
+    {
+      "login": "8me",
+      "name": "Johannes Schumann",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17862090?v=4",
+      "profile": "https://github.com/8me",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "henryiii",
+      "name": "Henry Schreiner",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4616906?v=4",
+      "profile": "http://iscinumpy.dev",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ariaradick",
+      "name": "ariaradick",
+      "avatar_url": "https://avatars.githubusercontent.com/u/53235605?v=4",
+      "profile": "https://github.com/ariaradick",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "jhgoh",
+      "name": "Junghwan John Goh",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4388926?v=4",
+      "profile": "https://github.com/jhgoh",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "fuenfundachtzig",
+      "name": "fuenfundachtzig",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8006302?v=4",
+      "profile": "https://github.com/fuenfundachtzig",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "shantanu-gontia",
+      "name": "Shantanu Gontia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4872525?v=4",
+      "profile": "https://shantanu-gontia.github.io",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true,
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "projectName": "pylhe",
+  "projectOwner": "scikit-hep"
+}
