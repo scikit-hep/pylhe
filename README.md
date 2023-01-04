@@ -1,6 +1,6 @@
 # pylhe: Python LHE interface
 
-<img src="https://raw.githubusercontent.com/scikit-hep/pylhe/master/docs/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
+<img src="https://raw.githubusercontent.com/scikit-hep/pylhe/main/docs/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
 
 [![GitHub Project](https://img.shields.io/badge/GitHub--blue?style=social&logo=GitHub)](https://github.com/scikit-hep/pylhe)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1217031.svg)](https://doi.org/10.5281/zenodo.1217031)
@@ -11,8 +11,8 @@
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/pylhe.svg)](https://pypi.org/project/pylhe/)
 
 [![GitHub Actions Status](https://github.com/lukasheinrich/pylhe/workflows/CI/CD/badge.svg)](https://github.com/lukasheinrich/pylhe/actions)
-[![Code Coverage](https://codecov.io/gh/scikit-hep/pylhe/graph/badge.svg?branch=master)](https://codecov.io/gh/scikit-hep/pylhe?branch=master)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/scikit-hep/pylhe/master.svg)](https://results.pre-commit.ci/latest/github/scikit-hep/pylhe/master)
+[![Code Coverage](https://codecov.io/gh/scikit-hep/pylhe/graph/badge.svg?branch=main)](https://codecov.io/gh/scikit-hep/pylhe?branch=main)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/scikit-hep/pylhe/main.svg)](https://results.pre-commit.ci/latest/github/scikit-hep/pylhe/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Small and thin Python interface to read [Les Houches Event (LHE)](https://inspirehep.net/record/725284) files
