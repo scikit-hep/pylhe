@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
 
     steps:
     - uses: actions/checkout@v3
@@ -35,7 +35,7 @@ jobs:
         python -m pip --quiet install .[test]
         python -m pip list
 
-    - name: Install external pacakges
+    - name: Install external packages
       run: >-
         sudo apt-get update -y &&
         sudo apt-get install -y
