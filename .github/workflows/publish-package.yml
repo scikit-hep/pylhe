@@ -9,13 +9,13 @@ on:
   release:
     types: [published]
   workflow_dispatch:
-  inputs:
-    publish:
-      type: choice
-      description: 'Publish to TestPyPI?'
-      options:
-      - false
-      - true
+    inputs:
+      publish:
+        type: choice
+        description: 'Publish to TestPyPI?'
+        options:
+        - false
+        - true
 
 jobs:
   build-and-publish:
