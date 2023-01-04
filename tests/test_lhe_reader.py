@@ -140,7 +140,6 @@ def test_issue_102():
     Test a file containing lines starting with "#aMCatNLO".
     """
     assert pylhe.read_num_events(TEST_FILE_LHE_v3) == 59
-    assert (
-        len(list(pylhe.read_lhe(TEST_FILE_LHE_v3)))
-        == len(list(pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)))
+    assert len(list(pylhe.read_lhe(TEST_FILE_LHE_v3))) == len(
+        list(pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3))
     )
