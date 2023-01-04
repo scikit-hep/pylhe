@@ -35,7 +35,7 @@ jobs:
         python -m pip --quiet install .[test]
         python -m pip list
 
-    - name: Install external pacakges
+    - name: Install external packages
       run: >-
         sudo apt-get update -y &&
         sudo apt-get install -y
