@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 
 import graphviz
 from particle import latex_to_html_name
-from particle.converters.bimap import DirectionalMaps
+from particle.converters.bimap import DirectionalMaps, MatchingIDNotFound
 
 from pylhe._version import version as __version__
 from pylhe.awkward import register_awkward, to_awkward
@@ -89,7 +89,7 @@ class LHEEvent:
                 name = _PDGID2LaTeXNameMap[iid]
                 texlbl = f"${name}$"
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{safe_html_name(name)}</td></tr></table>>'
-            except KeyError:
+            except MatchingIDNotFound:
                 texlbl = str(int(p.id))
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
             self._graph.node(
