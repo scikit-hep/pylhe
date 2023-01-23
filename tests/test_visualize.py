@@ -16,7 +16,8 @@ def test_LHEEvent_graph_source():
     assert event.graph.source.count("&#x03c0;") == 8
     assert "<td>p</td>" in event.graph.source
 
-def test_LHEEvent_graph_source_nonstandard_pdg() :
+
+def test_LHEEvent_graph_source_nonstandard_pdg():
     lhe_file = skhep_testdata.data_path("pylhe-testfile-pr180.lhe")
     events = pylhe.read_lhe_with_attributes(lhe_file)
 
@@ -25,7 +26,8 @@ def test_LHEEvent_graph_source_nonstandard_pdg() :
     # building the graph should succeed even though there is
     # a non-standard PDG ID 1023 and the name in the graph
     # source should just be the ID number itself
-    assert event.graph.source.count('1023') == 1
+    assert event.graph.source.count("1023") == 1
+
 
 def test_LHEEvent_graph_render():
     lhe_file = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
