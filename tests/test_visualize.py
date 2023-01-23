@@ -26,7 +26,7 @@ def test_LHEEvent_graph_source_nonstandard_pdg():
     # building the graph should succeed even though there is
     # a non-standard PDG ID 1023 and the name in the graph
     # source should just be the ID number itself
-    assert event.graph.source.count("1023") == 1
+    assert event.graph.source.count("<td>1023</td>") == 1
 
 
 def test_LHEEvent_graph_render():
