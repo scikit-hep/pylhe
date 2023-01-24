@@ -3,7 +3,8 @@ import xml.etree.ElementTree as ET
 
 import graphviz
 from particle import latex_to_html_name
-from particle.converters.bimap import DirectionalMaps, MatchingIDNotFound
+from particle.converters.bimap import DirectionalMaps
+from particle.exceptions import MatchingIDNotFound
 
 from pylhe._version import version as __version__
 from pylhe.awkward import register_awkward, to_awkward
