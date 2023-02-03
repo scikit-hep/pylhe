@@ -6,7 +6,7 @@ extras_require["test"] = sorted(
     {
         "pytest~=6.0",
         "pytest-cov>=2.5.1",
-        "scikit-hep-testdata>=0.3.1",
+        "scikit-hep-testdata>=0.4.0",
         "pydocstyle",
     }
 )
