@@ -17,13 +17,14 @@ def register_awkward():
     is a required dependency of pylhe.
     """
     import warnings
+
     warnings.warn(
-            '''The `pylhe.register_awkward` function does nothing.
+        """The `pylhe.register_awkward` function does nothing.
             The registration now happens automatically when `pylhe` is imported,
-            so calls to `pylhe.register_awkward` can be safely removed.''',
-            category=DeprecationWarning,
-            stacklevel=2
-            )
+            so calls to `pylhe.register_awkward` can be safely removed.""",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
     pass
 
 
