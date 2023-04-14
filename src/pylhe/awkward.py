@@ -1,12 +1,21 @@
 import awkward as ak
 import vector
 
-__all__ = ["to_awkward"]
+__all__ = ["register_awkward", "to_awkward"]
 
 
 # Python 3.7+
 def __dir__():
     return __all__
+
+def register_awkward() :
+    """This function does nothing and is merely here for backwards compatibility
+    of the pylhe API
+
+    The registration is done automatically when pylhe is imported since awkward
+    is a required dependency of pylhe.
+    """
+    pass
 
 # register/bind our vector classes with awkward so
 # we can call thost helper functions
