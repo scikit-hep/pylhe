@@ -32,6 +32,9 @@ def test_top_level_api():
 def test_awkward_api():
     assert dir(pylhe.awkward) == ["register_awkward", "to_awkward"]
 
+    with pytest.warns(DeprecationWarning):
+        pylhe.register_awkward()
+
 
 def test_load_version():
     assert pylhe.__version__
