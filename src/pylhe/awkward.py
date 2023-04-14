@@ -70,8 +70,7 @@ class EventInfo:
     pass
 
 
-# register/bind our vector classes with awkward so
-# we can call thost helper functions
+# Register Awkward behaviors
 vector.register_awkward()
 ak.mixin_class(ak.behavior)(Particle)
 ak.mixin_class(ak.behavior)(Event)
