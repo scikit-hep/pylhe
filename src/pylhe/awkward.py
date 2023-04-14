@@ -8,7 +8,7 @@ __all__ = ["register_awkward", "to_awkward"]
 def __dir__():
     return __all__
 
-def register_awkward() :
+def register_awkward():
     """This function does nothing and is merely here for backwards compatibility
     of the pylhe API
 
@@ -16,13 +16,6 @@ def register_awkward() :
     is a required dependency of pylhe.
     """
     pass
-
-# register/bind our vector classes with awkward so
-# we can call thost helper functions
-vector.register_awkward()
-ak.mixin_class(ak.behavior)(Particle)
-ak.mixin_class(ak.behavior)(Event)
-ak.mixin_class(ak.behavior)(EventInfo)
 
 def to_awkward(event_iterable):
     """Convert iterable of LHEEvent instances to Awkward-Array."""
@@ -64,3 +57,11 @@ class Event:
 
 class EventInfo:
     pass
+
+# register/bind our vector classes with awkward so
+# we can call thost helper functions
+vector.register_awkward()
+ak.mixin_class(ak.behavior)(Particle)
+ak.mixin_class(ak.behavior)(Event)
+ak.mixin_class(ak.behavior)(EventInfo)
+
