@@ -15,15 +15,21 @@ def register_awkward():
 
     The registration is done automatically when pylhe is imported since awkward
     is a required dependency of pylhe.
+
+    .. deprecated:: 0.5.3
+       Simply remove calls since the registration happens automatically now.
+    .. warning:: :func:`~pylhe.register_awkward` will be removed in
+     ``pylhe`` ``v0.7.0``.
     """
     import warnings
 
     warnings.warn(
-        """The `pylhe.register_awkward` function does nothing.
+        """The `pylhe.register_awkward` function does nothing and has been deprecated
+            as of pylhe v0.5.3 and will be removed in pylhe v0.7.0.
             The registration now happens automatically when `pylhe` is imported,
             so calls to `pylhe.register_awkward` can be safely removed.""",
         category=DeprecationWarning,
-        stacklevel=2,
+        stacklevel=3,
     )
     pass
 
