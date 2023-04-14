@@ -13,7 +13,13 @@ def test_to_awkward():
     arr = pylhe.to_awkward(pylhe.read_lhe_with_attributes(TEST_FILE))
     assert len(arr) == 791
     assert len(arr.eventinfo.nparticles) == len(arr.particles)
-    # iss 194 pr 195 - make sure vector helper classes funciton properly
-    #    here we make sure the 'mass' helper function on 4D vectors
-    #    is called on each particle's momentum
+
+
+def test_awkward_registration():
+    """awkward registration should correctly happen on import
+
+    make sure vector helper classes function properly by calling
+    a property provided by vector `mass` on each particle's momentum.
+    """
+    arr = pylhe.to_awkward(pylhe.read_lhe_with_attributes(TEST_FILE))
     assert len(arr.particles.vector.mass) == len(arr.particles)
