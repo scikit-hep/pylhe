@@ -1,22 +1,19 @@
 import awkward as ak
 import vector
 
-__all__ = ["register_awkward", "to_awkward"]
+__all__ = ["to_awkward"]
 
 
 # Python 3.7+
 def __dir__():
     return __all__
 
-
-def register_awkward():
-    """Register Awkward behaviors for pylhe."""
-
-    vector.register_awkward()
-    ak.mixin_class(ak.behavior)(Particle)
-    ak.mixin_class(ak.behavior)(Event)
-    ak.mixin_class(ak.behavior)(EventInfo)
-
+# register/bind our vector classes with awkward so
+# we can call thost helper functions
+vector.register_awkward()
+ak.mixin_class(ak.behavior)(Particle)
+ak.mixin_class(ak.behavior)(Event)
+ak.mixin_class(ak.behavior)(EventInfo)
 
 def to_awkward(event_iterable):
     """Convert iterable of LHEEvent instances to Awkward-Array."""
