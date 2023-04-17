@@ -16,7 +16,7 @@ def test_to_awkward():
 
 
 def test_awkward_registration():
-    """awkward registration should correctly happen on import
+    """Awkward registration should correctly happen on import.
 
     Make sure vector helper classes function properly by calling
     a property provided by vector `mass` on each particle's momentum.
