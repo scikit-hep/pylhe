@@ -18,7 +18,7 @@ def test_to_awkward():
 def test_awkward_registration():
     """awkward registration should correctly happen on import
 
-    make sure vector helper classes function properly by calling
+    Make sure vector helper classes function properly by calling
     a property provided by vector `mass` on each particle's momentum.
     """
     arr = pylhe.to_awkward(pylhe.read_lhe_with_attributes(TEST_FILE))
