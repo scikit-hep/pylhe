@@ -20,8 +20,8 @@ def register_awkward():
     import warnings
 
     warnings.warn(
-"pylhe.register_awkward is deprecated as of pylhe v0.6.0 and will be removed in pylhe v0.8.0."
- + " Please remove use of pylhe.register_awkward in favor of automatic registration."
+        "pylhe.register_awkward is deprecated as of pylhe v0.6.0 and will be removed in pylhe v0.8.0."
+        + " Please remove use of pylhe.register_awkward in favor of automatic registration.",
         category=DeprecationWarning,
         stacklevel=3,
     )
