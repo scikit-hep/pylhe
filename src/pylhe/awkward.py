@@ -12,17 +12,18 @@ def __dir__():
 def register_awkward():
     """
     .. deprecated:: 0.6.0
-       Remove use of :func:`~pylhe.register_awkward` as registration is automatic.
-    .. warning:: :func:`~pylhe.register_awkward` will be removed in
+       Remove use of :func:`~pylhe.awkward.register_awkward` as registration
+       is automatic.
+    .. warning:: :func:`~pylhe.awkward.register_awkward` will be removed in
      ``pylhe`` ``v0.8.0``.
     """
     import warnings
 
     warnings.warn(
-        "pylhe.register_awkward is deprecated as of pylhe v0.6.0 and will be removed in pylhe v0.8.0."
-        + " Please remove use of pylhe.register_awkward in favor of automatic registration.",
+        "pylhe.awkward.register_awkward is deprecated as of pylhe v0.6.0 and will be removed in pylhe v0.8.0."
+        + " Please remove use of pylhe.awkward.register_awkward in favor of automatic registration.",
         category=DeprecationWarning,
-        stacklevel=3,
+        stacklevel=2,  # Raise to user level
     )
 
 
