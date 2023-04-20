@@ -11,7 +11,6 @@ def __dir__():
 
 def register_awkward():
     """
-
     .. deprecated:: 0.6.0
        Remove use of :func:`~pylhe.register_awkward` as registration is automatic.
     .. warning:: :func:`~pylhe.register_awkward` will be removed in
