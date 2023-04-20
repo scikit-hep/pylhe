@@ -10,28 +10,21 @@ def __dir__():
 
 
 def register_awkward():
-    """This function does nothing and is merely here for backwards compatibility
-    of the pylhe API
+    """
 
-    The registration is done automatically when pylhe is imported since awkward
-    is a required dependency of pylhe.
-
-    .. deprecated:: 0.5.3
-       Simply remove calls since the registration happens automatically now.
+    .. deprecated:: 0.6.0
+       Remove use of :func:`~pylhe.register_awkward` as registration is automatic.
     .. warning:: :func:`~pylhe.register_awkward` will be removed in
-     ``pylhe`` ``v0.7.0``.
+     ``pylhe`` ``v0.8.0``.
     """
     import warnings
 
     warnings.warn(
-        """The `pylhe.register_awkward` function does nothing and has been deprecated
-            as of pylhe v0.5.3 and will be removed in pylhe v0.7.0.
-            The registration now happens automatically when `pylhe` is imported,
-            so calls to `pylhe.register_awkward` can be safely removed.""",
+"pylhe.register_awkward is deprecated as of pylhe v0.6.0 and will be removed in pylhe v0.8.0."
+ + " Please remove use of pylhe.register_awkward in favor of automatic registration."
         category=DeprecationWarning,
         stacklevel=3,
     )
-    pass
 
 
 def to_awkward(event_iterable):
