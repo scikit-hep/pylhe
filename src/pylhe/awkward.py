@@ -10,12 +10,21 @@ def __dir__():
 
 
 def register_awkward():
-    """Register Awkward behaviors for pylhe."""
+    """
+    .. deprecated:: 0.6.0
+       Remove use of :func:`~pylhe.awkward.register_awkward` as registration
+       is automatic.
+    .. warning:: :func:`~pylhe.awkward.register_awkward` will be removed in
+     ``pylhe`` ``v0.8.0``.
+    """
+    import warnings
 
-    vector.register_awkward()
-    ak.mixin_class(ak.behavior)(Particle)
-    ak.mixin_class(ak.behavior)(Event)
-    ak.mixin_class(ak.behavior)(EventInfo)
+    warnings.warn(
+        "pylhe.awkward.register_awkward is deprecated as of pylhe v0.6.0 and will be removed in pylhe v0.8.0."
+        + " Please remove use of pylhe.awkward.register_awkward in favor of automatic registration.",
+        category=DeprecationWarning,
+        stacklevel=2,  # Raise to user level
+    )
 
 
 def to_awkward(event_iterable):
@@ -58,3 +67,10 @@ class Event:
 
 class EventInfo:
     pass
+
+
+# Register Awkward behaviors
+vector.register_awkward()
+ak.mixin_class(ak.behavior)(Particle)
+ak.mixin_class(ak.behavior)(Event)
+ak.mixin_class(ak.behavior)(EventInfo)
