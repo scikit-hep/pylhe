@@ -3,9 +3,12 @@ on:
   push:
     branches:
     - main
+    tags:
+    - v*
   pull_request:
     branches:
     - main
+    - release/v*
   release:
     types: [published]
   workflow_dispatch:
@@ -17,9 +20,13 @@ on:
         - false
         - true
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-and-publish:
-    name: Build and publish Python distro to (Test)PyPI
+  build:
+    name: Build Python distribution
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -57,13 +64,42 @@ jobs:
         echo "python-build named built distribution: ${wheel_name}"
 
     - name: Verify the distribution
-      run: twine check dist/*
+      run: twine check --strict dist/*
 
     - name: List contents of sdist
       run: python -m tarfile --list dist/pylhe-*.tar.gz
 
     - name: List contents of wheel
       run: python -m zipfile --list dist/pylhe-*.whl
+
+    - name: Upload distribution artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-artifact
+        path: dist
+
+  publish:
+    name: Publish Python distribution to (Test)PyPI
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    # Mandatory for publishing with a trusted publisher
+    # c.f. https://docs.pypi.org/trusted-publishers/using-a-publisher/
+    permissions:
+      id-token: write
+    # Restrict to the environment set for the trusted publisher
+    environment:
+      name: publish-package
+
+    steps:
+    - name: Download distribution artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: dist-artifact
+        path: dist
+
+    - name: List all files
+      run: ls -lh dist
 
     - name: Publish distribution 📦 to Test PyPI
       # Publish to TestPyPI on tag events of if manually triggered
@@ -73,13 +109,11 @@ jobs:
         || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true' && github.repository == 'scikit-hep/pylhe')
       uses: pypa/gh-action-pypi-publish@v1.8.6
       with:
-        password: ${{ secrets.test_pypi_password }}
-        repository_url: https://test.pypi.org/legacy/
-        print_hash: true
+        repository-url: https://test.pypi.org/legacy/
+        print-hash: true
 
     - name: Publish distribution 📦 to PyPI
       if: github.event_name == 'release' && github.event.action == 'published' && github.repository == 'scikit-hep/pylhe'
       uses: pypa/gh-action-pypi-publish@v1.8.6
       with:
-        password: ${{ secrets.pypi_password }}
-        print_hash: true
+        print-hash: true
