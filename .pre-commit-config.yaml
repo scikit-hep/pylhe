@@ -20,7 +20,7 @@ repos:
     - id: trailing-whitespace
 
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.4.0
+    rev: v3.8.0
     hooks:
     - id: pyupgrade
       args: ["--py37-plus"]
@@ -49,7 +49,7 @@ repos:
     rev: 1.7.0
     hooks:
     - id: nbqa-pyupgrade
-      additional_dependencies: [pyupgrade==3.4.0]
+      additional_dependencies: [pyupgrade==3.8.0]
       args: ["--py37-plus"]
     - id: nbqa-isort
       additional_dependencies: [isort==5.12.0]
