@@ -26,7 +26,6 @@ __all__ = [
 ]
 
 
-# Python 3.7+
 def __dir__():
     return __all__
 
