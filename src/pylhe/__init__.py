@@ -323,6 +323,10 @@ def read_lhe_with_attributes(filepath):
                         else:
                             eventdict["optional"].append(p.strip())
                     for sub in element:
+                        if sub.tag == "weights":
+                            for i,w in enumerate(sub.text.splitlines()):
+                                if w:
+                                    eventdict["weights"][i] = float(w)
                         if sub.tag == "rwgt":
                             for r in sub:
                                 if r.tag == "wgt":
