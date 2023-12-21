@@ -158,7 +158,7 @@ def test_read_lhe_powheg(file):
 @pytest.mark.parametrize("file", TEST_FILES_LHE_POWHEG)
 def test_read_lhe_with_attributes_powheg(file):
     """
-    Test method read_lhe_with_attributes() on a LesHouchesEvents POWHEG file.
+    Test method read_lhe_with_attributes() on a LesHouchesEvents POWHEG files.
     """
     events = pylhe.read_lhe_with_attributes(file)
 
@@ -170,7 +170,7 @@ def test_read_lhe_with_attributes_powheg(file):
 @pytest.mark.parametrize("file", TEST_FILES_LHE_POWHEG)
 def test_read_lhe_powheg(file):
     """
-    Test method read_lhe() on a LesHouchesEvents POWHEG file.
+    Test method read_lhe() on a LesHouchesEvents POWHEG files.
     """
     events = pylhe.read_lhe(file)
 
@@ -180,7 +180,9 @@ def test_read_lhe_powheg(file):
 
 
 def test_read_lhe_initrwgt_weights_v3():
-    """ """
+    """
+    Test the weights from initrwgt with a weights list. 
+    """
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_INITRWGT_WEIGHTS)
 
     assert events
@@ -190,7 +192,9 @@ def test_read_lhe_initrwgt_weights_v3():
 
 
 def test_read_lhe_rwgt_wgt_v3():
-    """ """
+    """
+    Test the weights from rwgt with a wgt list.
+    """
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_RWGT_WGT)
 
     assert events
