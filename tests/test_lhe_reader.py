@@ -178,8 +178,7 @@ def test_read_lhe_powheg(file):
     for e in events:
         assert isinstance(e, LHEEvent)
 
-
-def test_read_lhe_initrwgt_weights_v3():
+def test_read_lhe_initrwgt_weights():
     """
     Test the weights from initrwgt with a weights list.
     """
@@ -190,8 +189,7 @@ def test_read_lhe_initrwgt_weights_v3():
         assert isinstance(e, LHEEvent)
         assert len(e.weights) > 0
 
-
-def test_read_lhe_rwgt_wgt_v3():
+def test_read_lhe_rwgt_wgt():
     """
     Test the weights from rwgt with a wgt list.
     """
