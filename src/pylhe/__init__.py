@@ -270,7 +270,7 @@ def read_lhe_init(filepath):
                             try:
                                 wg_id = w.attrib["id"]
                             except KeyError:
-                                # Instead of raising an error, we just use the index
+                                # Instead of raising an error, we could just use the index
                                 # wg_id = index
                                 print("weight must have attribute 'id'")
                                 raise
