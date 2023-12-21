@@ -277,7 +277,7 @@ def read_lhe_init(filepath):
                             _temp["weights"][wg_id] = {
                                 "attrib": w.attrib,
                                 "name": w.text.strip(),
-                                "index" : index,
+                                "index": index,
                             }
                             index += 1
 
@@ -304,13 +304,14 @@ def read_lhe(filepath):
         print("WARNING. Parse Error:", excep)
         return
 
+
 def _get_index_to_id_map(init):
     """
     Convert index to id.
     """
     ret = {}
     for wg in init["weightgroup"].values():
-        for id,w in wg["weights"].items():
+        for id, w in wg["weights"].items():
             ret[w["index"]] = id
             # ret[w["index"]] = w["attrib"]["id"]
     return ret
@@ -321,7 +322,7 @@ def read_lhe_with_attributes(filepath):
     Iterate through file, similar to read_lhe but also set
     weights and attributes.
     """
-    index_map= None
+    index_map = None
     try:
         with _extract_fileobj(filepath) as fileobj:
             for event, element in ET.iterparse(fileobj, events=["end"]):
@@ -342,7 +343,9 @@ def read_lhe_with_attributes(filepath):
                     for sub in element:
                         if sub.tag == "weights":
                             if not index_map:
-                                index_map = _get_index_to_id_map(read_lhe_init(filepath))
+                                index_map = _get_index_to_id_map(
+                                    read_lhe_init(filepath)
+                                )
                             for i, w in enumerate(sub.text.split()):
                                 if w:
                                     eventdict["weights"][index_map[i]] = float(w)
