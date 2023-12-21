@@ -181,7 +181,7 @@ def test_read_lhe_powheg(file):
 
 def test_read_lhe_initrwgt_weights_v3():
     """
-    Test the weights from initrwgt with a weights list. 
+    Test the weights from initrwgt with a weights list.
     """
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_INITRWGT_WEIGHTS)
 
