@@ -167,18 +167,6 @@ def test_read_lhe_with_attributes_powheg(file):
         assert isinstance(e, LHEEvent)
 
 
-@pytest.mark.parametrize("file", TEST_FILES_LHE_POWHEG)
-def test_read_lhe_powheg(file):
-    """
-    Test method read_lhe() on a LesHouchesEvents POWHEG files.
-    """
-    events = pylhe.read_lhe(file)
-
-    assert events
-    for e in events:
-        assert isinstance(e, LHEEvent)
-
-
 def test_read_lhe_initrwgt_weights():
     """
     Test the weights from initrwgt with a weights list.
