@@ -146,7 +146,7 @@ def test_read_lhe_with_attributes_v3():
 @pytest.mark.parametrize("file", TEST_FILES_LHE_POWHEG)
 def test_read_lhe_powheg(file):
     """
-    Test method read_lhe() on a LesHouchesEvents POWHEG file.
+    Test method read_lhe() on several types of LesHouchesEvents POWHEG files.
     """
     events = pylhe.read_lhe(file)
 
