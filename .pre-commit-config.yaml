@@ -26,7 +26,7 @@ repos:
       args: ["--py37-plus"]
 
 -   repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+    rev: 5.13.2
     hooks:
     - id: isort
 
@@ -41,7 +41,7 @@ repos:
     - id: absolufy-imports
 
 -   repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.11.0
+    rev: 23.12.1
     hooks:
     - id: black-jupyter
 
