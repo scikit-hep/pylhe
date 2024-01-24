@@ -307,7 +307,17 @@ def read_lhe(filepath):
 
 def _get_index_to_id_map(init):
     """
-    Convert index to id.
+    Produce a dictionary to map weight indices to the id of the weight.
+
+    It is used for LHE files where there is only a list of weights per event.
+    This dictionary is then used to map the list of weights to their weight id.
+    Ideally, this needs to be done only once and the dictionary can be reused.
+
+    Args:
+        init (dict): init block as returned by read_lhe_init
+
+    Returns:
+        dict: {weight index: weight id}
     """
     ret = {}
     for wg in init["weightgroup"].values():
