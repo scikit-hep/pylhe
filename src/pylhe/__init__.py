@@ -321,7 +321,6 @@ def _get_index_to_id_map(init):
     for wg in init["weightgroup"].values():
         for id, w in wg["weights"].items():
             ret[w["index"]] = id
-            # ret[w["index"]] = w["attrib"]["id"]
     return ret
 
 
