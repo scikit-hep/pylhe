@@ -12,6 +12,14 @@ from pylhe import LHEEvent
 
 TEST_FILE_LHE_v1 = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 TEST_FILE_LHE_v3 = skhep_testdata.data_path("pylhe-testlhef3.lhe")
+TEST_FILE_LHE_INITRWGT_WEIGHTS = skhep_testdata.data_path(
+    "pylhe-testfile-powheg-box-v2-hvq.lhe"
+)
+TEST_FILE_LHE_RWGT_WGT = skhep_testdata.data_path("pylhe-testfile-powheg-box-v2-W.lhe")
+TEST_FILES_LHE_POWHEG = [
+    skhep_testdata.data_path("pylhe-testfile-powheg-box-v2-%s.lhe" % (proc))
+    for proc in ["Z", "W", "Zj", "trijet", "directphoton", "hvq"]
+]
 
 
 @pytest.fixture(scope="session")
@@ -133,6 +141,54 @@ def test_read_lhe_with_attributes_v3():
     assert events
     for e in events:
         assert isinstance(e, LHEEvent)
+
+
+@pytest.mark.parametrize("file", TEST_FILES_LHE_POWHEG)
+def test_read_lhe_powheg(file):
+    """
+    Test method read_lhe() on several types of LesHouchesEvents POWHEG files.
+    """
+    events = pylhe.read_lhe(file)
+
+    assert events
+    for e in events:
+        assert isinstance(e, LHEEvent)
+
+
+@pytest.mark.parametrize("file", TEST_FILES_LHE_POWHEG)
+def test_read_lhe_with_attributes_powheg(file):
+    """
+    Test method read_lhe_with_attributes() on several types of LesHouchesEvents POWHEG files.
+    """
+    events = pylhe.read_lhe_with_attributes(file)
+
+    assert events
+    for e in events:
+        assert isinstance(e, LHEEvent)
+
+
+def test_read_lhe_initrwgt_weights():
+    """
+    Test the weights from initrwgt with a weights list.
+    """
+    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_INITRWGT_WEIGHTS)
+
+    assert events
+    for e in events:
+        assert isinstance(e, LHEEvent)
+        assert len(e.weights) > 0
+
+
+def test_read_lhe_rwgt_wgt():
+    """
+    Test the weights from rwgt with a wgt list.
+    """
+    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_RWGT_WGT)
+
+    assert events
+    for e in events:
+        assert isinstance(e, LHEEvent)
+        assert len(e.weights) > 0
 
 
 def test_issue_102():

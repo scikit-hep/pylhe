@@ -248,6 +248,7 @@ def read_lhe_init(filepath):
                 initDict["procInfo"] = [LHEProcInfo.fromstring(d) for d in data[1:]]
             if element.tag == "initrwgt":
                 initDict["weightgroup"] = {}
+                index = 0
                 for child in element:
                     # Find all weightgroups
                     if child.tag == "weightgroup" and child.attrib != {}:
@@ -274,7 +275,9 @@ def read_lhe_init(filepath):
                             _temp["weights"][wg_id] = {
                                 "attrib": w.attrib,
                                 "name": w.text.strip(),
+                                "index": index,
                             }
+                            index += 1
 
                         initDict["weightgroup"][wg_type] = _temp
             if element.tag == "LesHouchesEvents":
@@ -300,11 +303,33 @@ def read_lhe(filepath):
         return
 
 
+def _get_index_to_id_map(init):
+    """
+    Produce a dictionary to map weight indices to the id of the weight.
+
+    It is used for LHE files where there is only a list of weights per event.
+    This dictionary is then used to map the list of weights to their weight id.
+    Ideally, this needs to be done only once and the dictionary can be reused.
+
+    Args:
+        init (dict): init block as returned by read_lhe_init
+
+    Returns:
+        dict: {weight index: weight id}
+    """
+    ret = {}
+    for wg in init["weightgroup"].values():
+        for id, w in wg["weights"].items():
+            ret[w["index"]] = id
+    return ret
+
+
 def read_lhe_with_attributes(filepath):
     """
     Iterate through file, similar to read_lhe but also set
     weights and attributes.
     """
+    index_map = None
     try:
         with _extract_fileobj(filepath) as fileobj:
             for event, element in ET.iterparse(fileobj, events=["end"]):
@@ -323,6 +348,14 @@ def read_lhe_with_attributes(filepath):
                         else:
                             eventdict["optional"].append(p.strip())
                     for sub in element:
+                        if sub.tag == "weights":
+                            if not index_map:
+                                index_map = _get_index_to_id_map(
+                                    read_lhe_init(filepath)
+                                )
+                            for i, w in enumerate(sub.text.split()):
+                                if w:
+                                    eventdict["weights"][index_map[i]] = float(w)
                         if sub.tag == "rwgt":
                             for r in sub:
                                 if r.tag == "wgt":
