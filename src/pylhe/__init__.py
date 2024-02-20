@@ -52,11 +52,28 @@ class LHEEvent:
             p.event = self
         self._graph = None
 
-    def tolhe(self):
+    def tolhe(self, rwgt= True, weights= False):
+        """
+        """
+        sweights =""
+        if rwgt:
+            if self.weights:
+                sweights = "<rwgt>\n"
+                for k, v in self.weights.items():
+                    sweights += f" <wgt id='{k}'>{v :12.4e}</wgt>\n"
+                sweights += "</rwgt>\n"
+        if weights:
+            if self.weights:
+                sweights = "<weights>\n"
+                for k, v in self.weights.items():
+                    sweights += f"{v :12.4e}\n"
+                sweights += "</weights>\n"
+
         return ("<event>\n" 
                 + self.eventinfo.tolhe() + "\n"
-                + "\n".join([p.tolhe() for p in self.particles])
-                + "\n</event>"
+                + "\n".join([p.tolhe() for p in self.particles]) + "\n"
+                + sweights
+                + "</event>"
         )
 
     @property
@@ -135,7 +152,7 @@ class LHEEventInfo:
             setattr(self, k, v)
 
     def tolhe(self):
-        return "{:3d} {:6d} {:15.10e} {:15.10e} {:15.10e} {:15.10e}".format(
+        return "{:3d} {:6d} {: 15.10e} {: 15.10e} {: 15.10e} {: 15.10e}".format(
             *[int(getattr(self, f)) for f in self.fieldnames[:2]],
             *[getattr(self, f) for f in self.fieldnames[2:]],
         )
@@ -175,7 +192,7 @@ class LHEParticle:
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
     def tolhe(self):
-        return "{:5d} {:3d} {:3d} {:3d} {:3d} {:3d} {:15.10e} {:15.10e} {:15.10e} {:15.10e} {:15.10e} {:10.4e} {:10.4e}".format(
+        return "{:5d} {:3d} {:3d} {:3d} {:3d} {:3d} {: 15.8e} {: 15.8e} {: 15.8e} {: 15.8e} {: 15.8e} {: 10.4e} {: 10.4e}".format(
             *[int(getattr(self, f)) for f in self.fieldnames[:6]],
             *[getattr(self, f) for f in self.fieldnames[6:]]
         )
@@ -204,12 +221,25 @@ class LHEInit(dict):
         "numProcesses",
     ]
 
-    def __init__(self):
-        pass
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+
+    def tolhe(self):
+        return (" {: 6d} {: 6d} {: 14.7e} {: 14.7e} {: 5d} {: 5d} {: 5d} {: 5d} {: 5d} {: 5d}"
+        ).format(int(self["beamA"]), 
+                 int(self["beamB"]), 
+                 self["energyA"], 
+                 self["energyB"], 
+                 int(self["PDFgroupA"]), 
+                 int(self["PDFgroupB"]), 
+                 int(self["PDFsetA"]), 
+                 int(self["PDFsetB"]), 
+                 int(self["weightingStrategy"]), 
+                 int(self["numProcesses"]))
 
     @classmethod
     def fromstring(cls, string):
-        return dict(zip(cls.fieldnames, map(float, string.split())))
+        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
 class LHEProcInfo(dict):
@@ -217,12 +247,20 @@ class LHEProcInfo(dict):
 
     fieldnames = ["xSection", "error", "unitWeight", "procId"]
 
-    def __init__(self):
-        pass
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+
+    def tolhe(self):
+        return ("{: 14.7e} {: 14.7e} {: 14.7e} {: 5d}"
+        ).format(
+            self["xSection"], 
+            self["error"], 
+            self["unitWeight"], 
+            int(self["procId"]))
 
     @classmethod
     def fromstring(cls, string):
-        return dict(zip(cls.fieldnames, map(float, string.split())))
+        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
 def _extract_fileobj(filepath):
@@ -373,7 +411,7 @@ def read_lhe_with_attributes(filepath):
                                     read_lhe_init(filepath)
                                 )
                             for i, w in enumerate(sub.text.split()):
-                                if w:
+                                if w and not index_map[i] in eventdict["weights"]:
                                     eventdict["weights"][index_map[i]] = float(w)
                         if sub.tag == "rwgt":
                             for r in sub:
