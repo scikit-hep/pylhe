@@ -228,6 +228,25 @@ class LHEParticle:
         ]
 
 
+def _indent(elem, level=0):
+    """
+    XML indentation helper from https://stackoverflow.com/a/33956544.
+    """
+    i = "\n" + level * "  "
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = i + "  "
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+        for elem in elem:
+            _indent(elem, level + 1)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
+
+
 class LHEInit(dict):
     """Store the <init> block as dict."""
 
@@ -252,7 +271,7 @@ class LHEInit(dict):
                     weightgroup_elem, "weight", **value["attrib"]
                 )
                 weight_elem.text = value["name"]
-        ET.indent(root, "  ")
+        _indent(root)
         sweightgroups = ET.tostring(root, encoding="unicode", method="xml")
 
         return (
@@ -262,7 +281,6 @@ class LHEInit(dict):
             + "\n".join([p.tolhe() for p in self["procInfo"]])
             + "\n"
             + f"{sweightgroups}"
-            + "\n"
             # + f"  <LesHouchesEvents version='{self['LHEVersion']}'>\n"
             + "</init>"
         )
