@@ -14,6 +14,13 @@ TEST_FILES_LHE_POWHEG = [
 ]
 
 
+def test_backwards_compatibility_lheinit():
+    init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
+    assert init["initInfo"]["beamA"] == init["beamA"]
+    init["beamA"] = 11
+    assert init["initInfo"]["beamA"] == 11
+
+
 def test_write_lhe_eventline():
     """
     Test that the event line is written correctly.
