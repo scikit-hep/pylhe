@@ -242,14 +242,14 @@ class LHEInit(dict):
 
     # custom backwards compatibility get for dict
     def __getitem__(self, key):
-        if not key in self:
+        if key not in self:
             return self["initInfo"][key]
         else:
             return super().__getitem__(key)
 
     # custom backwards compatibility set for dict
     def __setitem__(self, key, value):
-        if not key in self:
+        if key not in self:
             self["initInfo"][key] = value
         else:
             self.super().__setitem__(key, value)
@@ -509,7 +509,7 @@ def write_lhe_string(lheinit, lheevents):
     s += lheinit.tolhe() + "\n"
     for e in lheevents:
         s += e.tolhe() + "\n"
-    s += f"</LesHouchesEvents>"
+    s += "</LesHouchesEvents>"
     return s
 
 
