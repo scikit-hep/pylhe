@@ -204,9 +204,63 @@ class LHEParticle:
             self.event.particles[idx] for idx in {first_idx, second_idx} if idx >= 0
         ]
 
-
 class LHEInit(dict):
     """Store the <init> block as dict."""
+    fieldnames = [
+        "initInfo",
+        "procInfo"
+        "weightgroup",
+        "LHEVersion"
+    ]
+
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+
+    def tolhe(self):
+        # weightgroups to xml
+        root = ET.Element("initrwgt")
+        for k,v in self['weightgroup'].items():
+            weightgroup_elem = ET.SubElement(root, "weightgroup", **v['attrib'])
+            for key, value in v['weights'].items():
+                weight_elem = ET.SubElement(weightgroup_elem, "weight", **value['attrib'])
+                weight_elem.text = value['name']
+        ET.indent(root, '  ')
+        sweightgroups = ET.tostring(root, encoding='unicode', method='xml')
+
+        return (
+            "<init>\n"
+            + self["initInfo"].tolhe()
+            + "\n"
+            + "\n".join([p.tolhe() for p in self["procInfo"]])
+            + "\n"
+            + f"{sweightgroups}"
+            + "\n"
+            #+ f"  <LesHouchesEvents version='{self['LHEVersion']}'>\n"
+            + "</init>"
+        )
+
+    # custom backwards compatibility get for dict
+    def __getitem__(self, key):
+        if not key in self:
+            return self["initInfo"][key]
+        else:
+            return super().__getitem__(key)
+
+    # custom backwards compatibility set for dict
+    def __setitem__(self, key, value):
+        if not key in self:
+            self["initInfo"][key] = value
+        else:
+            self.super().__setitem__(key, value)
+
+    @classmethod
+    def fromstring(cls, string):
+        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
+
+
+
+class LHEInitInfo(dict):
+    """Store the first line of the <init> block as dict."""
 
     fieldnames = [
         "beamA",
@@ -301,7 +355,7 @@ def read_lhe_init(filepath):
         for event, element in ET.iterparse(fileobj, events=["start", "end"]):
             if element.tag == "init":
                 data = element.text.split("\n")[1:-1]
-                initDict["initInfo"] = LHEInit.fromstring(data[0])
+                initDict["initInfo"] = LHEInitInfo.fromstring(data[0])
                 initDict["procInfo"] = [LHEProcInfo.fromstring(d) for d in data[1:]]
             if element.tag == "initrwgt":
                 initDict["weightgroup"] = {}
@@ -341,7 +395,7 @@ def read_lhe_init(filepath):
                 initDict["LHEVersion"] = float(element.attrib["version"])
             if element.tag == "event":
                 break
-    return initDict
+    return LHEInit(**initDict)
 
 
 def read_lhe(filepath):
@@ -445,3 +499,26 @@ def read_num_events(filepath):
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
         return -1
+
+def write_lhe_string(lheinit,lheevents):
+    """
+    Return the LHE file as a string.
+    """
+    s = f"<LesHouchesEvents version=\"{lheinit['LHEVersion']}\">\n"
+    s += lheinit.tolhe() + "\n"
+    for e in lheevents:
+        s += e.tolhe() + "\n"
+    s += f"</LesHouchesEvents>"
+    return s
+
+def write_lhe_file(lheinit,lheevents,filepath,gz=False):
+    """
+    Write the LHE file.
+    """
+    # if filepath suffix is gz, write as gz
+    if filepath.endswith(".gz") or filepath.endswith(".gzip") or gz:
+        with gzip.open(filepath, "wt") as f:
+            f.write(write_lhe_string(lheinit,lheevents))
+    else:
+        with open(filepath, "w") as f:
+            f.write(write_lhe_string(lheinit,lheevents))
