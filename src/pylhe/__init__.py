@@ -16,6 +16,7 @@ __all__ = [
     "LHEFile",
     "LHEInit",
     "LHEParticle",
+    "LHEInitInfo",
     "LHEProcInfo",
     "read_lhe",
     "read_lhe_init",
@@ -297,10 +298,6 @@ class LHEInit(dict):
             self["initInfo"][key] = value
         else:
             self.super().__setitem__(key, value)
-
-    @classmethod
-    def fromstring(cls, string):
-        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
 class LHEInitInfo(dict):
