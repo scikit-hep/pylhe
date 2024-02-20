@@ -68,13 +68,13 @@ class LHEEvent:
             if self.weights:
                 sweights = "<rwgt>\n"
                 for k, v in self.weights.items():
-                    sweights += f" <wgt id='{k}'>{v :12.4e}</wgt>\n"
+                    sweights += f" <wgt id='{k}'>{v :11.4e}</wgt>\n"
                 sweights += "</rwgt>\n"
         if weights:
             if self.weights:
                 sweights = "<weights>\n"
                 for k, v in self.weights.items():
-                    sweights += f"{v :12.4e}\n"
+                    sweights += f"{v :11.4e}\n"
                 sweights += "</weights>\n"
 
         return (
@@ -557,26 +557,26 @@ def read_num_events(filepath):
         return -1
 
 
-def write_lhe_string(lheinit, lheevents):
+def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
     """
     Return the LHE file as a string.
     """
     s = f"<LesHouchesEvents version=\"{lheinit['LHEVersion']}\">\n"
     s += lheinit.tolhe() + "\n"
     for e in lheevents:
-        s += e.tolhe() + "\n"
+        s += e.tolhe(rwgt=rwgt, weights=weights) + "\n"
     s += "</LesHouchesEvents>"
     return s
 
 
-def write_lhe_file(lheinit, lheevents, filepath, gz=False):
+def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=False):
     """
     Write the LHE file.
     """
     # if filepath suffix is gz, write as gz
     if filepath.endswith(".gz") or filepath.endswith(".gzip") or gz:
         with gzip.open(filepath, "wt") as f:
-            f.write(write_lhe_string(lheinit, lheevents))
+            f.write(write_lhe_string(lheinit, lheevents, rwgt=rwgt, weights=weights))
     else:
         with open(filepath, "w") as f:
-            f.write(write_lhe_string(lheinit, lheevents))
+            f.write(write_lhe_string(lheinit, lheevents, rwgt=rwgt, weights=weights))
