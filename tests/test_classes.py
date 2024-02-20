@@ -1,7 +1,15 @@
 import pytest
 import skhep_testdata
 
-from pylhe import LHEEventInfo, LHEFile, LHEInit, LHEParticle, LHEProcInfo, read_lhe
+from pylhe import (
+    LHEEventInfo,
+    LHEFile,
+    LHEInit,
+    LHEInitInfo,
+    LHEParticle,
+    LHEProcInfo,
+    read_lhe,
+)
 
 TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 
@@ -67,7 +75,7 @@ def test_LHEInit_fromstring():
         "weightingStrategy": -4.0,
         "numProcesses": 1.0,
     }
-    assert LHEInit.fromstring(data) == result
+    assert LHEInitInfo.fromstring(data) == result
 
 
 def test_LHEParticle_no_default_init():
