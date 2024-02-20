@@ -185,8 +185,8 @@ class LHEInit(dict):
         "numProcesses",
     ]
 
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def fromstring(cls, string):
@@ -198,8 +198,8 @@ class LHEProcInfo(dict):
 
     fieldnames = ["xSection", "error", "unitWeight", "procId"]
 
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def fromstring(cls, string):
