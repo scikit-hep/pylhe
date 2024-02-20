@@ -281,7 +281,6 @@ class LHEInit(dict):
             + "\n".join([p.tolhe() for p in self["procInfo"]])
             + "\n"
             + f"{sweightgroups}"
-            # + f"  <LesHouchesEvents version='{self['LHEVersion']}'>\n"
             + "</init>"
         )
 
