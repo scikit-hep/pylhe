@@ -69,6 +69,9 @@ def test_write_lhe_event():
 
 
 def test_write_lhe_init():
+    """
+    Test that the init is written correctly.
+    """
     init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
 
     assert (
@@ -102,7 +105,10 @@ def test_write_lhe_init():
     )
 
 
-def test_write_lhe_init():
+def test_write_lhe():
+    """
+    Test that the LHE file is written correctly.
+    """
     init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
     # single test event
