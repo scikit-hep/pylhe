@@ -21,36 +21,42 @@ TEST_FILES_LHE_POWHEG = [
     for proc in ["Z", "W", "Zj", "trijet", "directphoton", "hvq"]
 ]
 
+
 def test_write_lhe_eventline():
-    """
-    """
+    """ """
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
 
     assert events
     for e in events:
-        assert e.particles[0].tolhe() == "    5  -1   0   0 501   0  0.00000000e+00  0.00000000e+00  1.43229060e+02  1.43309460e+02  4.80000000e+00  0.0000e+00  0.0000e+00"
+        assert (
+            e.particles[0].tolhe()
+            == "    5  -1   0   0 501   0  0.00000000e+00  0.00000000e+00  1.43229060e+02  1.43309460e+02  4.80000000e+00  0.0000e+00  0.0000e+00"
+        )
         break
 
 
 def test_write_lhe_eventinfo():
-    """
-    """
+    """ """
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
 
     assert events
     for e in events:
-        assert e.eventinfo.tolhe() == "  5     66  5.0109093000e+01  1.4137688000e+02  7.5563862000e-03  1.2114027000e-01"
+        assert (
+            e.eventinfo.tolhe()
+            == "  5     66  5.0109093000e+01  1.4137688000e+02  7.5563862000e-03  1.2114027000e-01"
+        )
         break
 
 
 def test_write_lhe_event():
-    """
-    """
+    """ """
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
 
     assert events
     for e in events:
-        assert e.tolhe() == """<event>
+        assert (
+            e.tolhe()
+            == """<event>
   5     66  5.0109093000e+01  1.4137688000e+02  7.5563862000e-03  1.2114027000e-01
     5  -1   0   0 501   0  0.00000000e+00  0.00000000e+00  1.43229060e+02  1.43309460e+02  4.80000000e+00  0.0000e+00  0.0000e+00
     2  -1   0   0 502   0  0.00000000e+00  0.00000000e+00 -9.35443170e+02  9.35443230e+02  3.30000000e-01  0.0000e+00  0.0000e+00
@@ -69,16 +75,26 @@ def test_write_lhe_event():
  <wgt id='1009'>  5.2581e+01</wgt>
 </rwgt>
 </event>"""
+        )
         break
+
 
 def test_write_lhe_init():
     init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
 
-    assert init["initInfo"].tolhe()  == "   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1"
-    assert init["procInfo"][0].tolhe()  == " 5.0109086e+01  8.9185414e-02  5.0109093e+01    66"
-    print(init["weightgroup"] )
+    assert (
+        init["initInfo"].tolhe()
+        == "   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1"
+    )
+    assert (
+        init["procInfo"][0].tolhe()
+        == " 5.0109086e+01  8.9185414e-02  5.0109093e+01    66"
+    )
+    print(init["weightgroup"])
 
-    assert init.tolhe() == """<init>
+    assert (
+        init.tolhe()
+        == """<init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66
 <initrwgt>
@@ -95,14 +111,18 @@ def test_write_lhe_init():
   </weightgroup>
 </initrwgt>
 </init>"""
+    )
+
 
 def test_write_lhe_init():
     init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
-    #single test event
+    # single test event
     events = [next(events)]
 
-    assert pylhe.write_lhe_string(init, events) == """<LesHouchesEvents version="3.0">
+    assert (
+        pylhe.write_lhe_string(init, events)
+        == """<LesHouchesEvents version="3.0">
 <init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66
@@ -140,6 +160,7 @@ def test_write_lhe_init():
 </rwgt>
 </event>
 </LesHouchesEvents>"""
+    )
 
 
 def test_write_read_lhe_identical():
