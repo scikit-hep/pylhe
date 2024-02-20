@@ -53,7 +53,16 @@ class LHEEvent:
         self._graph = None
 
     def tolhe(self, rwgt=True, weights=False):
-        """ """
+        """
+        Return the event as a string in LHE format.
+
+        Args:
+            rwgt (bool): Include the weights in the 'rwgt' format.
+            weights (bool): Include the weights in the 'weights' format.
+
+        Returns:
+            str: The event as a string in LHE format.
+        """
         sweights = ""
         if rwgt:
             if self.weights:
@@ -154,6 +163,12 @@ class LHEEventInfo:
             setattr(self, k, v)
 
     def tolhe(self):
+        """
+        Return the event info as a string in LHE format.
+
+        Returns:
+            str: The event info as a string in LHE format.
+        """
         return "{:3d} {:6d} {: 15.10e} {: 15.10e} {: 15.10e} {: 15.10e}".format(
             *[int(getattr(self, f)) for f in self.fieldnames[:2]],
             *[getattr(self, f) for f in self.fieldnames[2:]],
@@ -194,6 +209,12 @@ class LHEParticle:
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
     def tolhe(self):
+        """
+        Return the particle as a string in LHE format.
+
+        Returns:
+            str: The particle as a string in LHE format.
+        """
         return "{:5d} {:3d} {:3d} {:3d} {:3d} {:3d} {: 15.8e} {: 15.8e} {: 15.8e} {: 15.8e} {: 15.8e} {: 10.4e} {: 10.4e}".format(
             *[int(getattr(self, f)) for f in self.fieldnames[:6]],
             *[getattr(self, f) for f in self.fieldnames[6:]],
@@ -216,6 +237,12 @@ class LHEInit(dict):
         super().__init__(*args, **kwargs)
 
     def tolhe(self):
+        """
+        Return the init block as a string in LHE format.
+
+        Returns:
+            str: The init block as a string in LHE format.
+        """
         # weightgroups to xml
         root = ET.Element("initrwgt")
         for k, v in self["weightgroup"].items():
@@ -279,6 +306,12 @@ class LHEInitInfo(dict):
         super().__init__(*args, **kwargs)
 
     def tolhe(self):
+        """
+        Return the init info block as a string in LHE format.
+
+        Returns:
+            str: The init info block as a string in LHE format.
+        """
         return (
             " {: 6d} {: 6d} {: 14.7e} {: 14.7e} {: 5d} {: 5d} {: 5d} {: 5d} {: 5d} {: 5d}"
         ).format(
@@ -308,6 +341,12 @@ class LHEProcInfo(dict):
         super().__init__(*args, **kwargs)
 
     def tolhe(self):
+        """
+        Return the process info block as a string in LHE format.
+
+        Returns:
+            str: The process info block as a string in LHE format.
+        """
         return ("{: 14.7e} {: 14.7e} {: 14.7e} {: 5d}").format(
             self["xSection"], self["error"], self["unitWeight"], int(self["procId"])
         )
