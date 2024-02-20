@@ -1,14 +1,6 @@
-import gzip
-import os
-import shutil
-from pathlib import Path
-from tempfile import NamedTemporaryFile
-
-import pytest
 import skhep_testdata
 
 import pylhe
-from pylhe import LHEEvent
 
 TEST_FILE_LHE_v1 = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 TEST_FILE_LHE_v3 = skhep_testdata.data_path("pylhe-testlhef3.lhe")
@@ -23,38 +15,36 @@ TEST_FILES_LHE_POWHEG = [
 
 
 def test_write_lhe_eventline():
-    """ """
+    """
+    Test that the event line is written correctly.
+    """
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
-
-    assert events
-    for e in events:
-        assert (
+    e = next(events)
+    assert (
             e.particles[0].tolhe()
             == "    5  -1   0   0 501   0  0.00000000e+00  0.00000000e+00  1.43229060e+02  1.43309460e+02  4.80000000e+00  0.0000e+00  0.0000e+00"
         )
-        break
 
 
 def test_write_lhe_eventinfo():
-    """ """
+    """
+    Test that the event info is written correctly.
+    """
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
-
-    assert events
-    for e in events:
-        assert (
+    e = next(events)
+    assert (
             e.eventinfo.tolhe()
             == "  5     66  5.0109093000e+01  1.4137688000e+02  7.5563862000e-03  1.2114027000e-01"
         )
-        break
 
 
 def test_write_lhe_event():
-    """ """
+    """
+    Test that the event is written correctly.
+    """
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
-
-    assert events
-    for e in events:
-        assert (
+    e = next(events)
+    assert (
             e.tolhe()
             == """<event>
   5     66  5.0109093000e+01  1.4137688000e+02  7.5563862000e-03  1.2114027000e-01
@@ -76,7 +66,6 @@ def test_write_lhe_event():
 </rwgt>
 </event>"""
         )
-        break
 
 
 def test_write_lhe_init():
@@ -90,7 +79,6 @@ def test_write_lhe_init():
         init["procInfo"][0].tolhe()
         == " 5.0109086e+01  8.9185414e-02  5.0109093e+01    66"
     )
-    print(init["weightgroup"])
 
     assert (
         init.tolhe()
@@ -161,7 +149,3 @@ def test_write_lhe_init():
 </event>
 </LesHouchesEvents>"""
     )
-
-
-def test_write_read_lhe_identical():
-    pass
