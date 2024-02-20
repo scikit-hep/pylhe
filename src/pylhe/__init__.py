@@ -52,6 +52,13 @@ class LHEEvent:
             p.event = self
         self._graph = None
 
+    def tolhe(self):
+        return ("<event>\n" 
+                + self.eventinfo.tolhe() + "\n"
+                + "\n".join([p.tolhe() for p in self.particles])
+                + "\n</event>"
+        )
+
     @property
     def graph(self):
         """
@@ -127,6 +134,12 @@ class LHEEventInfo:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+    def tolhe(self):
+        return "{:3d} {:6d} {:15.10e} {:15.10e} {:15.10e} {:15.10e}".format(
+            *[int(getattr(self, f)) for f in self.fieldnames[:2]],
+            *[getattr(self, f) for f in self.fieldnames[2:]],
+        )
+
     @classmethod
     def fromstring(cls, string):
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
@@ -160,6 +173,12 @@ class LHEParticle:
     @classmethod
     def fromstring(cls, string):
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
+
+    def tolhe(self):
+        return "{:5d} {:3d} {:3d} {:3d} {:3d} {:3d} {:15.10e} {:15.10e} {:15.10e} {:15.10e} {:15.10e} {:10.4e} {:10.4e}".format(
+            *[int(getattr(self, f)) for f in self.fieldnames[:6]],
+            *[getattr(self, f) for f in self.fieldnames[6:]]
+        )
 
     def mothers(self):
         first_idx = int(self.mother1) - 1
