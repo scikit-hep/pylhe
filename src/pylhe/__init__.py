@@ -354,7 +354,7 @@ def read_lhe_with_attributes(filepath):
                                     read_lhe_init(filepath)
                                 )
                             for i, w in enumerate(sub.text.split()):
-                                if w:
+                                if w and not index_map[i] in eventdict["weights"]:
                                     eventdict["weights"][index_map[i]] = float(w)
                         if sub.tag == "rwgt":
                             for r in sub:
