@@ -69,13 +69,13 @@ class LHEEvent:
             if self.weights:
                 sweights = "<rwgt>\n"
                 for k, v in self.weights.items():
-                    sweights += f" <wgt id='{k}'>{v :11.4e}</wgt>\n"
+                    sweights += f" <wgt id='{k}'>{v:11.4e}</wgt>\n"
                 sweights += "</rwgt>\n"
         if weights:
             if self.weights:
                 sweights = "<weights>\n"
                 for k, v in self.weights.items():
-                    sweights += f"{v :11.4e}\n"
+                    sweights += f"{v:11.4e}\n"
                 sweights += "</weights>\n"
 
         return (
