@@ -185,12 +185,12 @@ class LHEInit(dict):
         "numProcesses",
     ]
 
-    def __init__(self):
-        pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def fromstring(cls, string):
-        return dict(zip(cls.fieldnames, map(float, string.split())))
+        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
 class LHEProcInfo(dict):
@@ -198,12 +198,12 @@ class LHEProcInfo(dict):
 
     fieldnames = ["xSection", "error", "unitWeight", "procId"]
 
-    def __init__(self):
-        pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def fromstring(cls, string):
-        return dict(zip(cls.fieldnames, map(float, string.split())))
+        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
 def _extract_fileobj(filepath):
