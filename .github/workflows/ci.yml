@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
     - uses: actions/checkout@v4
@@ -52,7 +52,6 @@ jobs:
     - name: Report core project coverage with Codecov
       if: >-
         github.event_name != 'schedule' &&
-        (matrix.python-version == '3.8' || matrix.python-version == '3.10') &&
         matrix.os == 'ubuntu-latest'
       uses: codecov/codecov-action@v3
       with:
