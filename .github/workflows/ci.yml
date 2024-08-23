@@ -31,8 +31,9 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip setuptools wheel
-        python -m pip --quiet install .[test]
+        python -m pip install uv
+        uv pip install --system --upgrade pip setuptools wheel
+        uv pip install --system --quiet install '.[test]'
         python -m pip list
 
     - name: Install external packages
