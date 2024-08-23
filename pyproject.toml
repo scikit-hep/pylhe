@@ -102,18 +102,6 @@ extend-exclude = '''
 )/
 '''
 
-[tool.check-manifest]
-ignore = [
-    'examples/*',
-    'tests/*',
-    'docker/*',
-    '.*',
-    'pyproject.toml',
-    'pytest.ini',
-    'codecov.yml',
-    'CODE_OF_CONDUCT.md',
-]
-
 [tool.isort]
 profile = "black"
 
