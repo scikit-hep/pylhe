@@ -9,6 +9,7 @@ def test_top_level_api():
         "LHEEventInfo",
         "LHEFile",
         "LHEInit",
+        "LHEInitInfo",
         "LHEParticle",
         "LHEProcInfo",
         "__version__",

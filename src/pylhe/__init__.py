@@ -15,6 +15,7 @@ __all__ = [
     "LHEEventInfo",
     "LHEFile",
     "LHEInit",
+    "LHEInitInfo",
     "LHEParticle",
     "LHEProcInfo",
     "read_lhe",
@@ -51,6 +52,41 @@ class LHEEvent:
         for p in self.particles:
             p.event = self
         self._graph = None
+
+    def tolhe(self, rwgt=True, weights=False):
+        """
+        Return the event as a string in LHE format.
+
+        Args:
+            rwgt (bool): Include the weights in the 'rwgt' format.
+            weights (bool): Include the weights in the 'weights' format.
+
+        Returns:
+            str: The event as a string in LHE format.
+        """
+        sweights = ""
+        if rwgt:
+            if self.weights:
+                sweights = "<rwgt>\n"
+                for k, v in self.weights.items():
+                    sweights += f" <wgt id='{k}'>{v:11.4e}</wgt>\n"
+                sweights += "</rwgt>\n"
+        if weights:
+            if self.weights:
+                sweights = "<weights>\n"
+                for k, v in self.weights.items():
+                    sweights += f"{v:11.4e}\n"
+                sweights += "</weights>\n"
+
+        return (
+            "<event>\n"
+            + self.eventinfo.tolhe()
+            + "\n"
+            + "\n".join([p.tolhe() for p in self.particles])
+            + "\n"
+            + sweights
+            + "</event>"
+        )
 
     @property
     def graph(self):
@@ -127,6 +163,18 @@ class LHEEventInfo:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+    def tolhe(self):
+        """
+        Return the event info as a string in LHE format.
+
+        Returns:
+            str: The event info as a string in LHE format.
+        """
+        return "{:3d} {:6d} {: 15.10e} {: 15.10e} {: 15.10e} {: 15.10e}".format(
+            *[int(getattr(self, f)) for f in self.fieldnames[:2]],
+            *[getattr(self, f) for f in self.fieldnames[2:]],
+        )
+
     @classmethod
     def fromstring(cls, string):
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
@@ -161,6 +209,18 @@ class LHEParticle:
     def fromstring(cls, string):
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
+    def tolhe(self):
+        """
+        Return the particle as a string in LHE format.
+
+        Returns:
+            str: The particle as a string in LHE format.
+        """
+        return "{:5d} {:3d} {:3d} {:3d} {:3d} {:3d} {: 15.8e} {: 15.8e} {: 15.8e} {: 15.8e} {: 15.8e} {: 10.4e} {: 10.4e}".format(
+            *[int(getattr(self, f)) for f in self.fieldnames[:6]],
+            *[getattr(self, f) for f in self.fieldnames[6:]],
+        )
+
     def mothers(self):
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
@@ -169,8 +229,79 @@ class LHEParticle:
         ]
 
 
+def _indent(elem, level=0):
+    """
+    XML indentation helper from https://stackoverflow.com/a/33956544.
+    """
+    i = "\n" + level * "  "
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = i + "  "
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+        for elem in elem:
+            _indent(elem, level + 1)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
+
+
 class LHEInit(dict):
     """Store the <init> block as dict."""
+
+    fieldnames = ["initInfo", "procInfo" "weightgroup", "LHEVersion"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def tolhe(self):
+        """
+        Return the init block as a string in LHE format.
+
+        Returns:
+            str: The init block as a string in LHE format.
+        """
+        # weightgroups to xml
+        root = ET.Element("initrwgt")
+        for k, v in self["weightgroup"].items():
+            weightgroup_elem = ET.SubElement(root, "weightgroup", **v["attrib"])
+            for key, value in v["weights"].items():
+                weight_elem = ET.SubElement(
+                    weightgroup_elem, "weight", **value["attrib"]
+                )
+                weight_elem.text = value["name"]
+        _indent(root)
+        sweightgroups = ET.tostring(root, encoding="unicode", method="xml")
+
+        return (
+            "<init>\n"
+            + self["initInfo"].tolhe()
+            + "\n"
+            + "\n".join([p.tolhe() for p in self["procInfo"]])
+            + "\n"
+            + f"{sweightgroups}"
+            + "</init>"
+        )
+
+    # custom backwards compatibility get for dict
+    def __getitem__(self, key):
+        if key not in self:
+            return self["initInfo"][key]
+        else:
+            return super().__getitem__(key)
+
+    # custom backwards compatibility set for dict
+    def __setitem__(self, key, value):
+        if key not in self:
+            self["initInfo"][key] = value
+        else:
+            self.super().__setitem__(key, value)
+
+
+class LHEInitInfo(dict):
+    """Store the first line of the <init> block as dict."""
 
     fieldnames = [
         "beamA",
@@ -188,6 +319,28 @@ class LHEInit(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def tolhe(self):
+        """
+        Return the init info block as a string in LHE format.
+
+        Returns:
+            str: The init info block as a string in LHE format.
+        """
+        return (
+            " {: 6d} {: 6d} {: 14.7e} {: 14.7e} {: 5d} {: 5d} {: 5d} {: 5d} {: 5d} {: 5d}"
+        ).format(
+            int(self["beamA"]),
+            int(self["beamB"]),
+            self["energyA"],
+            self["energyB"],
+            int(self["PDFgroupA"]),
+            int(self["PDFgroupB"]),
+            int(self["PDFsetA"]),
+            int(self["PDFsetB"]),
+            int(self["weightingStrategy"]),
+            int(self["numProcesses"]),
+        )
+
     @classmethod
     def fromstring(cls, string):
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
@@ -200,6 +353,17 @@ class LHEProcInfo(dict):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def tolhe(self):
+        """
+        Return the process info block as a string in LHE format.
+
+        Returns:
+            str: The process info block as a string in LHE format.
+        """
+        return ("{: 14.7e} {: 14.7e} {: 14.7e} {: 5d}").format(
+            self["xSection"], self["error"], self["unitWeight"], int(self["procId"])
+        )
 
     @classmethod
     def fromstring(cls, string):
@@ -244,7 +408,7 @@ def read_lhe_init(filepath):
         for event, element in ET.iterparse(fileobj, events=["start", "end"]):
             if element.tag == "init":
                 data = element.text.split("\n")[1:-1]
-                initDict["initInfo"] = LHEInit.fromstring(data[0])
+                initDict["initInfo"] = LHEInitInfo.fromstring(data[0])
                 initDict["procInfo"] = [LHEProcInfo.fromstring(d) for d in data[1:]]
             if element.tag == "initrwgt":
                 initDict["weightgroup"] = {}
@@ -284,7 +448,7 @@ def read_lhe_init(filepath):
                 initDict["LHEVersion"] = float(element.attrib["version"])
             if element.tag == "event":
                 break
-    return initDict
+    return LHEInit(**initDict)
 
 
 def read_lhe(filepath):
@@ -388,3 +552,28 @@ def read_num_events(filepath):
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
         return -1
+
+
+def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
+    """
+    Return the LHE file as a string.
+    """
+    s = f"<LesHouchesEvents version=\"{lheinit['LHEVersion']}\">\n"
+    s += lheinit.tolhe() + "\n"
+    for e in lheevents:
+        s += e.tolhe(rwgt=rwgt, weights=weights) + "\n"
+    s += "</LesHouchesEvents>"
+    return s
+
+
+def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=False):
+    """
+    Write the LHE file.
+    """
+    # if filepath suffix is gz, write as gz
+    if filepath.endswith(".gz") or filepath.endswith(".gzip") or gz:
+        with gzip.open(filepath, "wt") as f:
+            f.write(write_lhe_string(lheinit, lheevents, rwgt=rwgt, weights=weights))
+    else:
+        with open(filepath, "w") as f:
+            f.write(write_lhe_string(lheinit, lheevents, rwgt=rwgt, weights=weights))
