@@ -38,16 +38,12 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install python-build, check-manifest, and twine
+    - name: Install python-build, and twine
       run: |
         python -m pip install uv
-        uv pip install --system --upgrade pip setuptools wheel
-        uv pip install --system build check-manifest twine
+        uv pip install --system --upgrade pip wheel
+        uv pip install --system build twine
         python -m pip list
-
-    - name: Check MANIFEST
-      run: |
-        check-manifest
 
     - name: Build a sdist and a wheel
       run: |

@@ -1,11 +1,92 @@
 [build-system]
-# Minimum requirements for the build system to execute.
-requires = ["setuptools>=42", "setuptools_scm[toml]>=3.4"]
-build-backend = "setuptools.build_meta"
+requires = [
+    "hatchling>=1.13.0",
+    "hatch-vcs>=0.3.0",
+]
+build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
-write_to = "src/pylhe/_version.py"
+[project]
+name = "pylhe"
+dynamic = ["version"]
+description = "A small package to get structured data out of Les Houches Event files"
+readme = "README.md"
+license = { text = "Apache-2.0" }  # SPDX short identifier
+requires-python = ">=3.8"
+authors = [
+    { name = "Lukas Heinrich", email = "lukas.heinrich@cern.ch" },
+    { name = "Matthew Feickert", email = "matthew.feickert@cern.ch" },
+    { name = "Eduardo Rodrigues", email = "eduardo.rodrigues@cern.ch" },
+]
+maintainers = [ {name = "The Scikit-HEP admins", email = "scikit-hep-admins@googlegroups.com"} ]
+keywords = [
+    "lhe",
+    "physics",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "awkward>=1.2.0",
+    "graphviz>=0.12.0",
+    "particle>=0.16",
+    "vector>=0.8.1",
+]
+
+[project.optional-dependencies]
+lint = [
+    "black",
+    "flake8",
+]
+test = [
+    "pydocstyle",
+    "pytest-cov>=2.5.1",
+    "pytest>=6.0",
+    "scikit-hep-testdata>=0.4.36",
+]
+develop = [
+    "pyhf[lint,test]",
+    "pre-commit",
+    "tbump>=6.7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/scikit-hep/pylhe"
+"Source Code" = "https://github.com/scikit-hep/pylhe"
+"Issue Tracker" = "https://github.com/scikit-hep/pylhe/issues"
+"Releases" = "https://github.com/scikit-hep/pylhe/releases"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
 local_scheme = "no-local-version"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/pylhe/_version.py"
+
+[tool.hatch.build.targets.sdist]
+# hatchling always includes:
+# pyproject.toml, .gitignore, any README, any LICENSE, AUTHORS
+include = [
+    "/src",
+    "/tests",
+    "/CITATION.cff",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pylhe"]
 
 [tool.black]
 line-length = 88
@@ -18,18 +99,6 @@ extend-exclude = '''
   | src/pylhe/_version.py
 )/
 '''
-
-[tool.check-manifest]
-ignore = [
-    'examples/*',
-    'tests/*',
-    'docker/*',
-    '.*',
-    'pyproject.toml',
-    'pytest.ini',
-    'codecov.yml',
-    'CODE_OF_CONDUCT.md',
-]
 
 [tool.isort]
 profile = "black"

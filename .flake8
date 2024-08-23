@@ -1,0 +1,7 @@
+[flake8]
+# E501: line too long
+extend-ignore = E501
+max-line-length = 88
+max-complexity = 18
+count = True
+statistics = True
