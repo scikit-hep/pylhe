@@ -12,7 +12,7 @@ RUN apt-get -qq -y update && \
     rm -rf /var/lib/apt-get/lists/* && \
     cd /code && \
     python -m pip install uv && \
-    uv pip install --system --upgrade --no-cache pip setuptools wheel && \
+    uv pip install --system --upgrade --no-cache pip wheel && \
     uv pip install --system --no-cache . && \
     python -m pip list
 
