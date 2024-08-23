@@ -11,8 +11,9 @@ RUN apt-get -qq -y update && \
     apt-get -y autoremove && \
     rm -rf /var/lib/apt-get/lists/* && \
     cd /code && \
-    python -m pip install --upgrade --no-cache-dir pip setuptools wheel && \
-    python -m pip install --no-cache-dir . && \
+    python -m pip install uv && \
+    uv pip install --system --upgrade --no-cache pip setuptools wheel && \
+    uv pip install --system --no-cache . && \
     python -m pip list
 
 FROM base
