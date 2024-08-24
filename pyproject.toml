@@ -56,7 +56,7 @@ test = [
     "scikit-hep-testdata>=0.4.36",
 ]
 develop = [
-    "pyhf[lint,test]",
+    "pylhe[lint,test]",
     "pre-commit",
     "tbump>=6.7.0",
 ]
