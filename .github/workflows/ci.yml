@@ -58,6 +58,7 @@ jobs:
         fail_ci_if_error: true
         files: ./coverage.xml
         flags: unittests-${{ matrix.python-version }}
+        name: pylhe
         token: ${{ secrets.CODECOV_TOKEN }}
 
   docker:
