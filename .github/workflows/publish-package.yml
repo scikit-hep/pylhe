@@ -24,10 +24,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build Python distribution
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v4
       with:
