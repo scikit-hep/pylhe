@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "Please cite the following works when using this software."
+type: software
+authors:
+- family-names: "Heinrich"
+  given-names: "Lukas"
+  orcid: "https://orcid.org/0000-0002-4048-7584"
+  affiliation: "Technical University of Munich"
+- family-names: "Feickert"
+  given-names: "Matthew"
+  orcid: "https://orcid.org/0000-0003-4124-7862"
+  affiliation: "University of Wisconsin-Madison"
+- family-names: "Rodrigues"
+  given-names: "Eduardo"
+  orcid: "https://orcid.org/0000-0003-2846-7625"
+  affiliation: "University of Liverpool"
+title: "pylhe: v0.8.0"
+version: 0.8.0
+doi: 10.5281/zenodo.1217031
+repository-code: "https://github.com/scikit-hep/pylhe/releases/tag/v0.8.0"
+keywords:
+  - lhe
+  - physics
+  - python
+  - scikit-hep
+license: "Apache-2.0"
+abstract: |
+  A small package to get structured data out of Les Houches Event files.
