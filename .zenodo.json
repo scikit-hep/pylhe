@@ -1,5 +1,5 @@
 {
-    "description": "small package to get structured data out of Les Houches Event files",
+    "description": "A small package to get structured data out of Les Houches Event files",
     "license": "Apache-2.0",
     "title": "scikit-hep/pylhe: v0.8.0",
     "version": "v0.8.0",
@@ -23,8 +23,10 @@
     ],
     "access_right": "open",
     "keywords": [
+      "lhe",
       "physics",
-      "lhe"
+      "python",
+      "scikit-hep"
     ],
     "related_identifiers": [
         {

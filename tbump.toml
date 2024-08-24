@@ -38,6 +38,9 @@ src = "README.md"
 [[file]]
 src = ".zenodo.json"
 
+[[file]]
+src = "CITATION.cff"
+
 [[field]]
 # the name of the field
 name = "candidate"
