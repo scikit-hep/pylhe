@@ -16,6 +16,7 @@ authors = [
     { name = "Lukas Heinrich", email = "lukas.heinrich@cern.ch" },
     { name = "Matthew Feickert", email = "matthew.feickert@cern.ch" },
     { name = "Eduardo Rodrigues", email = "eduardo.rodrigues@cern.ch" },
+    { name = "Alexander Puck Neuwirth", email = "a_neuw01@uni-muenster.de" },
 ]
 maintainers = [ {name = "The Scikit-HEP admins", email = "scikit-hep-admins@googlegroups.com"} ]
 keywords = [
