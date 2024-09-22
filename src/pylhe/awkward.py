@@ -1,29 +1,11 @@
 import awkward as ak
 import vector
 
-__all__ = ["register_awkward", "to_awkward"]
+__all__ = ["to_awkward"]
 
 
 def __dir__():
     return __all__
-
-
-def register_awkward():
-    """
-    .. deprecated:: 0.6.0
-       Remove use of :func:`~pylhe.awkward.register_awkward` as registration
-       is automatic.
-    .. warning:: :func:`~pylhe.awkward.register_awkward` will be removed in
-     ``pylhe`` ``v0.8.0``.
-    """
-    import warnings
-
-    warnings.warn(
-        "pylhe.awkward.register_awkward is deprecated as of pylhe v0.6.0 and will be removed in pylhe v0.8.0."
-        + " Please remove use of pylhe.awkward.register_awkward in favor of automatic registration.",
-        category=DeprecationWarning,
-        stacklevel=2,  # Raise to user level
-    )
 
 
 def to_awkward(event_iterable):
