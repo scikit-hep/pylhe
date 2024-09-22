@@ -21,9 +21,12 @@ __all__ = [
     "LHEParticle",
     "LHEProcInfo",
     "read_lhe",
+    "read_lhe_file",
     "read_lhe_init",
     "read_lhe_with_attributes",
     "read_num_events",
+    "write_lhe_file",
+    "write_lhe_string",
     "register_awkward",
     "to_awkward",
 ]
@@ -391,6 +394,9 @@ class LHEFile:
         return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
 
 def read_lhe_file(filepath, with_attributes=True) -> LHEFile:
+    """
+    Read an LHE file and return an LHEFile object.
+    """
     lheinit = read_lhe_init(filepath)
     lheevents = read_lhe_with_attributes(filepath) if with_attributes else read_lhe(filepath)
     return LHEFile(init=lheinit, events=lheevents)
@@ -478,6 +484,9 @@ def read_lhe_init(filepath):
 
 
 def read_lhe(filepath):
+    """
+    Read and yield the events in the LHE file.
+    """
     try:
         with _extract_fileobj(filepath) as fileobj:
             for event, element in ET.iterparse(fileobj, events=["end"]):
@@ -584,7 +593,7 @@ def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
     """
     Return the LHE file as a string.
     """
-    return LHEFile(init=lheinit, events=lheevents).tolhe(rwgt=True, weights=False)
+    return LHEFile(init=lheinit, events=lheevents).tolhe(rwgt=rwgt, weights=weights)
 
 
 def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=False):

@@ -14,11 +14,14 @@ def test_top_level_api():
         "LHEProcInfo",
         "__version__",
         "read_lhe",
+        "read_lhe_file",
         "read_lhe_init",
         "read_lhe_with_attributes",
         "read_num_events",
         "register_awkward",
         "to_awkward",
+        "write_lhe_file",
+        "write_lhe_string",
     ]
 
 
