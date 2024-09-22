@@ -1,7 +1,7 @@
 import gzip
 import io
 import xml.etree.ElementTree as ET
-from typing import Iterable, List
+from typing import Iterable
 
 import graphviz
 from particle import latex_to_html_name
