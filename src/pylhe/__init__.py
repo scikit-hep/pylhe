@@ -1,4 +1,5 @@
 import gzip
+from typing import Iterable, List
 import xml.etree.ElementTree as ET
 
 import graphviz
@@ -34,10 +35,6 @@ def __dir__():
 # retrieve mapping of PDG ID to particle name as LaTeX string
 _PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
 
-
-class LHEFile:
-    def __init__(self):
-        pass
 
 
 class LHEEvent:
@@ -368,6 +365,20 @@ class LHEProcInfo(dict):
     @classmethod
     def fromstring(cls, string):
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
+ 
+
+class LHEFile:
+    def __init__(self, init : LHEInit = None, events : Iterable[LHEEvent] = None):
+        self.init = init
+        self.events = events
+
+def read_lhe_file(filepath, with_attributes=True) -> LHEFile:
+    lheinit = read_lhe_init(filepath)
+    if with_attributes:
+        lheevents = read_lhe_with_attributes(filepath)
+    else:
+        lheevents = read_lhe(filepath)
+    return LHEFile(init=lheinit, events=lheevents)
 
 
 def _extract_fileobj(filepath):
