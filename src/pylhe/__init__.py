@@ -1,4 +1,5 @@
 import gzip
+import io
 from typing import Iterable, List
 import xml.etree.ElementTree as ET
 
@@ -372,12 +373,26 @@ class LHEFile:
         self.init = init
         self.events = events
 
+    def write(self,output_stream, rwgt=True, weights=False):
+        """
+        Write the LHE file to an output stream.
+        """
+        output_stream.write(f"<LesHouchesEvents version=\"{self.init['LHEVersion']}\">\n")
+        output_stream.write(self.init.tolhe() + "\n")
+        for e in self.events:
+            output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
+        output_stream.write("</LesHouchesEvents>")
+        return output_stream
+
+    def tolhe(self, rwgt=True, weights=False) -> str:
+        """
+        Return the LHE file as a string.
+        """
+        return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
+
 def read_lhe_file(filepath, with_attributes=True) -> LHEFile:
     lheinit = read_lhe_init(filepath)
-    if with_attributes:
-        lheevents = read_lhe_with_attributes(filepath)
-    else:
-        lheevents = read_lhe(filepath)
+    lheevents = read_lhe_with_attributes(filepath) if with_attributes else read_lhe(filepath)
     return LHEFile(init=lheinit, events=lheevents)
 
 
@@ -449,7 +464,7 @@ def read_lhe_init(filepath):
                                 raise
                             _temp["weights"][wg_id] = {
                                 "attrib": w.attrib,
-                                "name": w.text.strip(),
+                                "name": w.text.strip() if w.text else "",
                                 "index": index,
                             }
                             index += 1
@@ -569,12 +584,7 @@ def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
     """
     Return the LHE file as a string.
     """
-    s = f"<LesHouchesEvents version=\"{lheinit['LHEVersion']}\">\n"
-    s += lheinit.tolhe() + "\n"
-    for e in lheevents:
-        s += e.tolhe(rwgt=rwgt, weights=weights) + "\n"
-    s += "</LesHouchesEvents>"
-    return s
+    return LHEFile(init=lheinit, events=lheevents).tolhe(rwgt=True, weights=False)
 
 
 def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=False):
@@ -584,7 +594,7 @@ def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=Fa
     # if filepath suffix is gz, write as gz
     if filepath.endswith(".gz") or filepath.endswith(".gzip") or gz:
         with gzip.open(filepath, "wt") as f:
-            f.write(write_lhe_string(lheinit, lheevents, rwgt=rwgt, weights=weights))
+            LHEFile(init=lheinit, events=lheevents).write(f, rwgt=rwgt, weights=weights)
     else:
         with open(filepath, "w") as f:
-            f.write(write_lhe_string(lheinit, lheevents, rwgt=rwgt, weights=weights))
+            LHEFile(init=lheinit, events=lheevents).write(f, rwgt=rwgt, weights=weights)
