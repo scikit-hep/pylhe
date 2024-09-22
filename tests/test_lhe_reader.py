@@ -167,6 +167,27 @@ def test_read_lhe_with_attributes_powheg(file):
         assert isinstance(e, LHEEvent)
 
 
+@pytest.mark.parametrize(
+    "file", [TEST_FILE_LHE_INITRWGT_WEIGHTS, TEST_FILE_LHE_RWGT_WGT]
+)
+def test_read_lhe_file(file):
+    """
+    Test that the read_lhe_file function works as the individual reads.
+    """
+    lhefile = pylhe.read_lhe_file(file, with_attributes=False)
+    lheinit = pylhe.read_lhe_init(file)
+    lheevents = pylhe.read_lhe(file)
+
+    assert lheinit == lhefile.init
+    assert next(lheevents).tolhe() == next(lhefile.events).tolhe()
+
+    lhefile = pylhe.read_lhe_file(file, with_attributes=True)
+    lheevents = pylhe.read_lhe_with_attributes(file)
+
+    assert lheinit == lhefile.init
+    assert next(lheevents).tolhe() == next(lhefile.events).tolhe()
+
+
 def test_read_lhe_initrwgt_weights():
     """
     Test the weights from initrwgt with a weights list.
