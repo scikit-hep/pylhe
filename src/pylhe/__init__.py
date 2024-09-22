@@ -1,7 +1,7 @@
 import gzip
 import io
-from typing import Iterable, List
 import xml.etree.ElementTree as ET
+from typing import Iterable, List
 
 import graphviz
 from particle import latex_to_html_name
@@ -38,7 +38,6 @@ def __dir__():
 
 # retrieve mapping of PDG ID to particle name as LaTeX string
 _PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
-
 
 
 class LHEEvent:
@@ -369,18 +368,20 @@ class LHEProcInfo(dict):
     @classmethod
     def fromstring(cls, string):
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
- 
+
 
 class LHEFile:
-    def __init__(self, init : LHEInit = None, events : Iterable[LHEEvent] = None):
+    def __init__(self, init: LHEInit = None, events: Iterable[LHEEvent] = None):
         self.init = init
         self.events = events
 
-    def write(self,output_stream, rwgt=True, weights=False):
+    def write(self, output_stream, rwgt=True, weights=False):
         """
         Write the LHE file to an output stream.
         """
-        output_stream.write(f"<LesHouchesEvents version=\"{self.init['LHEVersion']}\">\n")
+        output_stream.write(
+            f"<LesHouchesEvents version=\"{self.init['LHEVersion']}\">\n"
+        )
         output_stream.write(self.init.tolhe() + "\n")
         for e in self.events:
             output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
@@ -393,12 +394,15 @@ class LHEFile:
         """
         return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
 
+
 def read_lhe_file(filepath, with_attributes=True) -> LHEFile:
     """
     Read an LHE file and return an LHEFile object.
     """
     lheinit = read_lhe_init(filepath)
-    lheevents = read_lhe_with_attributes(filepath) if with_attributes else read_lhe(filepath)
+    lheevents = (
+        read_lhe_with_attributes(filepath) if with_attributes else read_lhe(filepath)
+    )
     return LHEFile(init=lheinit, events=lheevents)
 
 
