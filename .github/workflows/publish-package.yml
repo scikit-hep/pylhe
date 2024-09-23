@@ -138,7 +138,7 @@ jobs:
       if: >-
         (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository == 'scikit-hep/pylhe')
         || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true' && github.repository == 'scikit-hep/pylhe')
-      uses: pypa/gh-action-pypi-publish@v1.10.1
+      uses: pypa/gh-action-pypi-publish@v1.10.2
       with:
         repository-url: https://test.pypi.org/legacy/
         print-hash: true
@@ -146,7 +146,7 @@ jobs:
 
     - name: Publish distribution 📦 to PyPI
       if: github.event_name == 'release' && github.event.action == 'published' && github.repository == 'scikit-hep/pylhe'
-      uses: pypa/gh-action-pypi-publish@v1.10.1
+      uses: pypa/gh-action-pypi-publish@v1.10.2
       with:
         print-hash: true
         attestations: true
