@@ -7,7 +7,7 @@ from particle.converters.bimap import DirectionalMaps
 from particle.exceptions import MatchingIDNotFound
 
 from pylhe._version import version as __version__
-from pylhe.awkward import register_awkward, to_awkward
+from pylhe.awkward import to_awkward
 
 __all__ = [
     "__version__",
@@ -22,7 +22,6 @@ __all__ = [
     "read_lhe_init",
     "read_lhe_with_attributes",
     "read_num_events",
-    "register_awkward",
     "to_awkward",
 ]
 
