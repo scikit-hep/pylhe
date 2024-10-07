@@ -65,7 +65,7 @@ event.graph.render(filename="test", format="pdf", cleanup=True)
 
 For a full example see [write](examples/write_monte_carlo_example.ipynb) or [filter](examples/filter_events_example.ipynb).
 The values in the sketch below are intentionally left empty since they depend on the use-case.
-The data structure of pylhe is:
+The data structure of `pylhe` is:
 
 ```python
 import pylhe
