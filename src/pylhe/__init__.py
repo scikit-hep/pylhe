@@ -25,7 +25,9 @@ __all__ = [
     "read_lhe_init",
     "read_lhe_with_attributes",
     "read_num_events",
+    "write_lhe_file_path",
     "write_lhe_file",
+    "write_lhe_file_string",
     "write_lhe_string",
     "to_awkward",
 ]
@@ -592,21 +594,61 @@ def read_num_events(filepath):
         return -1
 
 
-def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
+def write_lhe_file_string(
+    lhefile: LHEFile, rwgt: bool = True, weights: bool = False
+) -> str:
     """
     Return the LHE file as a string.
     """
-    return LHEFile(init=lheinit, events=lheevents).tolhe(rwgt=rwgt, weights=weights)
+    return lhefile.tolhe(rwgt=rwgt, weights=weights)
 
 
-def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=False):
+def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
+    """
+    Return the LHE file as a string.
+
+    .. deprecated:: 0.9.1
+       Instead of :func:`~pylhe.write_lhe_string` use :func:`~pylhe.write_lhe_file_string`
+    .. warning:: :func:`~pylhe.write_lhe_string` will be removed in
+     ``pylhe`` ``v0.11.0``.
+    """
+    return write_lhe_file_string(
+        LHEFile(init=lheinit, events=lheevents), rwgt=rwgt, weights=weights
+    )
+
+
+def write_lhe_file_path(
+    lhefile: LHEFile,
+    filepath: str,
+    gz: bool = False,
+    rwgt: bool = True,
+    weights: bool = False,
+):
     """
     Write the LHE file.
     """
     # if filepath suffix is gz, write as gz
     if filepath.endswith(".gz") or filepath.endswith(".gzip") or gz:
         with gzip.open(filepath, "wt") as f:
-            LHEFile(init=lheinit, events=lheevents).write(f, rwgt=rwgt, weights=weights)
+            lhefile.write(f, rwgt=rwgt, weights=weights)
     else:
         with open(filepath, "w") as f:
-            LHEFile(init=lheinit, events=lheevents).write(f, rwgt=rwgt, weights=weights)
+            lhefile.write(f, rwgt=rwgt, weights=weights)
+
+
+def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=False):
+    """
+    Write the LHE file.
+
+    .. deprecated:: 0.9.1
+       Instead of :func:`~pylhe.write_lhe_file` use :func:`~pylhe.write_lhe_file_path`
+    .. warning:: :func:`~pylhe.write_lhe_file` will be removed in
+     ``pylhe`` ``v0.11.0``.
+    """
+    write_lhe_file_path(
+        LHEFile(init=lheinit, events=lheevents),
+        filepath,
+        gz=gz,
+        rwgt=rwgt,
+        weights=weights,
+    )
