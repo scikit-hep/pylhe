@@ -64,18 +64,16 @@ class LHEEvent:
             str: The event as a string in LHE format.
         """
         sweights = ""
-        if rwgt:
-            if self.weights:
-                sweights = "<rwgt>\n"
-                for k, v in self.weights.items():
-                    sweights += f" <wgt id='{k}'>{v:11.4e}</wgt>\n"
-                sweights += "</rwgt>\n"
-        if weights:
-            if self.weights:
-                sweights = "<weights>\n"
-                for k, v in self.weights.items():
-                    sweights += f"{v:11.4e}\n"
-                sweights += "</weights>\n"
+        if rwgt and self.weights:
+            sweights = "<rwgt>\n"
+            for k, v in self.weights.items():
+                sweights += f" <wgt id='{k}'>{v:11.4e}</wgt>\n"
+            sweights += "</rwgt>\n"
+        if weights and self.weights:
+            sweights = "<weights>\n"
+            for v in self.weights.values():
+                sweights += f"{v:11.4e}\n"
+            sweights += "</weights>\n"
 
         return (
             "<event>\n"
@@ -156,8 +154,9 @@ class LHEEventInfo:
 
     def __init__(self, **kwargs):
         if set(kwargs.keys()) != set(self.fieldnames):
+            msg = f"LHEEventInfo constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
             raise RuntimeError(
-                f"LHEEventInfo constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
+                msg
             )
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -198,8 +197,9 @@ class LHEParticle:
 
     def __init__(self, **kwargs):
         if set(kwargs.keys()) != set(self.fieldnames):
+            msg = f"LHEParticle constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
             raise RuntimeError(
-                f"LHEParticle constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
+                msg
             )
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -224,7 +224,7 @@ class LHEParticle:
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
         return [
-            self.event.particles[idx] for idx in {first_idx, second_idx} if idx >= 0
+            self.event.particles[idx] for idx in (first_idx, second_idx) if idx >= 0
         ]
 
 
@@ -238,13 +238,12 @@ def _indent(elem, level=0):
             elem.text = i + "  "
         if not elem.tail or not elem.tail.strip():
             elem.tail = i
-        for elem in elem:
-            _indent(elem, level + 1)
+        for inner_elem in elem:
+            _indent(inner_elem, level + 1)
         if not elem.tail or not elem.tail.strip():
             elem.tail = i
-    else:
-        if level and (not elem.tail or not elem.tail.strip()):
-            elem.tail = i
+    elif level and (not elem.tail or not elem.tail.strip()):
+        elem.tail = i
 
 
 class LHEInit(dict):
@@ -264,9 +263,9 @@ class LHEInit(dict):
         """
         # weightgroups to xml
         root = ET.Element("initrwgt")
-        for k, v in self["weightgroup"].items():
+        for _k, v in self["weightgroup"].items():
             weightgroup_elem = ET.SubElement(root, "weightgroup", **v["attrib"])
-            for key, value in v["weights"].items():
+            for _key, value in v["weights"].items():
                 weight_elem = ET.SubElement(
                     weightgroup_elem, "weight", **value["attrib"]
                 )
@@ -288,8 +287,7 @@ class LHEInit(dict):
     def __getitem__(self, key):
         if key not in self:
             return self["initInfo"][key]
-        else:
-            return super().__getitem__(key)
+        return super().__getitem__(key)
 
     # custom backwards compatibility set for dict
     def __setitem__(self, key, value):
@@ -404,7 +402,7 @@ def read_lhe_init(filepath):
     """
     initDict = {}
     with _extract_fileobj(filepath) as fileobj:
-        for event, element in ET.iterparse(fileobj, events=["start", "end"]):
+        for _event, element in ET.iterparse(fileobj, events=["start", "end"]):
             if element.tag == "init":
                 data = element.text.split("\n")[1:-1]
                 initDict["initInfo"] = LHEInitInfo.fromstring(data[0])
@@ -453,7 +451,7 @@ def read_lhe_init(filepath):
 def read_lhe(filepath):
     try:
         with _extract_fileobj(filepath) as fileobj:
-            for event, element in ET.iterparse(fileobj, events=["end"]):
+            for _event, element in ET.iterparse(fileobj, events=["end"]):
                 if element.tag == "event":
                     data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
@@ -495,7 +493,7 @@ def read_lhe_with_attributes(filepath):
     index_map = None
     try:
         with _extract_fileobj(filepath) as fileobj:
-            for event, element in ET.iterparse(fileobj, events=["end"]):
+            for _event, element in ET.iterparse(fileobj, events=["end"]):
                 if element.tag == "event":
                     eventdict = {}
                     data = element.text.strip().split("\n")
@@ -517,7 +515,7 @@ def read_lhe_with_attributes(filepath):
                                     read_lhe_init(filepath)
                                 )
                             for i, w in enumerate(sub.text.split()):
-                                if w and not index_map[i] in eventdict["weights"]:
+                                if w and index_map[i] not in eventdict["weights"]:
                                     eventdict["weights"][index_map[i]] = float(w)
                         if sub.tag == "rwgt":
                             for r in sub:
@@ -570,7 +568,7 @@ def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=Fa
     Write the LHE file.
     """
     # if filepath suffix is gz, write as gz
-    if filepath.endswith(".gz") or filepath.endswith(".gzip") or gz:
+    if filepath.endswith((".gz", ".gzip")) or gz:
         with gzip.open(filepath, "wt") as f:
             f.write(write_lhe_string(lheinit, lheevents, rwgt=rwgt, weights=weights))
     else:
