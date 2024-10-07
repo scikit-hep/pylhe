@@ -236,6 +236,7 @@ def _indent(elem, level=0):
             elem.tail = i
         for inner_elem in elem:
             _indent(inner_elem, level + 1)
+        elem = inner_elem
         if not elem.tail or not elem.tail.strip():
             elem.tail = i
     elif level and (not elem.tail or not elem.tail.strip()):
