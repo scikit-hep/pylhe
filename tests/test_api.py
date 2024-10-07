@@ -1,5 +1,3 @@
-import pytest
-
 import pylhe
 
 
@@ -18,7 +16,6 @@ def test_top_level_api():
         "read_lhe_init",
         "read_lhe_with_attributes",
         "read_num_events",
-        "register_awkward",
         "to_awkward",
         "write_lhe_file",
         "write_lhe_string",
@@ -26,12 +23,7 @@ def test_top_level_api():
 
 
 def test_awkward_api():
-    assert dir(pylhe.awkward) == ["register_awkward", "to_awkward"]
-
-
-def test_deprecated_api_warning():
-    with pytest.warns(DeprecationWarning):
-        pylhe.register_awkward()
+    assert dir(pylhe.awkward) == ["to_awkward"]
 
 
 def test_load_version():
