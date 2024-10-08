@@ -1,7 +1,7 @@
 import gzip
 import io
 import xml.etree.ElementTree as ET
-from typing import Iterable
+from typing import Iterable, Optional
 
 import graphviz
 from particle import latex_to_html_name
@@ -367,7 +367,9 @@ class LHEProcInfo(dict):
 
 
 class LHEFile:
-    def __init__(self, init: LHEInit = None, events: Iterable[LHEEvent] = None):
+    def __init__(
+        self, init: LHEInit = None, events: Optional[Iterable[LHEEvent]] = None
+    ):
         self.init = init
         self.events = events
 
