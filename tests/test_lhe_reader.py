@@ -17,7 +17,7 @@ TEST_FILE_LHE_INITRWGT_WEIGHTS = skhep_testdata.data_path(
 )
 TEST_FILE_LHE_RWGT_WGT = skhep_testdata.data_path("pylhe-testfile-powheg-box-v2-W.lhe")
 TEST_FILES_LHE_POWHEG = [
-    skhep_testdata.data_path("pylhe-testfile-powheg-box-v2-%s.lhe" % (proc))
+    skhep_testdata.data_path(f"pylhe-testfile-powheg-box-v2-{proc}.lhe")
     for proc in ["Z", "W", "Zj", "trijet", "directphoton", "hvq"]
 ]
 
@@ -28,23 +28,21 @@ def testdata_gzip_file():
     tmp_path = Path(NamedTemporaryFile().name)
 
     # create what is basically pylhe-testfile-pr29.lhe.gz
-    with open(test_data, "rb") as readfile:
-        with gzip.open(tmp_path, "wb") as writefile:
-            shutil.copyfileobj(readfile, writefile)
+    with open(test_data, "rb") as readfile, gzip.open(tmp_path, "wb") as writefile:
+        shutil.copyfileobj(readfile, writefile)
     yield tmp_path
 
     # teardown
     os.remove(tmp_path)
 
 
-def test_gzip_open(tmpdir, testdata_gzip_file):
+def test_gzip_open(testdata_gzip_file):
     assert pylhe._extract_fileobj(TEST_FILE_LHE_v1)
     assert pylhe._extract_fileobj(testdata_gzip_file)
 
     # Needs path-like object, not a fileobj
-    with pytest.raises(TypeError):
-        with open(TEST_FILE_LHE_v1, "rb") as fileobj:
-            pylhe._extract_fileobj(fileobj)
+    with pytest.raises(TypeError), open(TEST_FILE_LHE_v1, "rb") as fileobj:
+        pylhe._extract_fileobj(fileobj)
 
     with open(TEST_FILE_LHE_v1, "rb") as fileobj:
         assert isinstance(pylhe._extract_fileobj(TEST_FILE_LHE_v1), type(fileobj))
