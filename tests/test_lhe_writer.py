@@ -9,7 +9,7 @@ TEST_FILE_LHE_INITRWGT_WEIGHTS = skhep_testdata.data_path(
 )
 TEST_FILE_LHE_RWGT_WGT = skhep_testdata.data_path("pylhe-testfile-powheg-box-v2-W.lhe")
 TEST_FILES_LHE_POWHEG = [
-    skhep_testdata.data_path("pylhe-testfile-powheg-box-v2-%s.lhe" % (proc))
+    skhep_testdata.data_path(f"pylhe-testfile-powheg-box-v2-{proc}.lhe")
     for proc in ["Z", "W", "Zj", "trijet", "directphoton", "hvq"]
 ]
 
