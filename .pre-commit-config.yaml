@@ -19,37 +19,9 @@ repos:
     - id: mixed-line-ending
     - id: trailing-whitespace
 
--   repo: https://github.com/asottile/pyupgrade
-    rev: v3.17.0
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.6.8"
     hooks:
-    - id: pyupgrade
-      args: ["--py37-plus"]
-
--   repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-    - id: isort
-
--   repo: https://github.com/PyCQA/flake8
-    rev: 7.1.1
-    hooks:
-    - id: flake8
-
--   repo: https://github.com/MarcoGorelli/absolufy-imports
-    rev: v0.3.1
-    hooks:
-    - id: absolufy-imports
-
--   repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.8.0
-    hooks:
-    - id: black-jupyter
-
--   repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.8.7
-    hooks:
-    - id: nbqa-pyupgrade
-      additional_dependencies: [pyupgrade==3.15.0]
-      args: ["--py37-plus"]
-    - id: nbqa-isort
-      additional_dependencies: [isort==5.12.0]
+    - id: ruff
+      args: ["--fix", "--show-fixes"]
+    - id: ruff-format
