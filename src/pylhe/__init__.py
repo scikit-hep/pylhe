@@ -614,6 +614,12 @@ def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
     )
 
 
+def _open_write_file(filepath: str, gz: bool = False):
+    if filepath.endswith((".gz", ".gzip")) or gz:
+        return gzip.open(filepath, "wt")
+    return open(filepath, "w")
+
+
 def write_lhe_file_path(
     lhefile: LHEFile,
     filepath: str,
@@ -625,12 +631,8 @@ def write_lhe_file_path(
     Write the LHE file.
     """
     # if filepath suffix is gz, write as gz
-    if filepath.endswith((".gz", ".gzip")) or gz:
-        with gzip.open(filepath, "wt") as f:
-            lhefile.write(f, rwgt=rwgt, weights=weights)
-    else:
-        with open(filepath, "w") as f:
-            lhefile.write(f, rwgt=rwgt, weights=weights)
+    with _open_write_file(filepath, gz=gz) as f:
+        lhefile.write(f, rwgt=rwgt, weights=weights)
 
 
 def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=False):
