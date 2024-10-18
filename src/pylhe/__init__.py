@@ -1,5 +1,7 @@
 import gzip
+import io
 import xml.etree.ElementTree as ET
+from typing import Iterable, Optional
 
 import graphviz
 from particle import latex_to_html_name
@@ -19,9 +21,14 @@ __all__ = [
     "LHEParticle",
     "LHEProcInfo",
     "read_lhe",
+    "read_lhe_file",
     "read_lhe_init",
     "read_lhe_with_attributes",
     "read_num_events",
+    "write_lhe_file_path",
+    "write_lhe_file",
+    "write_lhe_file_string",
+    "write_lhe_string",
     "to_awkward",
 ]
 
@@ -32,11 +39,6 @@ def __dir__():
 
 # retrieve mapping of PDG ID to particle name as LaTeX string
 _PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
-
-
-class LHEFile:
-    def __init__(self):
-        pass
 
 
 class LHEEvent:
@@ -364,6 +366,44 @@ class LHEProcInfo(dict):
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
+class LHEFile:
+    def __init__(
+        self, init: LHEInit = None, events: Optional[Iterable[LHEEvent]] = None
+    ):
+        self.init = init
+        self.events = events
+
+    def write(self, output_stream, rwgt=True, weights=False):
+        """
+        Write the LHE file to an output stream.
+        """
+        output_stream.write(
+            f"<LesHouchesEvents version=\"{self.init['LHEVersion']}\">\n"
+        )
+        output_stream.write(self.init.tolhe() + "\n")
+        for e in self.events:
+            output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
+        output_stream.write("</LesHouchesEvents>")
+        return output_stream
+
+    def tolhe(self, rwgt=True, weights=False) -> str:
+        """
+        Return the LHE file as a string.
+        """
+        return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
+
+
+def read_lhe_file(filepath, with_attributes=True) -> LHEFile:
+    """
+    Read an LHE file and return an LHEFile object.
+    """
+    lheinit = read_lhe_init(filepath)
+    lheevents = (
+        read_lhe_with_attributes(filepath) if with_attributes else read_lhe(filepath)
+    )
+    return LHEFile(init=lheinit, events=lheevents)
+
+
 def _extract_fileobj(filepath):
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
@@ -432,7 +472,7 @@ def read_lhe_init(filepath):
                                 raise
                             _temp["weights"][wg_id] = {
                                 "attrib": w.attrib,
-                                "name": w.text.strip(),
+                                "name": w.text.strip() if w.text else "",
                                 "index": index,
                             }
                             index += 1
@@ -446,6 +486,9 @@ def read_lhe_init(filepath):
 
 
 def read_lhe(filepath):
+    """
+    Read and yield the events in the LHE file.
+    """
     try:
         with _extract_fileobj(filepath) as fileobj:
             for _event, element in ET.iterparse(fileobj, events=["end"]):
@@ -548,26 +591,63 @@ def read_num_events(filepath):
         return -1
 
 
-def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
+def write_lhe_file_string(
+    lhefile: LHEFile, rwgt: bool = True, weights: bool = False
+) -> str:
     """
     Return the LHE file as a string.
     """
-    s = f"<LesHouchesEvents version=\"{lheinit['LHEVersion']}\">\n"
-    s += lheinit.tolhe() + "\n"
-    for e in lheevents:
-        s += e.tolhe(rwgt=rwgt, weights=weights) + "\n"
-    s += "</LesHouchesEvents>"
-    return s
+    return lhefile.tolhe(rwgt=rwgt, weights=weights)
+
+
+def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
+    """
+    Return the LHE file as a string.
+
+    .. deprecated:: 0.9.1
+       Instead of :func:`~pylhe.write_lhe_string` use :func:`~pylhe.write_lhe_file_string`
+    .. warning:: :func:`~pylhe.write_lhe_string` will be removed in
+     ``pylhe`` ``v0.11.0``.
+    """
+    return write_lhe_file_string(
+        LHEFile(init=lheinit, events=lheevents), rwgt=rwgt, weights=weights
+    )
+
+
+def _open_write_file(filepath: str, gz: bool = False):
+    if filepath.endswith((".gz", ".gzip")) or gz:
+        return gzip.open(filepath, "wt")
+    return open(filepath, "w")
+
+
+def write_lhe_file_path(
+    lhefile: LHEFile,
+    filepath: str,
+    gz: bool = False,
+    rwgt: bool = True,
+    weights: bool = False,
+):
+    """
+    Write the LHE file.
+    """
+    # if filepath suffix is gz, write as gz
+    with _open_write_file(filepath, gz=gz) as f:
+        lhefile.write(f, rwgt=rwgt, weights=weights)
 
 
 def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=False):
     """
     Write the LHE file.
+
+    .. deprecated:: 0.9.1
+       Instead of :func:`~pylhe.write_lhe_file` use :func:`~pylhe.write_lhe_file_path`
+    .. warning:: :func:`~pylhe.write_lhe_file` will be removed in
+     ``pylhe`` ``v0.11.0``.
     """
-    # if filepath suffix is gz, write as gz
-    if filepath.endswith((".gz", ".gzip")) or gz:
-        with gzip.open(filepath, "wt") as f:
-            f.write(write_lhe_string(lheinit, lheevents, rwgt=rwgt, weights=weights))
-    else:
-        with open(filepath, "w") as f:
-            f.write(write_lhe_string(lheinit, lheevents, rwgt=rwgt, weights=weights))
+    write_lhe_file_path(
+        LHEFile(init=lheinit, events=lheevents),
+        filepath,
+        gz=gz,
+        rwgt=rwgt,
+        weights=weights,
+    )

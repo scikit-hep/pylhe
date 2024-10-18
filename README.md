@@ -32,6 +32,8 @@ The visualization capabilities require the external dependency of [Graphviz](htt
 The example below provides a simple overview.
 Full functionality can be inspected from the functions provided in the `pylhe` module.
 
+### Reading
+
 ```python
 import itertools
 
@@ -58,6 +60,78 @@ event
 event.graph.render(filename="test", format="png", cleanup=True)
 event.graph.render(filename="test", format="pdf", cleanup=True)
 ```
+
+### Writing
+
+For a full example see [write](examples/write_monte_carlo_example.ipynb) or [filter](examples/filter_events_example.ipynb).
+The values in the sketch below are intentionally left empty since they depend on the use-case.
+The data structure of `pylhe` is:
+
+```python
+import pylhe
+
+file=pylhe.LHEFile(
+    init=pylhe.LHEInit(
+        initInfo=pylhe.LHEInitInfo(
+            beamA=,
+            beamB=,
+            energyA=,
+            energyB=,
+            PDFgroupA=,
+            PDFgroupB=,
+            PDFsetA=,
+            PDFsetB=,
+            weightinStrategy=,
+            numProcesses=,
+        ),
+        procInfo=pylhe.LHEProcInfo(
+            xSection=,
+            error=,
+            unitWeight=,
+            procId=,
+        ),
+    ),
+    events=[
+        pylhe.LHEEvent(
+            eventinfo=pylhe.LHEEventInfo(
+                nparticles=,
+                pid=,
+                weight=,
+                scale=,
+                aqed=,
+                aqcd=,
+            ),
+            particles=[
+                pylhe.LHEParticle(
+                    id=,
+                    status=,
+                    mother1=,
+                    mother2=,
+                    color1=,
+                    color2=,
+                    px=,
+                    py=,
+                    pz=,
+                    e=,
+                    m=,
+                    lifetime=,
+                    spin=,
+                ),
+                ...
+            ],
+            weights=None,
+            attributes=None,
+            optional=None,
+        ),
+        ...
+    ]
+)
+
+# write to file, compressed if gz/gzip suffix
+write_lhe_file(file.init, file.events, "myevents.lhe.gz", rwgt=True, weights=False)
+
+```
+
 
 ## Citation
 
