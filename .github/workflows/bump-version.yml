@@ -201,7 +201,8 @@ jobs:
         && (
           github.event.sender.login == 'lukasheinrich' ||
           github.event.sender.login == 'matthewfeickert' ||
-          github.event.sender.login == 'eduardo-rodrigues'
+          github.event.sender.login == 'eduardo-rodrigues' ||
+          github.event.sender.login == 'APN-Pucky'
         )
       shell: bash
       run: |
