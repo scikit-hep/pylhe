@@ -22,3 +22,6 @@ For a step-by-step video guide check out the [release video](https://www.youtube
 10. A build and publish to (Test)-PyPi workflow will be triggered automatically it should again upload sdist and wheel to PyPi.
 
 ## Conda
+
+1. Wait a few hours for automatic PR https://github.com/conda-forge/pylhe-feedstock following the PyPi release.
+2. Review that there are no dependency changes and merge the PR.
