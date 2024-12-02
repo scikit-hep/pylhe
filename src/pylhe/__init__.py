@@ -12,7 +12,6 @@ from pylhe._version import version as __version__
 from pylhe.awkward import to_awkward
 
 __all__ = [
-    "__version__",
     "LHEEvent",
     "LHEEventInfo",
     "LHEFile",
@@ -20,16 +19,17 @@ __all__ = [
     "LHEInitInfo",
     "LHEParticle",
     "LHEProcInfo",
+    "__version__",
     "read_lhe",
     "read_lhe_file",
     "read_lhe_init",
     "read_lhe_with_attributes",
     "read_num_events",
-    "write_lhe_file_path",
+    "to_awkward",
     "write_lhe_file",
+    "write_lhe_file_path",
     "write_lhe_file_string",
     "write_lhe_string",
-    "to_awkward",
 ]
 
 
