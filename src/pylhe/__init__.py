@@ -248,7 +248,7 @@ def _indent(elem, level=0):
 class LHEInit(dict):
     """Store the <init> block as dict."""
 
-    fieldnames = ["initInfo", "procInfoweightgroup", "LHEVersion"]
+    fieldnames = ["initInfo", "procInfo", "weightgroup", "LHEVersion"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
