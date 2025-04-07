@@ -377,9 +377,7 @@ class LHEFile:
         """
         Write the LHE file to an output stream.
         """
-        output_stream.write(
-            f"<LesHouchesEvents version=\"{self.init['LHEVersion']}\">\n"
-        )
+        output_stream.write(f'<LesHouchesEvents version="{self.init["LHEVersion"]}">\n')
         output_stream.write(self.init.tolhe() + "\n")
         for e in self.events:
             output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
