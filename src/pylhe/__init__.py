@@ -248,7 +248,7 @@ def _indent(elem, level=0):
 class LHEInit(dict):
     """Store the <init> block as dict."""
 
-    fieldnames = ["initInfo", "procInfo" "weightgroup", "LHEVersion"]
+    fieldnames = ["initInfo", "procInfo", "weightgroup", "LHEVersion"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -377,9 +377,7 @@ class LHEFile:
         """
         Write the LHE file to an output stream.
         """
-        output_stream.write(
-            f"<LesHouchesEvents version=\"{self.init['LHEVersion']}\">\n"
-        )
+        output_stream.write(f'<LesHouchesEvents version="{self.init["LHEVersion"]}">\n')
         output_stream.write(self.init.tolhe() + "\n")
         for e in self.events:
             output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
