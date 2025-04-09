@@ -218,3 +218,54 @@ def test_issue_102():
     assert len(list(pylhe.read_lhe(TEST_FILE_LHE_v3))) == len(
         list(pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3))
     )
+
+
+def test_read_lhe_init_raises():
+    """
+    Test that the init is read correctly.
+    """
+
+    with pytest.raises(
+        ValueError, match="weightgroup must have attribute 'type' or 'name'."
+    ):
+        pylhe.LHEInit.fromstring(
+            """<init>
+   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
+ 5.0109086e+01  8.9185414e-02  5.0109093e+01    66
+<initrwgt>
+  <weightgroup combine="envelope">
+    <weight id="1001">muR=0.10000E+01 muF=0.10000E+01</weight>
+    <weight id="1002">muR=0.10000E+01 muF=0.20000E+01</weight>
+    <weight id="1003">muR=0.10000E+01 muF=0.50000E+00</weight>
+    <weight id="1004">muR=0.20000E+01 muF=0.10000E+01</weight>
+    <weight id="1005">muR=0.20000E+01 muF=0.20000E+01</weight>
+    <weight id="1006">muR=0.20000E+01 muF=0.50000E+00</weight>
+    <weight id="1007">muR=0.50000E+00 muF=0.10000E+01</weight>
+    <weight id="1008">muR=0.50000E+00 muF=0.20000E+01</weight>
+    <weight id="1009">muR=0.50000E+00 muF=0.50000E+00</weight>
+  </weightgroup>
+</initrwgt>
+</init>"""
+        )
+
+    with pytest.raises(ValueError, match="weight must have attribute 'id'"):
+        pylhe.LHEInit.fromstring(
+            """<init>
+   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
+ 5.0109086e+01  8.9185414e-02  5.0109093e+01    66
+<initrwgt>
+  <weightgroup name="a fake name" combine="envelope">
+    <spam>muR=0.10000E+01 muF=0.10000E+01</spam>
+    <weight id="1001">muR=0.10000E+01 muF=0.10000E+01</weight>
+    <weight id="1002">muR=0.10000E+01 muF=0.20000E+01</weight>
+    <weight id="1003">muR=0.10000E+01 muF=0.50000E+00</weight>
+    <weight id="1004">muR=0.20000E+01 muF=0.10000E+01</weight>
+    <weight id="1005">muR=0.20000E+01 muF=0.20000E+01</weight>
+    <weight id="1006">muR=0.20000E+01 muF=0.50000E+00</weight>
+    <weight id="1007">muR=0.50000E+00 muF=0.10000E+01</weight>
+    <weight id="1008">muR=0.50000E+00 muF=0.20000E+01</weight>
+    <weight>muR=0.50000E+00 muF=0.50000E+00</weight>
+  </weightgroup>
+</initrwgt>
+</init>"""
+        )
