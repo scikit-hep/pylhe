@@ -110,6 +110,7 @@ def test_write_lhe_init():
 </initrwgt>
 </init>"""
     )
+    assert init.tolhe() == pylhe.LHEInit.fromstring(init.tolhe()).tolhe()
 
 
 def test_write_lhe():
