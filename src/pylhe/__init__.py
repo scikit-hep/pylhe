@@ -245,57 +245,6 @@ def _indent(elem, level=0):
         elem.tail = i
 
 
-class LHEInit(dict):
-    """Store the <init> block as dict."""
-
-    fieldnames = ["initInfo", "procInfo", "weightgroup", "LHEVersion"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def tolhe(self):
-        """
-        Return the init block as a string in LHE format.
-
-        Returns:
-            str: The init block as a string in LHE format.
-        """
-        # weightgroups to xml
-        root = ET.Element("initrwgt")
-        for _k, v in self["weightgroup"].items():
-            weightgroup_elem = ET.SubElement(root, "weightgroup", **v["attrib"])
-            for _key, value in v["weights"].items():
-                weight_elem = ET.SubElement(
-                    weightgroup_elem, "weight", **value["attrib"]
-                )
-                weight_elem.text = value["name"]
-        _indent(root)
-        sweightgroups = ET.tostring(root, encoding="unicode", method="xml")
-
-        return (
-            "<init>\n"
-            + self["initInfo"].tolhe()
-            + "\n"
-            + "\n".join([p.tolhe() for p in self["procInfo"]])
-            + "\n"
-            + f"{sweightgroups}"
-            + "</init>"
-        )
-
-    # custom backwards compatibility get for dict
-    def __getitem__(self, key):
-        if key not in self:
-            return self["initInfo"][key]
-        return super().__getitem__(key)
-
-    # custom backwards compatibility set for dict
-    def __setitem__(self, key, value):
-        if key not in self:
-            self["initInfo"][key] = value
-        else:
-            self.super().__setitem__(key, value)
-
-
 class LHEInitInfo(dict):
     """Store the first line of the <init> block as dict."""
 
@@ -364,6 +313,110 @@ class LHEProcInfo(dict):
     @classmethod
     def fromstring(cls, string):
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
+
+
+class LHEInit(dict):
+    """Store the <init> block as dict."""
+
+    fieldnames = ["initInfo", "procInfo", "weightgroup", "LHEVersion"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def tolhe(self):
+        """
+        Return the init block as a string in LHE format.
+
+        Returns:
+            str: The init block as a string in LHE format.
+        """
+        # weightgroups to xml
+        root = ET.Element("initrwgt")
+        for _k, v in self["weightgroup"].items():
+            weightgroup_elem = ET.SubElement(root, "weightgroup", **v["attrib"])
+            for _key, value in v["weights"].items():
+                weight_elem = ET.SubElement(
+                    weightgroup_elem, "weight", **value["attrib"]
+                )
+                weight_elem.text = value["name"]
+        _indent(root)
+        sweightgroups = ET.tostring(root, encoding="unicode", method="xml")
+
+        return (
+            "<init>\n"
+            + self["initInfo"].tolhe()
+            + "\n"
+            + "\n".join([p.tolhe() for p in self["procInfo"]])
+            + "\n"
+            + f"{sweightgroups}"
+            + "</init>"
+        )
+
+    # custom backwards compatibility get for dict
+    def __getitem__(self, key):
+        if key not in self:
+            return self["initInfo"][key]
+        return super().__getitem__(key)
+
+    # custom backwards compatibility set for dict
+    def __setitem__(self, key, value):
+        if key not in self:
+            self["initInfo"][key] = value
+        else:
+            self.super().__setitem__(key, value)
+
+    @classmethod
+    def frombuffer(cls, fileobj):
+        """Create an instance from a file-like object (buffer)."""
+        initDict = {}
+        for _event, element in ET.iterparse(fileobj, events=["start", "end"]):
+            if element.tag == "init":
+                data = element.text.split("\n")[1:-1]
+                initDict["initInfo"] = LHEInitInfo.fromstring(data[0])
+                initDict["procInfo"] = [LHEProcInfo.fromstring(d) for d in data[1:]]
+            if element.tag == "initrwgt":
+                initDict["weightgroup"] = {}
+                index = 0
+                for child in element:
+                    # Find all weightgroups
+                    if child.tag == "weightgroup" and child.attrib != {}:
+                        try:
+                            wg_type = child.attrib["type"]
+                        except KeyError:
+                            try:
+                                wg_type = child.attrib["name"]
+                            except KeyError:
+                                print(
+                                    "weightgroup must have attribute 'type' or 'name'"
+                                )
+                                raise
+                        _temp = {"attrib": child.attrib, "weights": {}}
+                        # Iterate over all weights in this weightgroup
+                        for w in child:
+                            if w.tag != "weight":
+                                continue
+                            try:
+                                wg_id = w.attrib["id"]
+                            except KeyError:
+                                print("weight must have attribute 'id'")
+                                raise
+                            _temp["weights"][wg_id] = {
+                                "attrib": w.attrib,
+                                "name": w.text.strip() if w.text else "",
+                                "index": index,
+                            }
+                            index += 1
+
+                        initDict["weightgroup"][wg_type] = _temp
+            if element.tag == "LesHouchesEvents":
+                initDict["LHEVersion"] = float(element.attrib["version"])
+            if element.tag == "event":
+                break
+        return cls(**initDict)
+
+    @classmethod
+    def fromstring(cls, string):
+        return cls.frombuffer(io.StringIO(string))
 
 
 class LHEFile:
@@ -435,52 +488,8 @@ def read_lhe_init(filepath):
     Returns:
         dict: Dictionary containing the init blocks of the LHE file.
     """
-    initDict = {}
     with _extract_fileobj(filepath) as fileobj:
-        for _event, element in ET.iterparse(fileobj, events=["start", "end"]):
-            if element.tag == "init":
-                data = element.text.split("\n")[1:-1]
-                initDict["initInfo"] = LHEInitInfo.fromstring(data[0])
-                initDict["procInfo"] = [LHEProcInfo.fromstring(d) for d in data[1:]]
-            if element.tag == "initrwgt":
-                initDict["weightgroup"] = {}
-                index = 0
-                for child in element:
-                    # Find all weightgroups
-                    if child.tag == "weightgroup" and child.attrib != {}:
-                        try:
-                            wg_type = child.attrib["type"]
-                        except KeyError:
-                            try:
-                                wg_type = child.attrib["name"]
-                            except KeyError:
-                                print(
-                                    "weightgroup must have attribute 'type' or 'name'"
-                                )
-                                raise
-                        _temp = {"attrib": child.attrib, "weights": {}}
-                        # Iterate over all weights in this weightgroup
-                        for w in child:
-                            if w.tag != "weight":
-                                continue
-                            try:
-                                wg_id = w.attrib["id"]
-                            except KeyError:
-                                print("weight must have attribute 'id'")
-                                raise
-                            _temp["weights"][wg_id] = {
-                                "attrib": w.attrib,
-                                "name": w.text.strip() if w.text else "",
-                                "index": index,
-                            }
-                            index += 1
-
-                        initDict["weightgroup"][wg_type] = _temp
-            if element.tag == "LesHouchesEvents":
-                initDict["LHEVersion"] = float(element.attrib["version"])
-            if element.tag == "event":
-                break
-    return LHEInit(**initDict)
+        return LHEInit.frombuffer(fileobj)
 
 
 def read_lhe(filepath):
