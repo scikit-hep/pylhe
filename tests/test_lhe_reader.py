@@ -222,7 +222,7 @@ def test_issue_102():
 
 def test_read_lhe_init_raises():
     """
-    Test that the init is read correctly.
+    Test that the <init> block is read correctly.
     """
 
     with pytest.raises(

@@ -412,6 +412,7 @@ class LHEInit(dict):
 
     @classmethod
     def fromstring(cls, string):
+        """Create an instance from a string."""
         return cls.frombuffer(io.StringIO(string))
 
 
