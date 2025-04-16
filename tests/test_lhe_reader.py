@@ -222,11 +222,11 @@ def test_issue_102():
 
 def test_read_lhe_init_raises():
     """
-    Test that the <init> block is read correctly.
+    Test that the <init> block raises AttributeErrors on faulty inputs.
     """
 
     with pytest.raises(
-        ValueError, match="weightgroup must have attribute 'type' or 'name'."
+        AttributeError, match="weightgroup must have attribute 'type' or 'name'."
     ):
         pylhe.LHEInit.fromstring(
             """<init>
@@ -248,7 +248,7 @@ def test_read_lhe_init_raises():
 </init>"""
         )
 
-    with pytest.raises(ValueError, match="weight must have attribute 'id'"):
+    with pytest.raises(AttributeError, match="weight must have attribute 'id'"):
         pylhe.LHEInit.fromstring(
             """<init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1

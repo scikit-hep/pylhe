@@ -385,16 +385,16 @@ class LHEInit(dict):
                         elif "name" in child.attrib:
                             wg_type = child.attrib["name"]
                         else:
-                            ve = "weightgroup must have attribute 'type' or 'name'."
-                            raise ValueError(ve)
+                            ae = "weightgroup must have attribute 'type' or 'name'."
+                            raise AttributeError(ae)
                         _temp = {"attrib": child.attrib, "weights": {}}
                         # Iterate over all weights in this weightgroup
                         for w in child:
                             if w.tag != "weight":
                                 continue
                             if "id" not in w.attrib:
-                                ve = "weight must have attribute 'id'"
-                                raise ValueError(ve)
+                                ae = "weight must have attribute 'id'"
+                                raise AttributeError(ae)
                             wg_id = w.attrib["id"]
                             _temp["weights"][wg_id] = {
                                 "attrib": w.attrib,
