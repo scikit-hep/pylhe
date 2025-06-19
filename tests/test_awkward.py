@@ -66,14 +66,14 @@ def test_to_awkward_vector():
     """
     arr = pylhe.to_awkward(pylhe.read_lhe_with_attributes(TEST_FILE_WITHOUT_WEIGHTS))
 
-    assert arr.particles.vector.px[0][0] == -3.1463804033e-01
-    assert arr.particles.vector.x[0][0] == -3.1463804033e-01
+    assert arr.particles.vector.px[0][0] == pytest.approx(-3.1463804033e-01)
+    assert arr.particles.vector.x[0][0] == pytest.approx(-3.1463804033e-01)
 
-    assert arr.particles.vector.py[0][0] == -6.3041724109e-01
-    assert arr.particles.vector.y[0][0] == -6.3041724109e-01
+    assert arr.particles.vector.py[0][0] == pytest.approx(-6.3041724109e-01)
+    assert arr.particles.vector.y[0][0] == pytest.approx(-6.3041724109e-01)
 
-    assert arr.particles.vector.pz[0][0] == 8.5343193374e00
-    assert arr.particles.vector.z[0][0] == 8.5343193374e00
+    assert arr.particles.vector.pz[0][0] == pytest.approx(8.5343193374e00)
+    assert arr.particles.vector.z[0][0] == pytest.approx(8.5343193374e00)
 
-    assert arr.particles.vector.e[0][0] == 8.5644657479e00
-    assert arr.particles.vector.t[0][0] == 8.5644657479e00
+    assert arr.particles.vector.e[0][0] == pytest.approx(8.5644657479e00)
+    assert arr.particles.vector.t[0][0] == pytest.approx(8.5644657479e00)
