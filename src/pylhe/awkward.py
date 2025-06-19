@@ -9,7 +9,19 @@ def __dir__():
 
 
 def to_awkward(event_iterable):
-    """Convert iterable of LHEEvent instances to Awkward-Array."""
+    """Convert an iterable of LHEEvent instances to an Awkward-Array.
+
+    Uses Awkward's ArrayBuilder to construct the array by iterating over the events.
+    The events_iterable should yield instances of LHEEvent.
+    This is typically created by one of the reading functions pylhe provides like
+    pylhe.read_lhe(filepath), pylhe.read_lhe_with_attributes(filepath), or pylhe.read_lhe_file(filepath).events.
+
+    Args:
+        event_iterable (iterable): An iterable of LHEEvent instances.
+
+    Returns:
+        awkard.Array: An Awkward array of all the events
+    """
 
     builder = ak.ArrayBuilder()
     for event in event_iterable:
