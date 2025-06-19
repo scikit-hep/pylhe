@@ -58,3 +58,22 @@ def test_awkward_registration():
     arr = pylhe.to_awkward(pylhe.read_lhe_with_attributes(TEST_FILE_WITH_WEIGHTS))
     assert len(arr.particles.vector.mass) == len(arr.particles)
     assert len(arr.particles.vector.mass) == len(arr.weights)
+
+
+def test_to_awkward_vector():
+    """
+    Test numeric equality of momentas represented by vector.
+    """
+    arr = pylhe.to_awkward(pylhe.read_lhe_with_attributes(TEST_FILE_WITHOUT_WEIGHTS))
+
+    assert arr.particles.vector.px[0][0] == -3.1463804033e-01
+    assert arr.particles.vector.x[0][0] == -3.1463804033e-01
+
+    assert arr.particles.vector.py[0][0] == -6.3041724109e-01
+    assert arr.particles.vector.y[0][0] == -6.3041724109e-01
+
+    assert arr.particles.vector.pz[0][0] == 8.5343193374e00
+    assert arr.particles.vector.z[0][0] == 8.5343193374e00
+
+    assert arr.particles.vector.e[0][0] == 8.5644657479e00
+    assert arr.particles.vector.t[0][0] == 8.5644657479e00
