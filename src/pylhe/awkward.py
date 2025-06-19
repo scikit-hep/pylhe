@@ -55,6 +55,7 @@ def to_awkward(event_iterable):
     return builder.snapshot()  # awkward array
 
 
+# Used to register Awkward behaviors
 class Particle:
     pass
 
@@ -72,6 +73,8 @@ class Weights:
 
 
 # Register Awkward behaviors
+# See https://awkward-array.org/doc/main/reference/generated/ak.mixin_class.html
+# and https://awkward-array.org/doc/main/reference/ak.behavior.html#mixin-decorators
 vector.register_awkward()
 ak.mixin_class(ak.behavior)(Particle)
 ak.mixin_class(ak.behavior)(Event)
