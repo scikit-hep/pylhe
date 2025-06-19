@@ -37,7 +37,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         allow-prereleases: true
 
-    - uses: astral-sh/setup-uv@v3
+    - uses: astral-sh/setup-uv@v6
 
     - name: Install dependencies
       run: |
@@ -61,7 +61,7 @@ jobs:
       if: >-
         github.event_name != 'schedule' &&
         matrix.os == 'ubuntu-latest'
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true
         files: ./coverage.xml

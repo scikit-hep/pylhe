@@ -77,7 +77,7 @@ def test_write_lhe_event():
 
 def test_write_lhe_init():
     """
-    Test that the init is written correctly.
+    Test that the <init> block is written correctly.
     """
     init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
 
@@ -110,6 +110,7 @@ def test_write_lhe_init():
 </initrwgt>
 </init>"""
     )
+    assert init.tolhe() == pylhe.LHEInit.fromstring(init.tolhe()).tolhe()
 
 
 def test_write_lhe():
