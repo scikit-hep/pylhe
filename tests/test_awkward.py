@@ -38,6 +38,15 @@ def test_to_awkward():
         "1008",
         "1009",
     ]
+    assert arr.weights["1001"][0] == 0.50109E+02
+    assert arr.weights["1002"][0] == 0.45746E+02
+    assert arr.weights["1003"][0] == 0.52581E+02
+    assert arr.weights["1004"][0] == 0.50109E+02
+    assert arr.weights["1005"][0] == 0.45746E+02
+    assert arr.weights["1006"][0] == 0.52581E+02
+    assert arr.weights["1007"][0] == 0.50109E+02
+    assert arr.weights["1008"][0] == 0.45746E+02
+    assert arr.weights["1009"][0] == 0.52581E+02
     for field in arr.weights.fields:
         assert len(arr) == len(arr.weights[field])
 
