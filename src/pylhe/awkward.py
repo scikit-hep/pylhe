@@ -20,7 +20,7 @@ def to_awkward(event_iterable):
         event_iterable (iterable): An iterable of LHEEvent instances.
 
     Returns:
-        awkard.Array: An Awkward array of all the events
+        awkward.Array: An Awkward array of all the events.
     """
 
     builder = ak.ArrayBuilder()
