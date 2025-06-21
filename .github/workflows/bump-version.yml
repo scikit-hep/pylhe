@@ -71,7 +71,7 @@ jobs:
 
         echo "* Validating bump target version matches SemVer..."
 
-        # IFS is single charecter, so split on the 'r' in "rc"
+        # IFS is single character, so split on the 'r' in "rc"
         IFS='r' read current_tag_read current_rc <<EOF
         ${current_tag}
         EOF
@@ -83,7 +83,7 @@ jobs:
         # current_tag_read is read only and no longer used
         unset current_tag_read
 
-        # IFS is single charecter, so split on the 'r' in "rc"
+        # IFS is single character, so split on the 'r' in "rc"
         IFS='r' read bump_version bump_rc <<EOF
         ${{ github.event.inputs.new_version }}
         EOF
