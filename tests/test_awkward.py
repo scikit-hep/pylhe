@@ -63,7 +63,7 @@ def test_awkward_registration():
 
 def test_to_awkward_vector():
     """
-    Test numeric equality of momentas represented by vector.
+    Test numeric equality of momenta represented by vectors.
     """
     arr = pylhe.to_awkward(pylhe.read_lhe_with_attributes(TEST_FILE_WITHOUT_WEIGHTS))
 
