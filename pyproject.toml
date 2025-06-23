@@ -11,7 +11,7 @@ dynamic = ["version"]
 description = "A small package to get structured data out of Les Houches Event files"
 readme = "README.md"
 license = { text = "Apache-2.0" }  # SPDX short identifier
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 authors = [
     { name = "Lukas Heinrich", email = "lukas.heinrich@cern.ch" },
     { name = "Matthew Feickert", email = "matthew.feickert@cern.ch" },
