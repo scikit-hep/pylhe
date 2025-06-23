@@ -41,14 +41,8 @@ def to_awkward(event_iterable):
                     with builder.record(name="Particle"):
                         builder.field("vector")
                         with builder.record(name="Momentum4D"):
-                            spatial_momentum_map = {
-                                "x": "px",
-                                "y": "py",
-                                "z": "pz",
-                                "t": "e",
-                            }
-                            for key, value in spatial_momentum_map.items():
-                                builder.field(key).real(getattr(particle, value))
+                            for fname in ["px", "py", "pz", "e"]:
+                                builder.field(fname).real(getattr(particle, fname))
                         for fname in particle.fieldnames:
                             if fname not in ["px", "py", "pz", "e"]:
                                 builder.field(fname).real(getattr(particle, fname))
