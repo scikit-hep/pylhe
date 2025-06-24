@@ -22,7 +22,7 @@ Small and thin Python interface to read [Les Houches Event (LHE)](https://inspir
 
 | Generator                                      | Tested Versions       |
 |------------------------------------------------|-----------------------|
-| [MadGraph5](https://launchpad.net/mg5amcnlo)   | 2.0.0, 2.2.1, 3.5.8 |
+| [MadGraph5](https://launchpad.net/mg5amcnlo)   | 2.0.0, 2.2.1, 3.5.8   |
 | [POWHEG-BOX-V2](http://powhegbox.mib.infn.it/) | r4027                 |
 | [Pythia](https://pythia.org/)                  | 6.413, 8.3.14         |
 | [Sherpa](https://sherpa-team.gitlab.io/)       | 3.0.1                 |
