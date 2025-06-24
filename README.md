@@ -28,6 +28,7 @@ Small and thin Python interface to read [Les Houches Event (LHE)](https://inspir
 | [Sherpa](https://sherpa-team.gitlab.io/)       | 3.0.1                 |
 | [Whizard](https://whizard.hepforge.org/)       | 3.1.4                 |
 
+Note: test files are provided via the [scikit-hep-testdata](https://github.com/scikit-hep/scikit-hep-testdata) package. Please open an issue of create directly a PR for the inclusion of new files for testing.
 ## Install
 
 To install `pylhe` from PyPI you can just do
