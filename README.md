@@ -17,6 +17,18 @@
 
 Small and thin Python interface to read [Les Houches Event (LHE)](https://inspirehep.net/record/725284) files
 
+
+## Tested Monte Carlo Generators' LHE output
+
+| Generator                                      | Tested Versions       |
+|------------------------------------------------|-----------------------|
+| [MadGraph5](https://launchpad.net/mg5amcnlo)   | 2.0.0, 2.2.1, 3.5.8   |
+| [POWHEG-BOX-V2](http://powhegbox.mib.infn.it/) | r4027                 |
+| [Pythia](https://pythia.org/)                  | 6.413, 8.3.14         |
+| [Sherpa](https://sherpa-team.gitlab.io/)       | 3.0.1                 |
+| [Whizard](https://whizard.hepforge.org/)       | 3.1.4                 |
+
+Note: test files are provided via the [scikit-hep-testdata](https://github.com/scikit-hep/scikit-hep-testdata) package. Please open an issue of create directly a PR for the inclusion of new files for testing.
 ## Install
 
 To install `pylhe` from PyPI you can just do
@@ -168,7 +180,8 @@ We hereby acknowledge the contributors that made this project possible ([emoji k
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/fuenfundachtzig"><img src="https://avatars.githubusercontent.com/u/8006302?v=4?s=100" width="100px;" alt="fuenfundachtzig"/><br /><sub><b>fuenfundachtzig</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=fuenfundachtzig" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://shantanu-gontia.github.io"><img src="https://avatars.githubusercontent.com/u/4872525?v=4?s=100" width="100px;" alt="Shantanu Gontia"/><br /><sub><b>Shantanu Gontia</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=shantanu-gontia" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tomeichlersmith"><img src="https://avatars.githubusercontent.com/u/31970302?v=4?s=100" width="100px;" alt="Tom Eichlersmith"/><br /><sub><b>Tom Eichlersmith</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=tomeichlersmith" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/APN-Pucky"><img src="https://avatars.githubusercontent.com/u/4533248?v=4?s=100" width="100px;" alt="Alexander Puck Neuwirth"/><br /><sub><b>Alexander Puck Neuwirth</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=APN-Pucky" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/APN-Pucky"><img src="https://avatars.githubusercontent.com/u/4533248?v=4?s=100" width="100px;" alt="Alexander Puck Neuwirth"/><br /><sub><b>Alexander Puck Neuwirth</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=APN-Pucky" title="Code">💻</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=APN-Pucky" title="Documentation">📖</a> <a href="#maintenance-APN-Pucky" title="Maintenance">🚧</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ikrommyd"><img src="https://avatars.githubusercontent.com/u/82155404?v=4?s=100" width="100px;" alt="Iason Krommydas"/><br /><sub><b>Iason Krommydas</b></sub></a><br /><a href="https://github.com/scikit-hep/pylhe/commits?author=ikrommyd" title="Code">💻</a> <a href="https://github.com/scikit-hep/pylhe/commits?author=ikrommyd" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>

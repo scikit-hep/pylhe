@@ -20,6 +20,30 @@ TEST_FILES_LHE_POWHEG = [
     skhep_testdata.data_path(f"pylhe-testfile-powheg-box-v2-{proc}.lhe")
     for proc in ["Z", "W", "Zj", "trijet", "directphoton", "hvq"]
 ]
+TEST_FILES_LHE_MADGRAPH = [
+    skhep_testdata.data_path("pylhe-testfile-madgraph-2.0.0-wbj.lhe"),
+    skhep_testdata.data_path("pylhe-testfile-madgraph-2.2.1-Z-ckkwl.lhe.gz"),
+    skhep_testdata.data_path("pylhe-testfile-madgraph-2.2.1-Z-fxfx.lhe.gz"),
+    skhep_testdata.data_path("pylhe-testfile-madgraph-2.2.1-Z-mlm.lhe.gz"),
+    skhep_testdata.data_path("pylhe-testfile-madgraph5-3.5.8-pp_to_jj.lhe.gz"),
+]
+TEST_FILES_LHE_PYTHIA = [
+    skhep_testdata.data_path("pylhe-testfile-pythia-6.413-ttbar.lhe"),
+    skhep_testdata.data_path("pylhe-testfile-pythia-8.3.14-weakbosons.lhe"),
+]
+TEST_FILES_LHE_SHERPA = [
+    skhep_testdata.data_path("pylhe-testfile-sherpa-3.0.1-eejjj.lhe"),
+]
+TEST_FILES_LHE_WHIZARD = [
+    skhep_testdata.data_path("pylhe-testfile-whizard-3.1.4-eeWW.lhe"),
+]
+TEST_FILES_LHE_GENERATORS = [
+    *TEST_FILES_LHE_MADGRAPH,
+    *TEST_FILES_LHE_POWHEG,
+    *TEST_FILES_LHE_PYTHIA,
+    *TEST_FILES_LHE_SHERPA,
+    *TEST_FILES_LHE_WHIZARD,
+]
 
 
 @pytest.fixture(scope="session")
@@ -141,10 +165,10 @@ def test_read_lhe_with_attributes_v3():
         assert isinstance(e, LHEEvent)
 
 
-@pytest.mark.parametrize("file", TEST_FILES_LHE_POWHEG)
-def test_read_lhe_powheg(file):
+@pytest.mark.parametrize("file", TEST_FILES_LHE_GENERATORS)
+def test_read_lhe_generator(file):
     """
-    Test method read_lhe() on several types of LesHouchesEvents POWHEG files.
+    Test method read_lhe() on several types of LesHouchesEvents generator files.
     """
     events = pylhe.read_lhe(file)
 
@@ -153,10 +177,10 @@ def test_read_lhe_powheg(file):
         assert isinstance(e, LHEEvent)
 
 
-@pytest.mark.parametrize("file", TEST_FILES_LHE_POWHEG)
-def test_read_lhe_with_attributes_powheg(file):
+@pytest.mark.parametrize("file", TEST_FILES_LHE_GENERATORS)
+def test_read_lhe_with_attributes_generator(file):
     """
-    Test method read_lhe_with_attributes() on several types of LesHouchesEvents POWHEG files.
+    Test method read_lhe_with_attributes() on several types of LesHouchesEvents generator files.
     """
     events = pylhe.read_lhe_with_attributes(file)
 
