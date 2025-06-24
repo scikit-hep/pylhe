@@ -178,7 +178,7 @@ def test_read_lhe_generator(file):
 
 
 @pytest.mark.parametrize("file", TEST_FILES_LHE_GENERATORS)
-def test_read_lhe_with_attributes_powheg(file):
+def test_read_lhe_with_attributes_generator(file):
     """
     Test method read_lhe_with_attributes() on several types of LesHouchesEvents generator files.
     """
