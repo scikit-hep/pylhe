@@ -11,7 +11,7 @@ dynamic = ["version"]
 description = "A small package to get structured data out of Les Houches Event files"
 readme = "README.md"
 license = { text = "Apache-2.0" }  # SPDX short identifier
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 authors = [
     { name = "Lukas Heinrich", email = "lukas.heinrich@cern.ch" },
     { name = "Matthew Feickert", email = "matthew.feickert@cern.ch" },
@@ -30,7 +30,6 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -54,7 +53,7 @@ test = [
     "pydocstyle",
     "pytest-cov>=2.5.1",
     "pytest>=6.0",
-    "scikit-hep-testdata>=0.4.36",
+    "scikit-hep-testdata>=0.5.5",
 ]
 develop = [
     "pylhe[lint,test]",
