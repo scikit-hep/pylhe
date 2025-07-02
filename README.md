@@ -152,8 +152,8 @@ The preferred BibTeX entry for citation of `pylhe` is
 ```
 @software{pylhe,
   author = {Lukas Heinrich and Matthew Feickert and Eduardo Rodrigues and Alexander Puck Neuwirth},
-  title = "{pylhe: v0.9.1}",
-  version = {v0.9.1},
+  title = "{pylhe: v0.9.2}",
+  version = {v0.9.2},
   doi = {10.5281/zenodo.1217031},
   url = {https://github.com/scikit-hep/pylhe},
 }

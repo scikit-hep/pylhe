@@ -1,8 +1,8 @@
 {
     "description": "A small package to get structured data out of Les Houches Event files",
     "license": "Apache-2.0",
-    "title": "scikit-hep/pylhe: v0.9.1",
-    "version": "v0.9.1",
+    "title": "scikit-hep/pylhe: v0.9.2",
+    "version": "v0.9.2",
     "upload_type": "software",
     "creators": [
         {
@@ -36,7 +36,7 @@
     "related_identifiers": [
         {
             "scheme": "url",
-            "identifier": "https://github.com/scikit-hep/pylhe/tree/v0.9.1",
+            "identifier": "https://github.com/scikit-hep/pylhe/tree/v0.9.2",
             "relation": "isSupplementTo"
         }
     ]
