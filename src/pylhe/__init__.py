@@ -504,6 +504,8 @@ def read_lhe(filepath):
                     particles = particles[: int(eventinfo.nparticles)]
                     particle_objs = [LHEParticle.fromstring(p) for p in particles]
                     yield LHEEvent(eventinfo, particle_objs)
+                # Clear the element to free memory
+                element.clear()
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
         return
@@ -576,6 +578,8 @@ def read_lhe_with_attributes(filepath):
                         eventdict["attrib"],
                         eventdict["optional"],
                     )
+                    # Clear processed elements
+                    element.clear()
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
         return
@@ -587,10 +591,13 @@ def read_num_events(filepath):
     """
     try:
         with _extract_fileobj(filepath) as fileobj:
-            return sum(
-                element.tag == "event"
-                for event, element in ET.iterparse(fileobj, events=["end"])
-            )
+            count = 0
+            for _event, element in ET.iterparse(fileobj, events=["end"]):
+                if element.tag == "event":
+                    count += 1
+                # Clear the element to free memory
+                element.clear()
+            return count
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
         return -1
