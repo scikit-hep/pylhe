@@ -597,7 +597,7 @@ def read_num_events(filepath):
     """
     try:
         with _extract_fileobj(filepath) as fileobj:
-            context = ET.iterparse(fileobj, events=["end"])
+            context = ET.iterparse(fileobj, events=["start", "end"])
             _, root = next(context)  # Get the root element
             count = 0
             for event, element in context:
