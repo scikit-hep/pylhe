@@ -75,7 +75,7 @@ event.graph.render(filename="test", format="pdf", cleanup=True)
 
 ### Writing
 
-For a full example see [write](examples/write_monte_carlo_example.ipynb) or [filter](examples/filter_events_example.ipynb).
+For a full example see [write](docs/source/examples/write_monte_carlo_example.ipynb) or [filter](docs/source/examples/filter_events_example.ipynb).
 The values in the sketch below are intentionally left empty since they depend on the use-case.
 The data structure of `pylhe` is:
 

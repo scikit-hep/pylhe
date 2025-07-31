@@ -60,6 +60,19 @@ develop = [
     "pre-commit",
     "tbump>=6.7.0",
 ]
+docs = [
+    "sphinx",
+    "sphinx-copybutton",
+    #"sphinx-rtd-theme>=0.5.0",
+    "sphinxcontrib-napoleon",
+    "nbsphinx",
+    "jupyter-sphinx",
+    "sphinx-autoapi",
+    "sphinx-autobuild",
+    "pandoc",
+    "myst-parser",
+    "toml",
+]
 
 [project.urls]
 Homepage = "https://github.com/scikit-hep/pylhe"
