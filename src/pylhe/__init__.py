@@ -508,6 +508,7 @@ def read_lhe(filepath):
                     yield LHEEvent(eventinfo, particle_objs)
                     # Clear the element to free memory
                     element.clear()
+                    # Root tracks sub-elements -> clear all sub-elements
                     root.clear()
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
@@ -585,6 +586,7 @@ def read_lhe_with_attributes(filepath):
                     )
                     # Clear processed elements
                     element.clear()
+                    # Root tracks sub-elements -> clear all sub-elements
                     root.clear()
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
@@ -605,6 +607,7 @@ def read_num_events(filepath):
                     count += 1
                     # Clear the element to free memory
                     element.clear()
+                    # Root tracks sub-elements -> clear all sub-elements
                     root.clear()
             return count
     except ET.ParseError as excep:
