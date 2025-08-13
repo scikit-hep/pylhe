@@ -496,14 +496,20 @@ def read_lhe(filepath):
     """
     try:
         with _extract_fileobj(filepath) as fileobj:
-            for _event, element in ET.iterparse(fileobj, events=["end"]):
-                if element.tag == "event":
+            context = ET.iterparse(fileobj, events=["start", "end"])
+            _, root = next(context)  # Get the root element
+            for event, element in context:
+                if event == "end" and element.tag == "event":
                     data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventinfo = LHEEventInfo.fromstring(eventdata)
                     particles = particles[: int(eventinfo.nparticles)]
                     particle_objs = [LHEParticle.fromstring(p) for p in particles]
                     yield LHEEvent(eventinfo, particle_objs)
+                    # Clear the element to free memory
+                    element.clear()
+                    # Root tracks sub-elements -> clear all sub-elements
+                    root.clear()
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
         return
@@ -538,8 +544,10 @@ def read_lhe_with_attributes(filepath):
     index_map = None
     try:
         with _extract_fileobj(filepath) as fileobj:
-            for _event, element in ET.iterparse(fileobj, events=["end"]):
-                if element.tag == "event":
+            context = ET.iterparse(fileobj, events=["start", "end"])
+            _, root = next(context)  # Get the root element
+            for event, element in context:
+                if event == "end" and element.tag == "event":
                     eventdict = {}
                     data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
@@ -576,6 +584,10 @@ def read_lhe_with_attributes(filepath):
                         eventdict["attrib"],
                         eventdict["optional"],
                     )
+                    # Clear processed elements
+                    element.clear()
+                    # Root tracks sub-elements -> clear all sub-elements
+                    root.clear()
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
         return
@@ -587,10 +599,17 @@ def read_num_events(filepath):
     """
     try:
         with _extract_fileobj(filepath) as fileobj:
-            return sum(
-                element.tag == "event"
-                for event, element in ET.iterparse(fileobj, events=["end"])
-            )
+            context = ET.iterparse(fileobj, events=["start", "end"])
+            _, root = next(context)  # Get the root element
+            count = 0
+            for event, element in context:
+                if event == "end" and element.tag == "event":
+                    count += 1
+                    # Clear the element to free memory
+                    element.clear()
+                    # Root tracks sub-elements -> clear all sub-elements
+                    root.clear()
+            return count
     except ET.ParseError as excep:
         print("WARNING. Parse Error:", excep)
         return -1

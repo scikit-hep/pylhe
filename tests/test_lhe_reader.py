@@ -293,3 +293,99 @@ def test_read_lhe_init_raises():
 </initrwgt>
 </init>"""
         )
+
+
+def test_event_at_position_5():
+    """
+    Test that the event at position 5 has the expected values.
+    The element at position 5 in the LHE file is:
+
+    <event>
+         5     0  1.554392E-03  0.000000E+00  0.000000E+00  0.000000E+00
+         111    0    0    0    0    0 -9.7035523745E-01 -9.8435906372E-01  5.1424008917E+00  5.3267140888E+00  1.3800000000E-01 0. 9.
+         211    0    0    0    0    0 -2.1024089632E-01 -3.2883303721E-02  3.1406432734E+00  3.1508676134E+00  1.3800000000E-01 0. 9.
+        -211    0    0    0    0    0  3.9695103971E-02 -2.2872518121E-01  1.0496526207E-01  2.8974577830E-01  1.3800000000E-01 0. 9.
+        2212    0    0    0    0    0 -8.6160811751E-01 -7.3819273849E-01  7.4246467306E+00  7.5762050386E+00  9.9307937557E-01 0. 9.
+         211    0    0    0    0    0 -4.7889071830E-01 -2.8340027352E-01  1.5195379346E+00  1.6240971553E+00  1.3800000000E-01 0. 9.
+    # 5    34  1.5543917618E-03   3.6288856778E+01  0.0000000000E+00  0.0000000000E+00  3.6288856778E+01   1.9388062018E+01  2.3242767182E+00  2.1256769904E+00  1.9130504008E+01   9.0374892691E-01 -1.4114
+    </event>
+    """
+    events = pylhe.read_lhe(TEST_FILE_LHE_v1)
+
+    # Get the event at position 5 (0-indexed)
+    target_event = None
+    for i, event in enumerate(events):
+        if i == 5:
+            target_event = event
+            break
+
+    assert target_event is not None, "Event at position 5 should exist"
+
+    # Test event info values from the LHE format comment
+    assert target_event.eventinfo.nparticles == pytest.approx(5.0)
+    assert target_event.eventinfo.pid == pytest.approx(0.0)
+    assert target_event.eventinfo.weight == pytest.approx(1.554392e-03)
+    assert target_event.eventinfo.scale == pytest.approx(0.0)
+    assert target_event.eventinfo.aqed == pytest.approx(0.0)
+    assert target_event.eventinfo.aqcd == pytest.approx(0.0)
+
+    # Test that we have the expected number of particles
+    assert len(target_event.particles) == 5
+
+    # Test particle properties based on the LHE event data
+    # First particle: 111 (pi0)
+    first_particle = target_event.particles[0]
+    assert first_particle.id == pytest.approx(111.0)  # pi0
+    assert first_particle.status == pytest.approx(0.0)
+    assert first_particle.mother1 == pytest.approx(0.0)
+    assert first_particle.mother2 == pytest.approx(0.0)
+    assert first_particle.px == pytest.approx(-9.7035523745e-01)
+    assert first_particle.py == pytest.approx(-9.8435906372e-01)
+    assert first_particle.pz == pytest.approx(5.1424008917e00)
+    assert first_particle.e == pytest.approx(5.3267140888e00)
+    assert first_particle.m == pytest.approx(1.3800000000e-01)
+
+    # Second particle: 211 (pi+)
+    second_particle = target_event.particles[1]
+    assert second_particle.id == pytest.approx(211.0)  # pi+
+    assert second_particle.status == pytest.approx(0.0)
+    assert second_particle.px == pytest.approx(-2.1024089632e-01)
+    assert second_particle.py == pytest.approx(-3.2883303721e-02)
+    assert second_particle.pz == pytest.approx(3.1406432734e00)
+    assert second_particle.e == pytest.approx(3.1508676134e00)
+    assert second_particle.m == pytest.approx(1.3800000000e-01)
+
+    # Third particle: -211 (pi-)
+    third_particle = target_event.particles[2]
+    assert third_particle.id == pytest.approx(-211.0)  # pi-
+    assert third_particle.status == pytest.approx(0.0)
+    assert third_particle.px == pytest.approx(3.9695103971e-02)
+    assert third_particle.py == pytest.approx(-2.2872518121e-01)
+    assert third_particle.pz == pytest.approx(1.0496526207e-01)
+    assert third_particle.e == pytest.approx(2.8974577830e-01)
+    assert third_particle.m == pytest.approx(1.3800000000e-01)
+
+    # Fourth particle: 2212 (proton)
+    fourth_particle = target_event.particles[3]
+    assert fourth_particle.id == pytest.approx(2212.0)  # proton
+    assert fourth_particle.status == pytest.approx(0.0)
+    assert fourth_particle.px == pytest.approx(-8.6160811751e-01)
+    assert fourth_particle.py == pytest.approx(-7.3819273849e-01)
+    assert fourth_particle.pz == pytest.approx(7.4246467306e00)
+    assert fourth_particle.e == pytest.approx(7.5762050386e00)
+    assert fourth_particle.m == pytest.approx(9.9307937557e-01)
+
+    # Fifth particle: 211 (pi+)
+    fifth_particle = target_event.particles[4]
+    assert fifth_particle.id == pytest.approx(211.0)  # pi+
+    assert fifth_particle.status == pytest.approx(0.0)
+    assert fifth_particle.px == pytest.approx(-4.7889071830e-01)
+    assert fifth_particle.py == pytest.approx(-2.8340027352e-01)
+    assert fifth_particle.pz == pytest.approx(1.5195379346e00)
+    assert fifth_particle.e == pytest.approx(1.6240971553e00)
+    assert fifth_particle.m == pytest.approx(1.3800000000e-01)
+
+    # Test that all particles have proper parent-child relationships
+    for particle in target_event.particles:
+        assert hasattr(particle, "event")
+        assert particle.event is target_event
