@@ -1,3 +1,5 @@
+import dataclasses
+
 import pytest
 import skhep_testdata
 
@@ -29,7 +31,7 @@ def test_LHEEvent():
 
 
 def test_LHEEventInfo_no_default_init():
-    with pytest.raises(RuntimeError):
+    with pytest.raises(TypeError):
         _ = LHEEventInfo()
 
 
@@ -53,8 +55,9 @@ def test_LHEFile_default_init():
     assert LHEFile() is not None
 
 
-def test_LHEInit_default_init():
-    assert LHEInit() is not None
+def test_LHEInit_no_default_init():
+    with pytest.raises(TypeError):
+        _ = LHEInit()
 
 
 def test_LHEInit_fromstring():
@@ -75,11 +78,11 @@ def test_LHEInit_fromstring():
         "weightingStrategy": -4.0,
         "numProcesses": 1.0,
     }
-    assert LHEInitInfo.fromstring(data) == result
+    assert dataclasses.asdict(LHEInitInfo.fromstring(data)) == result
 
 
 def test_LHEParticle_no_default_init():
-    with pytest.raises(RuntimeError):
+    with pytest.raises(TypeError):
         _ = LHEParticle()
 
 
@@ -137,8 +140,9 @@ def test_LHEParticle_fromstring():
     assert [p.spin for p in particle_objs] == [0.0, 0.0, 0.0, 0.0, 0.0]
 
 
-def test_LHEProcInfo_default_init():
-    assert LHEProcInfo() is not None
+def test_LHEProcInfo_no_default_init():
+    with pytest.raises(TypeError):
+        _ = LHEProcInfo()
 
 
 def test_LHEProcInfo_fromstring():
@@ -153,4 +157,4 @@ def test_LHEProcInfo_fromstring():
         "unitWeight": 50.109093,
         "procId": 66.0,
     }
-    assert LHEProcInfo.fromstring(data) == result
+    assert dataclasses.asdict(LHEProcInfo.fromstring(data)) == result
