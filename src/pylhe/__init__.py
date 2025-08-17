@@ -154,14 +154,6 @@ class LHEEvent:
         except AttributeError:
             return {"image/svg+xml": self.graph._repr_svg_()}  # for graphviz < 0.19
 
-    def __getitem__(self, key):
-        """Dict backwards compatibility."""
-        return getattr(self, key)
-
-    def __setitem__(self, key, value):
-        """Dict backwards compatibility."""
-        return setattr(self, key, value)
-
 
 @dataclass
 class LHEEventInfo:
@@ -192,14 +184,6 @@ class LHEEventInfo:
             aqed=float(values[4]),
             aqcd=float(values[5]),
         )
-
-    def __getitem__(self, key):
-        """Dict backwards compatibility."""
-        return getattr(self, key)
-
-    def __setitem__(self, key, value):
-        """Dict backwards compatibility."""
-        return setattr(self, key, value)
 
     @property
     def fieldnames(self):
@@ -257,14 +241,6 @@ class LHEParticle:
         return [
             self.event.particles[idx] for idx in (first_idx, second_idx) if idx >= 0
         ]
-
-    def __getitem__(self, key):
-        """Dict backwards compatibility."""
-        return getattr(self, key)
-
-    def __setitem__(self, key, value):
-        """Dict backwards compatibility."""
-        return setattr(self, key, value)
 
     @property
     def fieldnames(self):
@@ -526,19 +502,6 @@ class LHEFile:
         Return the LHE file as a string.
         """
         return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
-
-    def __getitem__(self, key):
-        """Dict backwards compatibility."""
-        return getattr(self, key)
-
-    def __setitem__(self, key, value):
-        """Dict backwards compatibility."""
-        return setattr(self, key, value)
-
-    @property
-    def fieldnames(self):
-        """fieldnames backwards compatibility."""
-        return [f.name for f in fields(self)]
 
 
 def read_lhe_file(filepath, with_attributes=True) -> LHEFile:
