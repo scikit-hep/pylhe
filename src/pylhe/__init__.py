@@ -393,7 +393,7 @@ class LHEInit:
     initInfo: LHEInitInfo
     procInfo: list[LHEProcInfo]
     weightgroup: dict
-    LHEVersion: float
+    LHEVersion: str
 
     def tolhe(self):
         """
@@ -497,7 +497,7 @@ class LHEInit:
 
                         weightgroup[wg_type] = _temp
             if element.tag == "LesHouchesEvents":
-                LHEVersion = float(element.attrib["version"])
+                LHEVersion = element.attrib["version"]
             if element.tag == "event":
                 break
         return cls(
