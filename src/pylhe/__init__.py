@@ -427,31 +427,18 @@ class LHEInit:
     # custom backwards compatibility get for dict
     def __getitem__(self, key):
         # Map field names to dataclass attributes
-        if key == "initInfo":
-            return self.initInfo
-        if key == "procInfo":
-            return self.procInfo
-        if key == "weightgroup":
-            return self.weightgroup
-        if key == "LHEVersion":
-            return self.LHEVersion
+        if key in self.fieldnames:
+            return getattr(self, key)
         # Try to get from initInfo for backward compatibility
         return getattr(self.initInfo, key)
 
     # custom backwards compatibility set for dict
     def __setitem__(self, key, value):
         # Map field names to dataclass attributes
-        if key == "initInfo":
-            self.initInfo = value
-        elif key == "procInfo":
-            self.procInfo = value
-        elif key == "weightgroup":
-            self.weightgroup = value
-        elif key == "LHEVersion":
-            self.LHEVersion = value
-        else:
-            # Try to set on initInfo for backward compatibility
-            setattr(self.initInfo, key, value)
+        if key in self.fieldnames:
+            setattr(self, key, value)
+        # Try to set on initInfo for backward compatibility
+        setattr(self.initInfo, key, value)
 
     @classmethod
     def frombuffer(cls, fileobj):
