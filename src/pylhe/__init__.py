@@ -1,5 +1,6 @@
 import gzip
 import io
+import warnings
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable
 from dataclasses import dataclass, fields
@@ -51,6 +52,7 @@ class LHEEvent:
     attributes: Optional[dict] = None
     # This stores '#' comments including additional information per event
     optional: Optional[list] = None
+    # Stores the graph representation of the event generated after first access of the property `lheevent.graph`
     _graph: Optional[graphviz.Digraph] = None
 
     def __post_init__(self):
@@ -244,6 +246,7 @@ class LHEParticle:
 
     @property
     def fieldnames(self):
+        """fieldnames backwards compatibility."""
         return [f.name for f in fields(self)]
 
 
@@ -308,10 +311,22 @@ class LHEInitInfo:
 
     def __getitem__(self, key):
         """Dict backwards compatibility."""
+        warnings.warn(
+            f'Access by `lheinitinfo["{key}"]` is deprecated and will be removed in a future version. '
+            f"Use `lheinitinfo.{key}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return getattr(self, key)
 
     def __setitem__(self, key, value):
         """Dict backwards compatibility."""
+        warnings.warn(
+            f'Access by `lheinitinfo["{key}"]` is deprecated and will be removed in a future version. '
+            f"Use `lheinitinfo.{key}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return setattr(self, key, value)
 
     @property
@@ -350,10 +365,22 @@ class LHEProcInfo:
 
     def __getitem__(self, key):
         """Dict backwards compatibility."""
+        warnings.warn(
+            f'Access by `lheprocinfo["{key}"]` is deprecated and will be removed in a future version. '
+            f"Use `lheprocinfo.{key}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return getattr(self, key)
 
     def __setitem__(self, key, value):
         """Dict backwards compatibility."""
+        warnings.warn(
+            f'Access by `lheprocinfo["{key}"]` is deprecated and will be removed in a future version. '
+            f"Use `lheprocinfo.{key}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return setattr(self, key, value)
 
     @property
@@ -402,6 +429,12 @@ class LHEInit:
 
     # custom backwards compatibility get for dict
     def __getitem__(self, key):
+        warnings.warn(
+            f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
+            f"Use `lheinit.{key}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         # Map field names to dataclass attributes
         if key in self.fieldnames:
             return getattr(self, key)
@@ -410,6 +443,12 @@ class LHEInit:
 
     # custom backwards compatibility set for dict
     def __setitem__(self, key, value):
+        warnings.warn(
+            f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
+            f"Use `lheinit.{key}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         # Map field names to dataclass attributes
         if key in self.fieldnames:
             setattr(self, key, value)
@@ -695,6 +734,12 @@ def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
     .. warning:: :func:`~pylhe.write_lhe_string` will be removed in
      ``pylhe`` ``v0.11.0``.
     """
+    warnings.warn(
+        "`write_lhe_string` is deprecated and will be removed in a future version. "
+        "Use `write_lhe_file_string` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return write_lhe_file_string(
         LHEFile(init=lheinit, events=lheevents), rwgt=rwgt, weights=weights
     )
@@ -730,6 +775,12 @@ def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=Fa
     .. warning:: :func:`~pylhe.write_lhe_file` will be removed in
      ``pylhe`` ``v0.11.0``.
     """
+    warnings.warn(
+        "`write_lhe_file` is deprecated and will be removed in a future version. "
+        "Use `write_lhe_file_path` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     write_lhe_file_path(
         LHEFile(init=lheinit, events=lheevents),
         filepath,
