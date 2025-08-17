@@ -85,13 +85,22 @@ def test_LHEEventInfo_fromstring():
     assert event_info.aqcd == pytest.approx(0.12114027e00)
 
 
-def test_LHEEventInfo_getsetitem():
+def test_LHEEventInfo_backwards_compatibility():
     """
-    Test backwards-compatibility of dict like access.
+    Test backwards-compatibility of dict like access and fieldnames.
     """
     event_info = LHEEventInfo(
         nparticles=6, pid=67, weight=0.6, scale=0.2, aqed=0.8, aqcd=0.2
     )
+
+    assert event_info.fieldnames == [
+        "nparticles",
+        "pid",
+        "weight",
+        "scale",
+        "aqed",
+        "aqcd",
+    ]
 
     event_info["nparticles"] = 5
     event_info["pid"] = 66
@@ -248,9 +257,9 @@ def test_LHEParticle_fromstring():
     assert [p.spin for p in particle_objs] == [0.0, 0.0, 0.0, 0.0, 0.0]
 
 
-def test_LHEParticle_getsetitem():
+def test_LHEParticle_backwards_compatibility():
     """
-    Test backwards-compatibility of dict like access.
+    Test backwards-compatibility of dict like access and fieldnames.
     """
     particle = LHEParticle(
         id=5,
@@ -267,6 +276,22 @@ def test_LHEParticle_getsetitem():
         lifetime=0,
         spin=0,
     )
+
+    assert particle.fieldnames == [
+        "id",
+        "status",
+        "mother1",
+        "mother2",
+        "color1",
+        "color2",
+        "px",
+        "py",
+        "pz",
+        "e",
+        "m",
+        "lifetime",
+        "spin",
+    ]
 
     assert particle["id"] == 5
     assert particle["status"] == -1
@@ -331,13 +356,15 @@ def test_LHEProcInfo_fromstring():
     assert dataclasses.asdict(LHEProcInfo.fromstring(data)) == result
 
 
-def test_LHEProcInfo_getsetitem():
+def test_LHEProcInfo_backwards_compatibility():
     """
-    Test backwards-compatibility of dict like access.
+    Test backwards-compatibility of dict like access and fieldnames.
     """
     proc_info = LHEProcInfo(
         xSection=50.109086, error=0.089185414, unitWeight=50.109093, procId=66.0
     )
+
+    assert proc_info.fieldnames == ["xSection", "error", "unitWeight", "procId"]
 
     assert proc_info["xSection"] == pytest.approx(50.109086)
     assert proc_info["error"] == pytest.approx(0.089185414)
@@ -353,3 +380,67 @@ def test_LHEProcInfo_getsetitem():
     assert proc_info["error"] == pytest.approx(0.1)
     assert proc_info["unitWeight"] == pytest.approx(60.0)
     assert proc_info["procId"] == pytest.approx(67.0)
+
+
+def test_LHEInitInfo_backwards_compatibility():
+    """
+    Test backwards-compatibility of dict like access and fieldnames.
+    """
+    lheii = LHEInitInfo(
+        beamA=1,
+        beamB=2,
+        energyA=3.0,
+        energyB=4.0,
+        PDFgroupA=-1,
+        PDFgroupB=-1,
+        PDFsetA=21100,
+        PDFsetB=21100,
+        weightingStrategy=1,
+        numProcesses=1,
+    )
+
+    assert lheii.fieldnames == [
+        "beamA",
+        "beamB",
+        "energyA",
+        "energyB",
+        "PDFgroupA",
+        "PDFgroupB",
+        "PDFsetA",
+        "PDFsetB",
+        "weightingStrategy",
+        "numProcesses",
+    ]
+
+    assert lheii["beamA"] == 1
+    assert lheii["beamB"] == 2
+    assert lheii["energyA"] == 3.0
+    assert lheii["energyB"] == 4.0
+    assert lheii["PDFgroupA"] == -1
+    assert lheii["PDFgroupB"] == -1
+    assert lheii["PDFsetA"] == 21100
+    assert lheii["PDFsetB"] == 21100
+    assert lheii["weightingStrategy"] == 1
+    assert lheii["numProcesses"] == 1
+
+    lheii["beamA"] = 5
+    lheii["beamB"] = 6
+    lheii["energyA"] = 7.0
+    lheii["energyB"] = 8.0
+    lheii["PDFgroupA"] = -2
+    lheii["PDFgroupB"] = -2
+    lheii["PDFsetA"] = 21101
+    lheii["PDFsetB"] = 21101
+    lheii["weightingStrategy"] = 2
+    lheii["numProcesses"] = 2
+
+    assert lheii["beamA"] == 5
+    assert lheii["beamB"] == 6
+    assert lheii["energyA"] == 7.0
+    assert lheii["energyB"] == 8.0
+    assert lheii["PDFgroupA"] == -2
+    assert lheii["PDFgroupB"] == -2
+    assert lheii["PDFsetA"] == 21101
+    assert lheii["PDFsetB"] == 21101
+    assert lheii["weightingStrategy"] == 2
+    assert lheii["numProcesses"] == 2
