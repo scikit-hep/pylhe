@@ -4,6 +4,7 @@ import pytest
 import skhep_testdata
 
 from pylhe import (
+    LHEEvent,
     LHEEventInfo,
     LHEFile,
     LHEInit,
@@ -28,6 +29,39 @@ def test_LHEEvent():
         assert p.event == event
 
     assert event._graph is None
+
+
+def test_LHEEvent_getsetitem():
+    """
+    Test backwards-compatibility of dict like access.
+    """
+    lhei = LHEEventInfo(nparticles=6, pid=67, weight=0.6, scale=0.2, aqed=0.8, aqcd=0.2)
+    event = LHEEvent(eventinfo=lhei, particles=[])
+
+    assert event["eventinfo"] is not None
+    assert event["particles"] == []
+
+    event["eventinfo"] = None
+    event["particles"] = [
+        LHEParticle(
+            id=1,
+            status=1,
+            mother1=0,
+            mother2=0,
+            color1=0,
+            color2=0,
+            px=0.0,
+            py=0.0,
+            pz=0.0,
+            e=0.0,
+            m=0.0,
+            lifetime=0,
+            spin=0,
+        )
+    ]
+
+    assert event["eventinfo"] is None
+    assert len(event["particles"]) == 1
 
 
 def test_LHEEventInfo_no_default_init():
@@ -76,6 +110,57 @@ def test_LHEEventInfo_getsetitem():
 
 def test_LHEFile_default_init():
     assert LHEFile() is not None
+
+
+def test_LHEFile_getsetitem():
+    """
+    Test backwards-compatibility of dict like access.
+    """
+    lheii = LHEInitInfo(
+        beamA=2212.0,
+        beamB=2212.0,
+        energyA=4000.0,
+        energyB=4000.0,
+        PDFgroupA=-1.0,
+        PDFgroupB=-1.0,
+        PDFsetA=21100.0,
+        PDFsetB=21100.0,
+        weightingStrategy=-4.0,
+        numProcesses=1.0,
+    )
+    lhe_file = LHEFile(init=lheii)
+
+    assert lhe_file["init"] == lheii
+    assert lhe_file["events"] is None
+
+    lhe_file["init"] = None
+    lhe_file["events"] = [
+        LHEEvent(
+            eventinfo=LHEEventInfo(
+                nparticles=1, pid=1, weight=1.0, scale=1.0, aqed=0.0, aqcd=0.0
+            ),
+            particles=[
+                LHEParticle(
+                    id=1,
+                    status=1,
+                    mother1=0,
+                    mother2=0,
+                    color1=0,
+                    color2=0,
+                    px=0.0,
+                    py=0.0,
+                    pz=0.0,
+                    e=1.0,
+                    m=1.0,
+                    lifetime=0.0,
+                    spin=0.0,
+                )
+            ],
+        )
+    ]
+
+    assert lhe_file["init"] is None
+    assert len(lhe_file["events"]) == 1
 
 
 def test_LHEInit_no_default_init():
@@ -161,6 +246,69 @@ def test_LHEParticle_fromstring():
     assert [p.m for p in particle_objs] == [4.8, 0.33, 80.398, 4.8, 0.33]
     assert [p.lifetime for p in particle_objs] == [0.0, 0.0, 0.0, 0.0, 0.0]
     assert [p.spin for p in particle_objs] == [0.0, 0.0, 0.0, 0.0, 0.0]
+
+
+def test_LHEParticle_getsetitem():
+    """
+    Test backwards-compatibility of dict like access.
+    """
+    particle = LHEParticle(
+        id=5,
+        status=-1,
+        mother1=0,
+        mother2=0,
+        color1=501,
+        color2=0,
+        px=0,
+        py=0,
+        pz=143.22906,
+        e=143.30946,
+        m=4.8,
+        lifetime=0,
+        spin=0,
+    )
+
+    assert particle["id"] == 5
+    assert particle["status"] == -1
+    assert particle["mother1"] == 0
+    assert particle["mother2"] == 0
+    assert particle["color1"] == 501
+    assert particle["color2"] == 0
+    assert particle["px"] == 0
+    assert particle["py"] == 0
+    assert particle["pz"] == 143.22906
+    assert particle["e"] == 143.30946
+    assert particle["m"] == 4.8
+    assert particle["lifetime"] == 0
+    assert particle["spin"] == 0
+
+    particle["id"] = 6
+    particle["status"] = -2
+    particle["mother1"] = 1
+    particle["mother2"] = 2
+    particle["color1"] = 502
+    particle["color2"] = 0
+    particle["px"] = 0
+    particle["py"] = 0
+    particle["pz"] = -935.44317
+    particle["e"] = 935.44323
+    particle["m"] = 0.33
+    particle["lifetime"] = 0
+    particle["spin"] = 0
+
+    assert particle["id"] == 6
+    assert particle["status"] == -2
+    assert particle["mother1"] == 1
+    assert particle["mother2"] == 2
+    assert particle["color1"] == 502
+    assert particle["color2"] == 0
+    assert particle["px"] == 0
+    assert particle["py"] == 0
+    assert particle["pz"] == -935.44317
+    assert particle["e"] == 935.44323
+    assert particle["m"] == 0.33
+    assert particle["lifetime"] == 0
+    assert particle["spin"] == 0
 
 
 def test_LHEProcInfo_no_default_init():
