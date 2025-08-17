@@ -52,6 +52,9 @@ def test_LHEEventInfo_fromstring():
 
 
 def test_LHEEventInfo_getsetitem():
+    """
+    Test backwards-compatibility of dict like access.
+    """
     event_info = LHEEventInfo(
         nparticles=6, pid=67, weight=0.6, scale=0.2, aqed=0.8, aqcd=0.2
     )
@@ -178,3 +181,27 @@ def test_LHEProcInfo_fromstring():
         "procId": 66.0,
     }
     assert dataclasses.asdict(LHEProcInfo.fromstring(data)) == result
+
+
+def test_LHEProcInfo_getsetitem():
+    """
+    Test backwards-compatibility of dict like access.
+    """
+    proc_info = LHEProcInfo(
+        xSection=50.109086, error=0.089185414, unitWeight=50.109093, procId=66.0
+    )
+
+    assert proc_info["xSection"] == pytest.approx(50.109086)
+    assert proc_info["error"] == pytest.approx(0.089185414)
+    assert proc_info["unitWeight"] == pytest.approx(50.109093)
+    assert proc_info["procId"] == pytest.approx(66.0)
+
+    proc_info["xSection"] = 60.0
+    proc_info["error"] = 0.1
+    proc_info["unitWeight"] = 60.0
+    proc_info["procId"] = 67.0
+
+    assert proc_info["xSection"] == pytest.approx(60.0)
+    assert proc_info["error"] == pytest.approx(0.1)
+    assert proc_info["unitWeight"] == pytest.approx(60.0)
+    assert proc_info["procId"] == pytest.approx(67.0)
