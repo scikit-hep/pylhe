@@ -57,8 +57,6 @@ class LHEEvent:
         """Set up bidirectional relationship between event and particles."""
         for p in self.particles:
             p.event = self
-        if self._graph is None:
-            self._graph = None  # Will be created lazily in graph property
 
     def tolhe(self, rwgt=True, weights=False):
         """
