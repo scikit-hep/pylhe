@@ -51,6 +51,26 @@ def test_LHEEventInfo_fromstring():
     assert event_info.aqcd == pytest.approx(0.12114027e00)
 
 
+def test_LHEEventInfo_getsetitem():
+    event_info = LHEEventInfo(
+        nparticles=6, pid=67, weight=0.6, scale=0.2, aqed=0.8, aqcd=0.2
+    )
+
+    event_info["nparticles"] = 5
+    event_info["pid"] = 66
+    event_info["weight"] = 0.5
+    event_info["scale"] = 0.1
+    event_info["aqed"] = 0.7
+    event_info["aqcd"] = 0.1
+
+    assert event_info["nparticles"] == 5
+    assert event_info["pid"] == 66
+    assert event_info["weight"] == pytest.approx(0.5)
+    assert event_info["scale"] == pytest.approx(0.1)
+    assert event_info["aqed"] == pytest.approx(0.7)
+    assert event_info["aqcd"] == pytest.approx(0.1)
+
+
 def test_LHEFile_default_init():
     assert LHEFile() is not None
 
