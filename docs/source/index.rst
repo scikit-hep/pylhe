@@ -17,6 +17,7 @@
    :caption: Modules:
 
    pylhe
+   pylhe.awkward
 
 
 .. toctree::
