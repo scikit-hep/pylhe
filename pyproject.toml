@@ -71,6 +71,7 @@ docs = [
     "sphinx-math-dollar",
     "pandoc",
     "myst-nb",
+    "myst-parser",
     "toml",
 ]
 
