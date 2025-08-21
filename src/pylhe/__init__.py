@@ -188,6 +188,9 @@ class LHEEventInfo:
 
     @classmethod
     def fromstring(cls, string):
+        """
+        Create a LHEEventInfo from a string in LHE format.
+        """
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
@@ -239,6 +242,9 @@ class LHEParticle:
         )
 
     def mothers(self) -> list["LHEParticle"]:
+        """
+        Return a list of the particle's mothers.
+        """
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
         return [
@@ -308,6 +314,9 @@ class LHEInitInfo(dict):
 
     @classmethod
     def fromstring(cls, string) -> "LHEInitInfo":
+        """
+        Create a LHEInitInfo from a string in LHE format.
+        """
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
@@ -332,6 +341,9 @@ class LHEProcInfo(dict):
 
     @classmethod
     def fromstring(cls, string) -> "LHEProcInfo":
+        """
+        Create a LHEProcInfo from a string in LHE format.
+        """
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
@@ -372,14 +384,18 @@ class LHEInit(dict):
             + "</init>"
         )
 
-    # custom backwards compatibility get for dict
     def __getitem__(self, key):
+        """
+        custom backwards compatibility get for dict
+        """
         if key not in self:
             return self["initInfo"][key]
         return super().__getitem__(key)
 
-    # custom backwards compatibility set for dict
     def __setitem__(self, key, value):
+        """
+        custom backwards compatibility set for dict
+        """
         if key not in self:
             self["initInfo"][key] = value
         else:
@@ -432,11 +448,17 @@ class LHEInit(dict):
 
     @classmethod
     def fromstring(cls, string):
-        """Create an instance from a string."""
+        """
+        Create an LHEEventInfo from a string in LHE format.
+        """
         return cls.frombuffer(io.StringIO(string))
 
 
 class LHEFile:
+    """
+    Represents an LHE file.
+    """
+
     def __init__(
         self, init: LHEInit = None, events: Optional[Iterable[LHEEvent]] = None
     ):

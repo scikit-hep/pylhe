@@ -47,7 +47,8 @@ jobs:
     - name: Check docstrings
       run: |
         # Group 1 is related to docstrings
-        pydocstyle --select D1 src/pylhe/
+        # ignore missing comment for __init__, since starting from 1.0.0 there are no more __init__ functions
+        pydocstyle --select D1 --ignore=D107 src/pylhe/
 
     - name: Verify CITATION.cff schema
       run: |
