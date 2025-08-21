@@ -63,14 +63,14 @@ develop = [
 docs = [
     "sphinx",
     "sphinx-copybutton",
-    #"sphinx-rtd-theme>=0.5.0",
-    "sphinxcontrib-napoleon",
+    "sphinx-rtd-theme>=0.5.0",
     "nbsphinx",
     "jupyter-sphinx",
     "sphinx-autoapi",
     "sphinx-autobuild",
+    "sphinx-math-dollar",
     "pandoc",
-    "myst-parser",
+    "myst-nb",
     "toml",
 ]
 
