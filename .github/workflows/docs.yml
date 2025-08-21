@@ -1,0 +1,103 @@
+name: Docs
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build docs
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install uv
+        uv pip --quiet install --system --upgrade ".[docs,test]"
+        uv pip install --system yq
+        python -m pip list
+
+    - name: Install apt-get dependencies
+      run: |
+        sudo apt-get update
+        # Ubuntu 22.04's pandoc is too old (2.9.2.x), so install manually
+        # until the ubuntu-latest updates.
+        curl --silent --location --remote-name https://github.com/jgm/pandoc/releases/download/3.1.6.2/pandoc-3.1.6.2-1-amd64.deb
+        sudo apt-get install ./pandoc-*amd64.deb
+
+    - name: Check docstrings
+      run: |
+        # Group 1 is related to docstrings
+        pydocstyle --select D1 src/pylhe/
+
+    - name: Verify CITATION.cff schema
+      run: |
+        jsonschema <(curl -sL "https://citation-file-format.github.io/1.2.0/schema.json") --instance <(cat CITATION.cff | yq)
+
+    - name: Check for broken links
+      run: |
+        pushd docs
+        make linkcheck
+        # Don't ship the linkcheck
+        rm -r build/linkcheck
+        popd
+
+    - name: Test and build docs
+      run: |
+        python -m doctest README.rst
+        pushd docs
+        make html
+
+    - name: Fix permissions if needed
+      run: |
+        chmod -c -R +rX "docs/build/html/" | while read line; do
+          echo "::warning title=Invalid file permissions automatically fixed::$line"
+        done
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: 'docs/build/html'
+
+  deploy:
+    name: Deploy docs to GitHub Pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    # Set permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup Pages
+      uses: actions/configure-pages@v5
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
