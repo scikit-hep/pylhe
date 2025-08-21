@@ -1,6 +1,6 @@
 # pylhe: Python LHE interface
 
-<img src="https://raw.githubusercontent.com/scikit-hep/pylhe/main/docs/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
+<img src="https://raw.githubusercontent.com/scikit-hep/pylhe/main/docs/source/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
 
 [![GitHub Project](https://img.shields.io/badge/GitHub--blue?style=social&logo=GitHub)](https://github.com/scikit-hep/pylhe)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1217031.svg)](https://doi.org/10.5281/zenodo.1217031)
@@ -75,7 +75,7 @@ event.graph.render(filename="test", format="pdf", cleanup=True)
 
 ### Writing
 
-For a full example see [write](docs/source/examples/write_monte_carlo_example.ipynb) or [filter](docs/source/examples/filter_events_example.ipynb).
+For a full example see [write](examples/write_monte_carlo_example.ipynb) or [filter](examples/filter_events_example.ipynb).
 The values in the sketch below are intentionally left empty since they depend on the use-case.
 The data structure of `pylhe` is:
 

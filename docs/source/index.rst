@@ -10,8 +10,6 @@
    :parser: myst_parser.sphinx_
 
 
-
-
 .. autosummary::
    :toctree: _autosummary
    :template: custom-module-template.rst
