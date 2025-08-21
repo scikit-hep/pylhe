@@ -1,3 +1,7 @@
+"""
+Python LHE interface
+"""
+
 import gzip
 import io
 import xml.etree.ElementTree as ET
@@ -43,6 +47,10 @@ _PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, 
 
 
 class LHEEvent:
+    """
+    Store a single event in the LHE format.
+    """
+
     def __init__(
         self, eventinfo, particles, weights=None, attributes=None, optional=None
     ):
@@ -153,6 +161,10 @@ class LHEEvent:
 
 
 class LHEEventInfo:
+    """
+    Store the event information in the LHE format.
+    """
+
     fieldnames = ["nparticles", "pid", "weight", "scale", "aqed", "aqcd"]
 
     def __init__(self, **kwargs):
@@ -180,6 +192,10 @@ class LHEEventInfo:
 
 
 class LHEParticle:
+    """
+    Represents a single particle in the LHE format.
+    """
+
     fieldnames = [
         "id",
         "status",
@@ -204,10 +220,13 @@ class LHEParticle:
             setattr(self, k, v)
 
     @classmethod
-    def fromstring(cls, string):
+    def fromstring(cls, string: str) -> "LHEParticle":
+        """
+        Create a LHEParticle from a string in LHE format.
+        """
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
-    def tolhe(self):
+    def tolhe(self) -> str:
         """
         Return the particle as a string in LHE format.
 
@@ -219,7 +238,7 @@ class LHEParticle:
             *[getattr(self, f) for f in self.fieldnames[6:]],
         )
 
-    def mothers(self):
+    def mothers(self) -> list["LHEParticle"]:
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
         return [
@@ -265,7 +284,7 @@ class LHEInitInfo(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def tolhe(self):
+    def tolhe(self) -> str:
         """
         Return the init info block as a string in LHE format.
 
@@ -288,7 +307,7 @@ class LHEInitInfo(dict):
         )
 
     @classmethod
-    def fromstring(cls, string):
+    def fromstring(cls, string) -> "LHEInitInfo":
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
@@ -300,7 +319,7 @@ class LHEProcInfo(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def tolhe(self):
+    def tolhe(self) -> str:
         """
         Return the process info block as a string in LHE format.
 
@@ -312,7 +331,7 @@ class LHEProcInfo(dict):
         )
 
     @classmethod
-    def fromstring(cls, string):
+    def fromstring(cls, string) -> "LHEProcInfo":
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
 
@@ -324,7 +343,7 @@ class LHEInit(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def tolhe(self):
+    def tolhe(self) -> str:
         """
         Return the init block as a string in LHE format.
 
@@ -475,7 +494,7 @@ def _extract_fileobj(filepath):
     )
 
 
-def read_lhe_init(filepath):
+def read_lhe_init(filepath) -> LHEInit:
     """
     Read and return the init blocks. This encodes the weight group
     and related things according to https://arxiv.org/abs/1405.1067
@@ -581,7 +600,7 @@ def read_lhe_with_attributes(filepath):
         return
 
 
-def read_num_events(filepath):
+def read_num_events(filepath) -> int:
     """
     Moderately efficient way to get the number of events stored in a file.
     """
