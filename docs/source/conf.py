@@ -31,7 +31,6 @@ rst_epilog = f""".. |project| replace:: {project} \n\n"""
 
 extensions = [
     "myst_nb",
-    # "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx.ext.githubpages",
     "sphinx.ext.viewcode",
@@ -41,8 +40,6 @@ extensions = [
     "sphinx_math_dollar",
     "sphinx.ext.autosummary",
     "sphinx.ext.coverage",
-    # "nbsphinx",
-    # "jupyter_sphinx",
 ]
 nb_execution_mode = "off"
 templates_path = ["_templates"]
@@ -51,5 +48,5 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "alabaster"
+html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
