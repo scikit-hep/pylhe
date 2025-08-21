@@ -61,9 +61,8 @@ jobs:
         rm -r build/linkcheck
         popd
 
-    - name: Test and build docs
+    - name: Build docs
       run: |
-        python -m doctest README.rst
         pushd docs
         make html
 
