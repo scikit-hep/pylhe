@@ -1,3 +1,7 @@
+"""
+Awkward interface for pylhe
+"""
+
 import awkward as ak
 import vector
 
