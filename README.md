@@ -11,7 +11,7 @@
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/pylhe.svg)](https://pypi.org/project/pylhe/)
 
 [![GitHub Actions Status](https://github.com/scikit-hep/pylhe/actions/workflows/ci.yml/badge.svg)](https://github.com/scikit-hep/pylhe/actions/workflows/ci.yml?query=branch%3Amain)
-[![Code Coverage](https://codecov.io/gh/scikit-hep/pylhe/graph/badge.svg?branch=main)](https://codecov.io/gh/scikit-hep/pylhe?branch=main)
+[![Code Coverage](https://codecov.io/gh/scikit-hep/pylhe/branch/main/graph/badge.svg)](https://app.codecov.io/gh/scikit-hep/pylhe/tree/main)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/scikit-hep/pylhe/main.svg)](https://results.pre-commit.ci/latest/github/scikit-hep/pylhe/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
