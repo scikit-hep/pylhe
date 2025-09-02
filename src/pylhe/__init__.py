@@ -189,7 +189,7 @@ class LHEEventInfo:
     @classmethod
     def fromstring(cls, string):
         """
-        Create a LHEEventInfo from a string in LHE format.
+        Create an `LHEEventInfo` instance from a string in LHE format.
         """
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
