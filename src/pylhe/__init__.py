@@ -1,5 +1,5 @@
 """
-Python LHE interface
+Python interface to read Les Houches Event (LHE) files.
 """
 
 import gzip
