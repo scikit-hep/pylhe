@@ -449,7 +449,7 @@ class LHEInit(dict):
     @classmethod
     def fromstring(cls, string: str) -> "LHEInit":
         """
-        Create an LHEEventInfo from a string in LHE format.
+        Create an `LHEEventInfo` instance from a string in LHE format.
         """
         return cls.frombuffer(io.StringIO(string))
 
