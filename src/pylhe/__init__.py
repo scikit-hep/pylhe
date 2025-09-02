@@ -187,7 +187,7 @@ class LHEEventInfo:
         )
 
     @classmethod
-    def fromstring(cls, string):
+    def fromstring(cls, string: str) -> "LHEEventInfo":
         """
         Create an `LHEEventInfo` instance from a string in LHE format.
         """
