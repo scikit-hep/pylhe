@@ -528,8 +528,9 @@ class LHEInit:
         # Map field names to dataclass attributes
         if key in self.fieldnames:
             setattr(self, key, value)
-        # Try to set on initInfo for backward compatibility
-        setattr(self.initInfo, key, value)
+        else:
+            # Try to set on initInfo for backward compatibility
+            setattr(self.initInfo, key, value)
 
     @classmethod
     def frombuffer(cls, fileobj):
