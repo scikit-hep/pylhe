@@ -53,6 +53,7 @@ class LHEEvent:
     """
     Store a single event in the LHE format.
     """
+
     eventinfo: "LHEEventInfo"
     particles: list["LHEParticle"]
     weights: Optional[dict] = None
@@ -169,6 +170,7 @@ class LHEEventInfo:
     """
     Store the event information in the LHE format.
     """
+
     nparticles: int
     pid: int
     weight: float
@@ -211,6 +213,7 @@ class LHEParticle:
     """
     Represents a single particle in the LHE format.
     """
+
     id: int
     status: int
     mother1: int
@@ -559,6 +562,7 @@ class LHEFile:
     """
     Represents an LHE file.
     """
+
     init: Optional[LHEInit] = None
     events: Optional[Iterable[LHEEvent]] = None
 
