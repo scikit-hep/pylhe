@@ -55,13 +55,17 @@ class LHEEvent:
     """
 
     eventinfo: "LHEEventInfo"
+    """Event information"""
     particles: list["LHEParticle"]
+    """List of particles in the event"""
     weights: Optional[dict] = None
+    """Event weights"""
     attributes: Optional[dict] = None
-    # This stores '#' comments including additional information per event
+    """Event attributes"""
     optional: Optional[list] = None
-    # Stores the graph representation of the event generated after first access of the property `lheevent.graph`
+    """Optional '#' comments stored in the event"""
     _graph: Optional[graphviz.Digraph] = None
+    """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
 
     def __post_init__(self):
         """Set up bidirectional relationship between event and particles."""
@@ -172,11 +176,17 @@ class LHEEventInfo:
     """
 
     nparticles: int
+    """Number of particles in the event"""
     pid: int
+    """Process ID for the event"""
     weight: float
+    """Event weight"""
     scale: float
+    """Energy scale of the event"""
     aqed: float
+    """QED coupling constant alpha_QED"""
     aqcd: float
+    """QCD coupling constant alpha_QCD"""
 
     def tolhe(self):
         """
@@ -215,18 +225,31 @@ class LHEParticle:
     """
 
     id: int
+    """PDG ID of the particle"""
     status: int
+    """Status code of the particle"""
     mother1: int
+    """First mother particle ID"""
     mother2: int
+    """Second mother particle ID"""
     color1: int
+    """First color line ID"""
     color2: int
+    """Second color line ID"""
     px: float
+    """Momentum component in x direction"""
     py: float
+    """Momentum component in y direction"""
     pz: float
+    """Momentum component in z direction"""
     e: float
+    """Energy of the particle"""
     m: float
+    """Mass of the particle"""
     lifetime: float
+    """Lifetime of the particle"""
     spin: float
+    """Spin of the particle"""
 
     @classmethod
     def fromstring(cls, string: str) -> "LHEParticle":
@@ -299,15 +322,25 @@ class LHEInitInfo:
     """Store the first line of the <init> block as dict."""
 
     beamA: int
+    """Beam A PDG ID"""
     beamB: int
+    """Beam B PDG ID"""
     energyA: float
+    """Beam A energy"""
     energyB: float
+    """Beam B energy"""
     PDFgroupA: int
+    """PDF group for beam A"""
     PDFgroupB: int
+    """PDF group for beam B"""
     PDFsetA: int
+    """PDF set for beam A"""
     PDFsetB: int
+    """PDF set for beam B"""
     weightingStrategy: int
+    """Weighting strategy"""
     numProcesses: int
+    """Number of processes"""
 
     def tolhe(self) -> str:
         """
@@ -368,9 +401,13 @@ class LHEProcInfo:
     """Store the process info block as dict."""
 
     xSection: float
+    """Cross section of the process"""
     error: float
+    """Uncertainty/error of the cross section"""
     unitWeight: float
+    """Unit weight of the process"""
     procId: int
+    """Process ID"""
 
     def tolhe(self) -> str:
         """
@@ -425,9 +462,13 @@ class LHEInit:
     """Store the <init> block as dict."""
 
     initInfo: LHEInitInfo
+    """Init information"""
     procInfo: list[LHEProcInfo]
+    """Process information"""
     weightgroup: dict
+    """Weight group information"""
     LHEVersion: str
+    """LHE version"""
 
     def tolhe(self) -> str:
         """
@@ -564,7 +605,9 @@ class LHEFile:
     """
 
     init: Optional[LHEInit] = None
+    """Init block"""
     events: Optional[Iterable[LHEEvent]] = None
+    """Event block"""
 
     def write(self, output_stream, rwgt=True, weights=False):
         """
