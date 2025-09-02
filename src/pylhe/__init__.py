@@ -342,7 +342,7 @@ class LHEProcInfo(dict):
     @classmethod
     def fromstring(cls, string: str) -> "LHEProcInfo":
         """
-        Create a LHEProcInfo from a string in LHE format.
+        Create an `LHEProcInfo` instance from a string in LHE format.
         """
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
