@@ -1,3 +1,7 @@
+"""
+[Awkward array](https://github.com/scikit-hep/awkward) interface for `pylhe`.
+"""
+
 import awkward as ak
 import vector
 

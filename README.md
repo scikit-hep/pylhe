@@ -1,6 +1,6 @@
 # pylhe: Python LHE interface
 
-<img src="https://raw.githubusercontent.com/scikit-hep/pylhe/main/docs/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
+<img src="https://raw.githubusercontent.com/scikit-hep/pylhe/main/docs/source/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
 
 [![GitHub Project](https://img.shields.io/badge/GitHub--blue?style=social&logo=GitHub)](https://github.com/scikit-hep/pylhe)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1217031.svg)](https://doi.org/10.5281/zenodo.1217031)
@@ -11,7 +11,7 @@
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/pylhe.svg)](https://pypi.org/project/pylhe/)
 
 [![GitHub Actions Status](https://github.com/scikit-hep/pylhe/actions/workflows/ci.yml/badge.svg)](https://github.com/scikit-hep/pylhe/actions/workflows/ci.yml?query=branch%3Amain)
-[![Code Coverage](https://codecov.io/gh/scikit-hep/pylhe/graph/badge.svg?branch=main)](https://codecov.io/gh/scikit-hep/pylhe?branch=main)
+[![Code Coverage](https://codecov.io/gh/scikit-hep/pylhe/branch/main/graph/badge.svg)](https://app.codecov.io/gh/scikit-hep/pylhe/tree/main)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/scikit-hep/pylhe/main.svg)](https://results.pre-commit.ci/latest/github/scikit-hep/pylhe/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -75,7 +75,7 @@ event.graph.render(filename="test", format="pdf", cleanup=True)
 
 ### Writing
 
-For a full example see [write](examples/write_monte_carlo_example.ipynb) or [filter](examples/filter_events_example.ipynb).
+For a full example see [write](examples/03_write_monte_carlo_example.ipynb) or [filter](examples/02_filter_events_example.ipynb).
 The values in the sketch below are intentionally left empty since they depend on the use-case.
 The data structure of `pylhe` is:
 
@@ -158,6 +158,20 @@ The preferred BibTeX entry for citation of `pylhe` is
   url = {https://github.com/scikit-hep/pylhe},
 }
 ```
+
+`pylhe` has been referenced in:
+
+* [Constraints on the trilinear and quartic Higgs couplings from triple Higgs production at the LHC and beyond](https://inspirehep.net/literature/2734125) (2023)
+* [BSM reach of four-top production at the LHC](https://inspirehep.net/literature/2633019) (2023)
+* [Probing compressed higgsinos with forward protons at the LHC](https://inspirehep.net/literature/2140007) (2023)
+* [FLArE up dark sectors with EM form factors at the LHC Forward Physics Facility](https://inspirehep.net/literature/2085195) (2022)
+* [Probing Neutrino-Portal Dark Matter at the Forward Physics Facility](https://inspirehep.net/literature/1966337) (2021)
+* [Looking forward to test the KOTO anomaly with FASER](https://inspirehep.net/literature/1801897) (2020)
+* [Probing Light Gauge Bosons in Tau Neutrino Experiments](https://inspirehep.net/literature/1794757) (2020)
+* [Benchmarking simplified template cross sections in WH production](https://inspirehep.net/literature/1750323) (2019)
+* [MadMiner: Machine learning-based inference for particle physics](https://inspirehep.net/literature/1746275) (2019)
+* [Search Strategy for Sleptons and Dark Matter Using the LHC as a Photon Collider](https://inspirehep.net/literature/1703804) (2018)
+
 
 ## Contributors
 

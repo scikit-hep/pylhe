@@ -1,3 +1,7 @@
+"""
+Python interface to read Les Houches Event (LHE) files.
+"""
+
 import gzip
 import io
 import warnings
@@ -46,6 +50,9 @@ _PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, 
 
 @dataclass
 class LHEEvent:
+    """
+    Store a single event in the LHE format.
+    """
     eventinfo: "LHEEventInfo"
     particles: list["LHEParticle"]
     weights: Optional[dict] = None
@@ -159,6 +166,9 @@ class LHEEvent:
 
 @dataclass
 class LHEEventInfo:
+    """
+    Store the event information in the LHE format.
+    """
     nparticles: int
     pid: int
     weight: float
@@ -176,7 +186,10 @@ class LHEEventInfo:
         return f"{self.nparticles:3d} {self.pid:6d} {self.weight: 15.10e} {self.scale: 15.10e} {self.aqed: 15.10e} {self.aqcd: 15.10e}"
 
     @classmethod
-    def fromstring(cls, string):
+    def fromstring(cls, string: str) -> "LHEEventInfo":
+        """
+        Create an `LHEEventInfo` instance from a string in LHE format.
+        """
         values = string.split()
         return cls(
             nparticles=int(float(values[0])),
@@ -195,6 +208,9 @@ class LHEEventInfo:
 
 @dataclass
 class LHEParticle:
+    """
+    Represents a single particle in the LHE format.
+    """
     id: int
     status: int
     mother1: int
@@ -210,7 +226,10 @@ class LHEParticle:
     spin: float
 
     @classmethod
-    def fromstring(cls, string):
+    def fromstring(cls, string: str) -> "LHEParticle":
+        """
+        Create an `LHEParticle` instance from a string in LHE format.
+        """
         values = string.split()
         return cls(
             id=int(float(values[0])),
@@ -228,7 +247,7 @@ class LHEParticle:
             spin=float(values[12]),
         )
 
-    def tolhe(self):
+    def tolhe(self) -> str:
         """
         Return the particle as a string in LHE format.
 
@@ -237,7 +256,10 @@ class LHEParticle:
         """
         return f"{self.id:5d} {self.status:3d} {self.mother1:3d} {self.mother2:3d} {self.color1:3d} {self.color2:3d} {self.px: 15.8e} {self.py: 15.8e} {self.pz: 15.8e} {self.e: 15.8e} {self.m: 15.8e} {self.lifetime: 10.4e} {self.spin: 10.4e}"
 
-    def mothers(self):
+    def mothers(self) -> list["LHEParticle"]:
+        """
+        Return a list of the particle's mothers.
+        """
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
         return [
@@ -284,7 +306,7 @@ class LHEInitInfo:
     weightingStrategy: int
     numProcesses: int
 
-    def tolhe(self):
+    def tolhe(self) -> str:
         """
         Return the init info block as a string in LHE format.
 
@@ -294,7 +316,10 @@ class LHEInitInfo:
         return f" {self.beamA: 6d} {self.beamB: 6d} {self.energyA: 14.7e} {self.energyB: 14.7e} {self.PDFgroupA: 5d} {self.PDFgroupB: 5d} {self.PDFsetA: 5d} {self.PDFsetB: 5d} {self.weightingStrategy: 5d} {self.numProcesses: 5d}"
 
     @classmethod
-    def fromstring(cls, string):
+    def fromstring(cls, string: str) -> "LHEInitInfo":
+        """
+        Create an `LHEInitInfo` instance from a string in LHE format.
+        """
         values = string.split()
         return cls(
             beamA=int(float(values[0])),
@@ -344,7 +369,7 @@ class LHEProcInfo:
     unitWeight: float
     procId: int
 
-    def tolhe(self):
+    def tolhe(self) -> str:
         """
         Return the process info block as a string in LHE format.
 
@@ -354,7 +379,10 @@ class LHEProcInfo:
         return f"{self.xSection: 14.7e} {self.error: 14.7e} {self.unitWeight: 14.7e} {self.procId: 5d}"
 
     @classmethod
-    def fromstring(cls, string):
+    def fromstring(cls, string: str) -> "LHEProcInfo":
+        """
+        Create an `LHEProcInfo` instance from a string in LHE format.
+        """
         values = string.split()
         return cls(
             xSection=float(values[0]),
@@ -398,7 +426,7 @@ class LHEInit:
     weightgroup: dict
     LHEVersion: str
 
-    def tolhe(self):
+    def tolhe(self) -> str:
         """
         Return the init block as a string in LHE format.
 
@@ -427,8 +455,10 @@ class LHEInit:
             + "</init>"
         )
 
-    # custom backwards compatibility get for dict
     def __getitem__(self, key):
+        """
+        custom backwards compatibility get for dict
+        """
         warnings.warn(
             f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
             f"Use `lheinit.{key}` instead.",
@@ -441,8 +471,10 @@ class LHEInit:
         # Try to get from initInfo for backward compatibility
         return getattr(self.initInfo, key)
 
-    # custom backwards compatibility set for dict
     def __setitem__(self, key, value):
+        """
+        custom backwards compatibility set for dict
+        """
         warnings.warn(
             f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
             f"Use `lheinit.{key}` instead.",
@@ -510,8 +542,10 @@ class LHEInit:
         )
 
     @classmethod
-    def fromstring(cls, string):
-        """Create an instance from a string."""
+    def fromstring(cls, string: str) -> "LHEInit":
+        """
+        Create an `LHEEventInfo` instance from a string in LHE format.
+        """
         return cls.frombuffer(io.StringIO(string))
 
     @property
@@ -522,6 +556,9 @@ class LHEInit:
 
 @dataclass
 class LHEFile:
+    """
+    Represents an LHE file.
+    """
     init: Optional[LHEInit] = None
     events: Optional[Iterable[LHEEvent]] = None
 
