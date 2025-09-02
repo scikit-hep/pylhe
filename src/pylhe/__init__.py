@@ -225,7 +225,7 @@ class LHEParticle:
     @classmethod
     def fromstring(cls, string: str) -> "LHEParticle":
         """
-        Create a LHEParticle from a string in LHE format.
+        Create an `LHEParticle` instance from a string in LHE format.
         """
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
