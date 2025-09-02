@@ -447,7 +447,7 @@ class LHEInit(dict):
         return cls(**initDict)
 
     @classmethod
-    def fromstring(cls, string):
+    def fromstring(cls, string: str) -> "LHEInit":
         """
         Create an LHEEventInfo from a string in LHE format.
         """
