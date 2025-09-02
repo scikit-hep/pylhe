@@ -313,7 +313,7 @@ class LHEInitInfo(dict):
         )
 
     @classmethod
-    def fromstring(cls, string) -> "LHEInitInfo":
+    def fromstring(cls, string: str) -> "LHEInitInfo":
         """
         Create a LHEInitInfo from a string in LHE format.
         """
