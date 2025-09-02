@@ -315,7 +315,7 @@ class LHEInitInfo(dict):
     @classmethod
     def fromstring(cls, string: str) -> "LHEInitInfo":
         """
-        Create a LHEInitInfo from a string in LHE format.
+        Create an `LHEInitInfo` instance from a string in LHE format.
         """
         return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
 
