@@ -161,17 +161,16 @@ The preferred BibTeX entry for citation of `pylhe` is
 
 `pylhe` has been referenced in:
 
-* [Search Strategy for Sleptons and Dark Matter Using the LHC as a Photon Collider](https://inspirehep.net/literature/1703804) (2018)
-* [MadMiner: Machine learning-based inference for particle physics](https://inspirehep.net/literature/1746275) (2019)
-* [Benchmarking simplified template cross sections in WH production](https://inspirehep.net/literature/1750323) (2019)
-* [Probing Light Gauge Bosons in Tau Neutrino Experiments](https://inspirehep.net/literature/1794757) (2020)
-* [Looking forward to test the KOTO anomaly with FASER](https://inspirehep.net/literature/1801897) (2020)
-* [Probing Neutrino-Portal Dark Matter at the Forward Physics Facility](https://inspirehep.net/literature/1966337) (2021)
-* [FLArE up dark sectors with EM form factors at the LHC Forward Physics Facility](https://inspirehep.net/literature/2085195) (2022)
-* [Probing compressed higgsinos with forward protons at the LHC](https://inspirehep.net/literature/2140007) (2023)
-* [BSM reach of four-top production at the LHC](https://inspirehep.net/literature/2633019) (2023)
 * [Constraints on the trilinear and quartic Higgs couplings from triple Higgs production at the LHC and beyond](https://inspirehep.net/literature/2734125) (2023)
-
+* [BSM reach of four-top production at the LHC](https://inspirehep.net/literature/2633019) (2023)
+* [Probing compressed higgsinos with forward protons at the LHC](https://inspirehep.net/literature/2140007) (2023)
+* [FLArE up dark sectors with EM form factors at the LHC Forward Physics Facility](https://inspirehep.net/literature/2085195) (2022)
+* [Probing Neutrino-Portal Dark Matter at the Forward Physics Facility](https://inspirehep.net/literature/1966337) (2021)
+* [Looking forward to test the KOTO anomaly with FASER](https://inspirehep.net/literature/1801897) (2020)
+* [Probing Light Gauge Bosons in Tau Neutrino Experiments](https://inspirehep.net/literature/1794757) (2020)
+* [Benchmarking simplified template cross sections in WH production](https://inspirehep.net/literature/1750323) (2019)
+* [MadMiner: Machine learning-based inference for particle physics](https://inspirehep.net/literature/1746275) (2019)
+* [Search Strategy for Sleptons and Dark Matter Using the LHC as a Photon Collider](https://inspirehep.net/literature/1703804) (2018)
 
 
 ## Contributors
