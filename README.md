@@ -6,6 +6,10 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1217031.svg)](https://doi.org/10.5281/zenodo.1217031)
 [![Scikit-HEP](https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg)](https://scikit-hep.org/)
 
+
+[![RTD Docs](https://readthedocs.org/projects/pylhe/badge/?version=latest)](https://pylhe.readthedocs.io/en/latest/?badge=latest)
+[![Live Docs](https://img.shields.io/badge/docs-main-blue.svg)](https://scikit-hep.github.io/pyhf)
+
 [![PyPI version](https://img.shields.io/pypi/v/pylhe.svg)](https://pypi.org/project/pylhe/)
 [![Conda-forge version](https://img.shields.io/conda/vn/conda-forge/pylhe.svg)](https://github.com/conda-forge/pylhe-feedstock)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/pylhe.svg)](https://pypi.org/project/pylhe/)
@@ -14,6 +18,7 @@
 [![Code Coverage](https://codecov.io/gh/scikit-hep/pylhe/branch/main/graph/badge.svg)](https://app.codecov.io/gh/scikit-hep/pylhe/tree/main)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/scikit-hep/pylhe/main.svg)](https://results.pre-commit.ci/latest/github/scikit-hep/pylhe/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 
 Small and thin Python interface to read [Les Houches Event (LHE)](https://inspirehep.net/record/725284) files
 
