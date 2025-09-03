@@ -6,6 +6,10 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1217031.svg)](https://doi.org/10.5281/zenodo.1217031)
 [![Scikit-HEP](https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg)](https://scikit-hep.org/)
 
+
+[![RTD Docs](https://readthedocs.org/projects/pylhe/badge/?version=latest)](https://pylhe.readthedocs.io/en/latest/?badge=latest)
+[![Live Docs](https://img.shields.io/badge/docs-main-blue.svg)](https://scikit-hep.org/pylhe/)
+
 [![PyPI version](https://img.shields.io/pypi/v/pylhe.svg)](https://pypi.org/project/pylhe/)
 [![Conda-forge version](https://img.shields.io/conda/vn/conda-forge/pylhe.svg)](https://github.com/conda-forge/pylhe-feedstock)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/pylhe.svg)](https://pypi.org/project/pylhe/)
