@@ -94,7 +94,7 @@ def test_read_lhe_init_v1():
     """
     init_data = pylhe.read_lhe_init(TEST_FILE_LHE_v1)
 
-    assert init_data["LHEVersion"] == pytest.approx(1.0)
+    assert init_data["LHEVersion"] == "1.0"
 
     init_info = init_data["initInfo"]
     assert init_info["beamA"] == pytest.approx(1.0)
