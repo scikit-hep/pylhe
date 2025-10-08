@@ -392,7 +392,7 @@ class LHEInitInfo:
 
     @property
     def fieldnames(self):
-        """fieldnames backwards compatibility."""
+        """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
         return [f.name for f in fields(self)]
 
 
