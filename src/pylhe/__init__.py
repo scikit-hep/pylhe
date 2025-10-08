@@ -371,7 +371,7 @@ class LHEInitInfo:
         )
 
     def __getitem__(self, key):
-        """Dict backwards compatibility."""
+        """Return a dict of the fieldnames. For backward compatibility with versions < 1.0.0."""
         warnings.warn(
             f'Access by `lheinitinfo["{key}"]` is deprecated and will be removed in a future version. '
             f"Use `lheinitinfo.{key}` instead.",
