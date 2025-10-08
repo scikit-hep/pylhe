@@ -241,7 +241,7 @@ class LHEParticle:
     py: float
     """Momentum component in y direction"""
     pz: float
-    """Momentum component in z direction"""
+    """Momentum z coordinate of the particle"""
     e: float
     """Energy of the particle"""
     m: float
