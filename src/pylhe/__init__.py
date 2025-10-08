@@ -319,7 +319,7 @@ def _indent(elem, level=0):
 
 @dataclass
 class LHEInitInfo:
-    """Store the first line of the <init> block as dict."""
+    """Store the first line of the <init> block as a dict."""
 
     beamA: int
     """Beam A PDG ID"""
