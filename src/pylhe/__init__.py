@@ -459,7 +459,7 @@ class LHEProcInfo:
 
 @dataclass
 class LHEInit:
-    """Store the <init> block as dict."""
+    """Store the <init> block as a dict."""
 
     initInfo: LHEInitInfo
     """Init information"""
