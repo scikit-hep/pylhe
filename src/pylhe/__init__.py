@@ -442,7 +442,7 @@ class LHEProcInfo:
         return getattr(self, key)
 
     def __setitem__(self, key, value):
-        """Dict backwards compatibility."""
+        """Set a dict item. For backward compatibility with versions < 1.0.0."""
         warnings.warn(
             f'Access by `lheprocinfo["{key}"]` is deprecated and will be removed in a future version. '
             f"Use `lheprocinfo.{key}` instead.",
