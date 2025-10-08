@@ -237,7 +237,7 @@ class LHEParticle:
     color2: int
     """Second color line ID"""
     px: float
-    """Momentum component in x direction"""
+    """Momentum x coordinate of the particle"""
     py: float
     """Momentum component in y direction"""
     pz: float
