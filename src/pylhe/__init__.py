@@ -4,11 +4,12 @@ Python interface to read Les Houches Event (LHE) files.
 
 import gzip
 import io
+import os
 import warnings
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable
 from dataclasses import dataclass, fields
-from typing import Optional
+from typing import Optional, Union
 
 import graphviz
 from particle import latex_to_html_name
@@ -46,6 +47,7 @@ def __dir__():
 
 # retrieve mapping of PDG ID to particle name as LaTeX string
 _PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
+PathLike = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
 
 
 @dataclass
@@ -319,7 +321,7 @@ def _indent(elem, level=0):
 
 @dataclass
 class LHEInitInfo:
-    """Store the first line of the <init> block as a dict."""
+    """Store the first line of the <init> block as a dataclass."""
 
     beamA: int
     """Beam A PDG ID"""
@@ -398,7 +400,7 @@ class LHEInitInfo:
 
 @dataclass
 class LHEProcInfo:
-    """Store the process info block as a dict."""
+    """Store the process info block as a dataclass."""
 
     xSection: float
     """Cross section of the process"""
@@ -459,7 +461,7 @@ class LHEProcInfo:
 
 @dataclass
 class LHEInit:
-    """Store the <init> block as a dict."""
+    """Store the <init> block as a dataclass."""
 
     initInfo: LHEInitInfo
     """Init information"""
@@ -501,7 +503,7 @@ class LHEInit:
 
     def __getitem__(self, key):
         """
-        custom backwards compatibility get for dict
+        Get a dict fieldname. For backward compatibility with versions < 1.0.0.
         """
         warnings.warn(
             f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
@@ -517,7 +519,7 @@ class LHEInit:
 
     def __setitem__(self, key, value):
         """
-        custom backwards compatibility set for dict
+        Set a dict fieldname. For backward compatibility with versions < 1.0.0.
         """
         warnings.warn(
             f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
@@ -602,7 +604,7 @@ class LHEInit:
 @dataclass
 class LHEFile:
     """
-    Represents an LHE file.
+    Represents an LHE file as a dataclass.
     """
 
     init: Optional[LHEInit] = None
@@ -628,7 +630,7 @@ class LHEFile:
         return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
 
 
-def read_lhe_file(filepath, with_attributes=True) -> LHEFile:
+def read_lhe_file(filepath: PathLike, with_attributes: bool = True) -> LHEFile:
     """
     Read an LHE file and return an LHEFile object.
     """
@@ -639,7 +641,7 @@ def read_lhe_file(filepath, with_attributes=True) -> LHEFile:
     return LHEFile(init=lheinit, events=lheevents)
 
 
-def _extract_fileobj(filepath):
+def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFile]:
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
     so that the uncompressed file can be returned.
@@ -661,7 +663,7 @@ def _extract_fileobj(filepath):
     )
 
 
-def read_lhe_init(filepath) -> LHEInit:
+def read_lhe_init(filepath: PathLike) -> LHEInit:
     """
     Read and return the init blocks. This encodes the weight group
     and related things according to https://arxiv.org/abs/1405.1067
@@ -676,7 +678,7 @@ def read_lhe_init(filepath) -> LHEInit:
         return LHEInit.frombuffer(fileobj)
 
 
-def read_lhe(filepath) -> Iterable[LHEEvent]:
+def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
     """
     Read and yield the events in the LHE file.
     """
@@ -701,7 +703,7 @@ def read_lhe(filepath) -> Iterable[LHEEvent]:
         return
 
 
-def _get_index_to_id_map(init):
+def _get_index_to_id_map(init: LHEInit) -> dict:
     """
     Produce a dictionary to map weight indices to the id of the weight.
 
@@ -710,19 +712,19 @@ def _get_index_to_id_map(init):
     Ideally, this needs to be done only once and the dictionary can be reused.
 
     Args:
-        init (dict): init block as returned by read_lhe_init
+        init (LHEInit): init block as returned by read_lhe_init
 
     Returns:
         dict: {weight index: weight id}
     """
     ret = {}
-    for wg in init["weightgroup"].values():
+    for wg in init.weightgroup.values():
         for id, w in wg["weights"].items():
             ret[w["index"]] = id
     return ret
 
 
-def read_lhe_with_attributes(filepath) -> Iterable[LHEEvent]:
+def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
     """
     Iterate through file, similar to read_lhe but also set
     weights and attributes.
@@ -764,11 +766,11 @@ def read_lhe_with_attributes(filepath) -> Iterable[LHEEvent]:
                                     )
                     # yield eventdict
                     yield LHEEvent(
-                        eventdict["eventinfo"],
-                        eventdict["particles"],
-                        eventdict["weights"],
-                        eventdict["attrib"],
-                        eventdict["optional"],
+                        eventinfo=eventdict["eventinfo"],
+                        particles=eventdict["particles"],
+                        weights=eventdict["weights"],
+                        attributes=eventdict["attrib"],
+                        optional=eventdict["optional"],
                     )
                     # Clear processed elements
                     element.clear()
@@ -779,7 +781,7 @@ def read_lhe_with_attributes(filepath) -> Iterable[LHEEvent]:
         return
 
 
-def read_num_events(filepath) -> int:
+def read_num_events(filepath: PathLike) -> int:
     """
     Moderately efficient way to get the number of events stored in a file.
     """
@@ -810,7 +812,12 @@ def write_lhe_file_string(
     return lhefile.tolhe(rwgt=rwgt, weights=weights)
 
 
-def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
+def write_lhe_string(
+    lheinit: LHEInit,
+    lheevents: Iterable[LHEEvent],
+    rwgt: bool = True,
+    weights: bool = False,
+):
     """
     Return the LHE file as a string.
 
@@ -851,7 +858,14 @@ def write_lhe_file_path(
         lhefile.write(f, rwgt=rwgt, weights=weights)
 
 
-def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=False):
+def write_lhe_file(
+    lheinit: LHEInit,
+    lheevents: Iterable[LHEEvent],
+    filepath: str,
+    gz: bool = False,
+    rwgt: bool = True,
+    weights: bool = False,
+):
     """
     Write the LHE file.
 
