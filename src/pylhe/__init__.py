@@ -398,7 +398,7 @@ class LHEInitInfo:
 
 @dataclass
 class LHEProcInfo:
-    """Store the process info block as dict."""
+    """Store the process info block as a dict."""
 
     xSection: float
     """Cross section of the process"""
