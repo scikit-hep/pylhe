@@ -9,7 +9,7 @@ import warnings
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable
 from dataclasses import dataclass, fields
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import graphviz
 from particle import latex_to_html_name
@@ -372,7 +372,7 @@ class LHEInitInfo:
             numProcesses=int(float(values[9])),
         )
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         """Return a dict of the fieldnames. For backward compatibility with versions < 1.0.0."""
         warnings.warn(
             f'Access by `lheinitinfo["{key}"]` is deprecated and will be removed in a future version. '
@@ -382,7 +382,7 @@ class LHEInitInfo:
         )
         return getattr(self, key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         """Set a dict fieldname. For backward compatibility with versions < 1.0.0."""
         warnings.warn(
             f'Access by `lheinitinfo["{key}"]` is deprecated and will be removed in a future version. '
@@ -390,7 +390,7 @@ class LHEInitInfo:
             DeprecationWarning,
             stacklevel=2,
         )
-        return setattr(self, key, value)
+        setattr(self, key, value)
 
     @property
     def fieldnames(self):
@@ -433,7 +433,7 @@ class LHEProcInfo:
             procId=int(float(values[3])),
         )
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         """Return a dict item. For backward compatibility with versions < 1.0.0."""
         warnings.warn(
             f'Access by `lheprocinfo["{key}"]` is deprecated and will be removed in a future version. '
@@ -443,7 +443,7 @@ class LHEProcInfo:
         )
         return getattr(self, key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         """Set a dict item. For backward compatibility with versions < 1.0.0."""
         warnings.warn(
             f'Access by `lheprocinfo["{key}"]` is deprecated and will be removed in a future version. '
@@ -451,7 +451,7 @@ class LHEProcInfo:
             DeprecationWarning,
             stacklevel=2,
         )
-        return setattr(self, key, value)
+        setattr(self, key, value)
 
     @property
     def fieldnames(self):
@@ -501,7 +501,7 @@ class LHEInit:
             + "</init>"
         )
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         """
         Get a dict fieldname. For backward compatibility with versions < 1.0.0.
         """
@@ -517,7 +517,7 @@ class LHEInit:
         # Try to get from initInfo for backward compatibility
         return getattr(self.initInfo, key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         """
         Set a dict fieldname. For backward compatibility with versions < 1.0.0.
         """
