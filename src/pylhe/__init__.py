@@ -9,7 +9,7 @@ import warnings
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable
 from dataclasses import dataclass, fields
-from typing import Any, Optional, Union
+from typing import Any, BinaryIO, Optional, TextIO, Union
 
 import graphviz
 from particle import latex_to_html_name
@@ -40,8 +40,17 @@ __all__ = [
     "write_lhe_string",
 ]
 
+from typing import Protocol, TypeVar
 
-def __dir__():
+
+class Writeable(Protocol):
+    def write(self, s: str) -> Any: ...
+
+
+TWriteable = TypeVar("TWriteable", bound=Writeable)
+
+
+def __dir__() -> list[str]:
     return __all__
 
 
@@ -60,21 +69,21 @@ class LHEEvent:
     """Event information"""
     particles: list["LHEParticle"]
     """List of particles in the event"""
-    weights: Optional[dict] = None
+    weights: Optional[dict[Union[str, int], float]] = None
     """Event weights"""
-    attributes: Optional[dict] = None
+    attributes: Optional[dict[str, str]] = None
     """Event attributes"""
-    optional: Optional[list] = None
+    optional: Optional[list[str]] = None
     """Optional '#' comments stored in the event"""
     _graph: Optional[graphviz.Digraph] = None
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Set up bidirectional relationship between event and particles."""
         for p in self.particles:
             p.event = self
 
-    def tolhe(self, rwgt=True, weights=False):
+    def tolhe(self, rwgt: bool = True, weights: bool = False) -> str:
         """
         Return the event as a string in LHE format.
 
@@ -108,7 +117,7 @@ class LHEEvent:
         )
 
     @property
-    def graph(self):
+    def graph(self) -> graphviz.Digraph:
         """
         Get the `graphviz.Digraph` object.
         The user now has full control ...
@@ -123,12 +132,12 @@ class LHEEvent:
             self._build_graph()
         return self._graph
 
-    def _build_graph(self):
+    def _build_graph(self) -> None:
         """
         Navigate the particles in the event and produce a Digraph in the DOT language.
         """
 
-        def safe_html_name(name):
+        def safe_html_name(name: str) -> Any:
             """
             Get a safe HTML name from the LaTex name.
             """
@@ -156,10 +165,10 @@ class LHEEvent:
 
     def _repr_mimebundle_(
         self,
-        include=None,
-        exclude=None,
-        **kwargs,
-    ):
+        include: Optional[Iterable[str]] = None,
+        exclude: Optional[Iterable[str]] = None,
+        **kwargs: dict[str, Any],
+    ) -> Any:
         """
         IPython display helper.
         """
@@ -190,7 +199,7 @@ class LHEEventInfo:
     aqcd: float
     """QCD coupling constant alpha_QCD"""
 
-    def tolhe(self):
+    def tolhe(self) -> str:
         """
         Return the event info as a string in LHE format.
 
@@ -215,7 +224,7 @@ class LHEEventInfo:
         )
 
     @property
-    def fieldnames(self):
+    def fieldnames(self) -> list[str]:
         """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
         return [f.name for f in fields(self)]
 
@@ -252,6 +261,8 @@ class LHEParticle:
     """Lifetime of the particle"""
     spin: float
     """Spin of the particle"""
+    event: Optional[LHEEvent] = None
+    """Reference to the parent event, set when the particle is added to an event."""
 
     @classmethod
     def fromstring(cls, string: str) -> "LHEParticle":
@@ -288,6 +299,9 @@ class LHEParticle:
         """
         Return a list of the particle's mothers.
         """
+        if self.event is None:
+            err = "Particle is not associated with an event."
+            raise ValueError(err)
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
         return [
@@ -295,12 +309,12 @@ class LHEParticle:
         ]
 
     @property
-    def fieldnames(self):
+    def fieldnames(self) -> list[str]:
         """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
         return [f.name for f in fields(self)]
 
 
-def _indent(elem, level=0):
+def _indent(elem: ET.Element, level: int = 0) -> None:
     """
     XML indentation helper from https://stackoverflow.com/a/33956544.
     """
@@ -393,7 +407,7 @@ class LHEInitInfo:
         setattr(self, key, value)
 
     @property
-    def fieldnames(self):
+    def fieldnames(self) -> list[str]:
         """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
         return [f.name for f in fields(self)]
 
@@ -454,9 +468,67 @@ class LHEProcInfo:
         setattr(self, key, value)
 
     @property
-    def fieldnames(self):
+    def fieldnames(self) -> list[str]:
         """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
         return [f.name for f in fields(self)]
+
+
+@dataclass
+class LHEWeightInfo:
+    """Information about a single weight in a weight group."""
+
+    attrib: dict[str, str]
+    """Weight XML attributes"""
+    name: str
+    """Weight description text"""
+    index: int
+    """Sequential index for ordering"""
+
+    def __getitem__(self, key: str) -> Any:
+        """Get a weight attribute by its key. Backward compatibility for < 1.0.0."""
+        warnings.warn(
+            "Access by `lheweightinfo['key']` is deprecated and will be removed in a future version. Use `lheweightinfo.key` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return getattr(self, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Set a weight attribute by its key. Backward compatibility for < 1.0.0."""
+        warnings.warn(
+            "Access by `lheweightinfo['key']` is deprecated and will be removed in a future version. Use `lheweightinfo.key` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        setattr(self, key, value)
+
+
+@dataclass
+class LHEWeightGroup:
+    """Information about a weight group."""
+
+    attrib: dict[str, str]
+    """Weight group XML attributes"""
+    weights: dict[str, LHEWeightInfo]
+    """Dictionary of weight ID to weight information"""
+
+    def __getitem__(self, key: str) -> LHEWeightInfo:
+        """Get a weight by its ID. Backward compatibility for < 1.0.0."""
+        warnings.warn(
+            "Access by `lheweightgroup['key']` is deprecated and will be removed in a future version. Use `lheweightgroup.key` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.weights[key]
+
+    def __setitem__(self, key: str, value: LHEWeightInfo) -> None:
+        """Set a weight by its ID. Backward compatibility for < 1.0.0."""
+        warnings.warn(
+            "Access by `lheweightgroup['key']` is deprecated and will be removed in a future version. Use `lheweightgroup.key` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.weights[key] = value
 
 
 @dataclass
@@ -467,7 +539,7 @@ class LHEInit:
     """Init information"""
     procInfo: list[LHEProcInfo]
     """Process information"""
-    weightgroup: dict
+    weightgroup: dict[str, LHEWeightGroup]
     """Weight group information"""
     LHEVersion: str
     """LHE version"""
@@ -482,8 +554,8 @@ class LHEInit:
         # weightgroups to xml
         root = ET.Element("initrwgt")
         for _k, v in self.weightgroup.items():
-            weightgroup_elem = ET.SubElement(root, "weightgroup", **v["attrib"])
-            for _key, value in v["weights"].items():
+            weightgroup_elem = ET.SubElement(root, "weightgroup", attrib=v.attrib)
+            for _key, value in v.weights.items():
                 weight_elem = ET.SubElement(
                     weightgroup_elem, "weight", **value["attrib"]
                 )
@@ -535,12 +607,12 @@ class LHEInit:
             setattr(self.initInfo, key, value)
 
     @classmethod
-    def frombuffer(cls, fileobj):
+    def frombuffer(cls, fileobj: Union[TextIO, BinaryIO, gzip.GzipFile]) -> "LHEInit":
         """Create an instance from a file-like object (buffer)."""
         initInfo = None
         procInfo = []
-        weightgroup = {}
-        LHEVersion = None
+        weightgroup: dict[str, LHEWeightGroup] = {}
+        LHEVersion: str = ""
 
         for _event, element in ET.iterparse(fileobj, events=["start", "end"]):
             if element.tag == "init":
@@ -560,7 +632,7 @@ class LHEInit:
                         else:
                             ae = "weightgroup must have attribute 'type' or 'name'."
                             raise AttributeError(ae)
-                        _temp = {"attrib": child.attrib, "weights": {}}
+                        _temp = LHEWeightGroup(attrib=child.attrib, weights={})
                         # Iterate over all weights in this weightgroup
                         for w in child:
                             if w.tag != "weight":
@@ -569,11 +641,11 @@ class LHEInit:
                                 ae = "weight must have attribute 'id'"
                                 raise AttributeError(ae)
                             wg_id = w.attrib["id"]
-                            _temp["weights"][wg_id] = {
-                                "attrib": w.attrib,
-                                "name": w.text.strip() if w.text else "",
-                                "index": index,
-                            }
+                            _temp["weights"][wg_id] = LHEWeightInfo(
+                                attrib=w.attrib,
+                                name=w.text.strip() if w.text else "",
+                                index=index,
+                            )
                             index += 1
 
                         weightgroup[wg_type] = _temp
@@ -581,6 +653,9 @@ class LHEInit:
                 LHEVersion = element.attrib["version"]
             if element.tag == "event":
                 break
+        if initInfo is None:
+            err = "No <init> block found in the LHE file."
+            raise ValueError(err)
         return cls(
             initInfo=initInfo,
             procInfo=procInfo,
@@ -596,7 +671,7 @@ class LHEInit:
         return cls.frombuffer(io.StringIO(string))
 
     @property
-    def fieldnames(self):
+    def fieldnames(self) -> list[str]:
         """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
         return [f.name for f in fields(self)]
 
@@ -612,18 +687,25 @@ class LHEFile:
     events: Optional[Iterable[LHEEvent]] = None
     """Event block"""
 
-    def write(self, output_stream, rwgt=True, weights=False):
+    def write(
+        self, output_stream: TWriteable, rwgt: bool = True, weights: bool = False
+    ) -> TWriteable:
         """
         Write the LHE file to an output stream.
         """
-        output_stream.write(f'<LesHouchesEvents version="{self.init["LHEVersion"]}">\n')
-        output_stream.write(self.init.tolhe() + "\n")
-        for e in self.events:
-            output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
+        output_stream.write("<LesHouchesEvents")
+        if self.init is not None:
+            output_stream.write(f' version="{self.init.LHEVersion}"')
+        output_stream.write(">\n")
+        if self.init is not None:
+            output_stream.write(self.init.tolhe() + "\n")
+        if self.events is not None:
+            for e in self.events:
+                output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
         output_stream.write("</LesHouchesEvents>")
         return output_stream
 
-    def tolhe(self, rwgt=True, weights=False) -> str:
+    def tolhe(self, rwgt: bool = True, weights: bool = False) -> str:
         """
         Return the LHE file as a string.
         """
@@ -703,7 +785,7 @@ def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
         return
 
 
-def _get_index_to_id_map(init: LHEInit) -> dict:
+def _get_index_to_id_map(init: LHEInit) -> dict[int, str]:
     """
     Produce a dictionary to map weight indices to the id of the weight.
 
@@ -719,8 +801,8 @@ def _get_index_to_id_map(init: LHEInit) -> dict:
     """
     ret = {}
     for wg in init.weightgroup.values():
-        for id, w in wg["weights"].items():
-            ret[w["index"]] = id
+        for id, w in wg.weights.items():
+            ret[w.index] = id
     return ret
 
 
@@ -736,7 +818,7 @@ def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
             _, root = next(context)  # Get the root element
             for event, element in context:
                 if event == "end" and element.tag == "event":
-                    eventdict = {}
+                    eventdict: dict[str, Any] = {}
                     data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventdict["eventinfo"] = LHEEventInfo.fromstring(eventdata)
@@ -817,7 +899,7 @@ def write_lhe_string(
     lheevents: Iterable[LHEEvent],
     rwgt: bool = True,
     weights: bool = False,
-):
+) -> str:
     """
     Return the LHE file as a string.
 
@@ -837,7 +919,7 @@ def write_lhe_string(
     )
 
 
-def _open_write_file(filepath: str, gz: bool = False):
+def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
     if filepath.endswith((".gz", ".gzip")) or gz:
         return gzip.open(filepath, "wt")
     return open(filepath, "w")
@@ -849,7 +931,7 @@ def write_lhe_file_path(
     gz: bool = False,
     rwgt: bool = True,
     weights: bool = False,
-):
+) -> None:
     """
     Write the LHE file.
     """
@@ -865,7 +947,7 @@ def write_lhe_file(
     gz: bool = False,
     rwgt: bool = True,
     weights: bool = False,
-):
+) -> None:
     """
     Write the LHE file.
 
