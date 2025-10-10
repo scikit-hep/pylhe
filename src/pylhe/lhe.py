@@ -198,7 +198,14 @@ class LHEEventInfo:
 
     @property
     def fieldnames(self) -> list[str]:
-        """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
+        """
+        Return the fieldnames.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Listing fieldnames via `lheeventinfo.fieldnames` is deprecated and will be removed in a future version.
+        """
         return [f.name for f in fields(self)]
 
 
@@ -283,7 +290,14 @@ class LHEParticle:
 
     @property
     def fieldnames(self) -> list[str]:
-        """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
+        """
+        Return the fieldnames.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Listing fieldnames via `lheparticle.fieldnames` is deprecated and will be removed in a future version.
+        """
         # "event" would be more fittingly called "_event" since was never in the fieldnames
         return [f.name for f in fields(self) if f.name != "event"]
 
@@ -361,7 +375,14 @@ class LHEInitInfo:
         )
 
     def __getitem__(self, key: str) -> Any:
-        """Return a dict of the fieldnames. For backward compatibility with versions < 1.0.0."""
+        """
+        Return a dict of the fieldnames.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheinitinfo['key']` is deprecated and will be removed in a future version. Use `lheinitinfo.key` instead.
+        """
         warnings.warn(
             f'Access by `lheinitinfo["{key}"]` is deprecated and will be removed in a future version. '
             f"Use `lheinitinfo.{key}` instead.",
@@ -371,7 +392,14 @@ class LHEInitInfo:
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
-        """Set a dict fieldname. For backward compatibility with versions < 1.0.0."""
+        """
+        Set a dict fieldname.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheinitinfo['key']` is deprecated and will be removed in a future version. Use `lheinitinfo.key` instead.
+        """
         warnings.warn(
             f'Access by `lheinitinfo["{key}"]` is deprecated and will be removed in a future version. '
             f"Use `lheinitinfo.{key}` instead.",
@@ -382,7 +410,14 @@ class LHEInitInfo:
 
     @property
     def fieldnames(self) -> list[str]:
-        """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
+        """
+        Return the fieldnames.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Listing fieldnames via `lheinitinfo.fieldnames` is deprecated and will be removed in a future version.
+        """
         return [f.name for f in fields(self)]
 
 
@@ -422,7 +457,14 @@ class LHEProcInfo:
         )
 
     def __getitem__(self, key: str) -> Any:
-        """Return a dict item. For backward compatibility with versions < 1.0.0."""
+        """
+        Return a dict item.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheprocinfo['key']` is deprecated and will be removed in a future version. Use `lheprocinfo.key` instead.
+        """
         warnings.warn(
             f'Access by `lheprocinfo["{key}"]` is deprecated and will be removed in a future version. '
             f"Use `lheprocinfo.{key}` instead.",
@@ -432,7 +474,14 @@ class LHEProcInfo:
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
-        """Set a dict item. For backward compatibility with versions < 1.0.0."""
+        """
+        Set a dict item.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheprocinfo['key']` is deprecated and will be removed in a future version. Use `lheprocinfo.key` instead.
+        """
         warnings.warn(
             f'Access by `lheprocinfo["{key}"]` is deprecated and will be removed in a future version. '
             f"Use `lheprocinfo.{key}` instead.",
@@ -443,7 +492,14 @@ class LHEProcInfo:
 
     @property
     def fieldnames(self) -> list[str]:
-        """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
+        """
+        Return the fieldnames.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Listing fieldnames via `lheprocinfo.fieldnames` is deprecated and will be removed in a future version.
+        """
         return [f.name for f in fields(self)]
 
 
@@ -459,7 +515,14 @@ class LHEWeightInfo:
     """Sequential index for ordering"""
 
     def __getitem__(self, key: str) -> Any:
-        """Get a weight attribute by its key. Backward compatibility for < 1.0.0."""
+        """
+        Get a weight attribute by its key.
+
+        For backward compatibility for < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheweightinfo['key']` is deprecated and will be removed in a future version. Use `lheweightinfo.key` instead.
+        """
         warnings.warn(
             "Access by `lheweightinfo['key']` is deprecated and will be removed in a future version. Use `lheweightinfo.key` instead.",
             DeprecationWarning,
@@ -468,7 +531,14 @@ class LHEWeightInfo:
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
-        """Set a weight attribute by its key. Backward compatibility for < 1.0.0."""
+        """
+        Set a weight attribute by its key.
+
+        For backward compatibility for < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheweightinfo['key']` is deprecated and will be removed in a future version. Use `lheweightinfo.key` instead.
+        """
         warnings.warn(
             "Access by `lheweightinfo['key']` is deprecated and will be removed in a future version. Use `lheweightinfo.key` instead.",
             DeprecationWarning,
@@ -487,7 +557,14 @@ class LHEWeightGroup:
     """Dictionary of weight ID to weight information"""
 
     def __getitem__(self, key: str) -> Any:
-        """Get a weight by its ID. Backward compatibility for < 1.0.0."""
+        """
+        Get a weight by its ID.
+
+        For Backward compatibility for < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheweightgroup['key']` is deprecated and will be removed in a future version. Use `lheweightgroup.key` instead.
+        """
         warnings.warn(
             "Access by `lheweightgroup['key']` is deprecated and will be removed in a future version. Use `lheweightgroup.key` instead.",
             DeprecationWarning,
@@ -496,7 +573,14 @@ class LHEWeightGroup:
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: LHEWeightInfo) -> None:
-        """Set a weight by its ID. Backward compatibility for < 1.0.0."""
+        """
+        Set a weight by its ID.
+
+        For Backward compatibility for < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheweightgroup['key']` is deprecated and will be removed in a future version. Use `lheweightgroup.key` instead.
+        """
         warnings.warn(
             "Access by `lheweightgroup['key']` is deprecated and will be removed in a future version. Use `lheweightgroup.key` instead.",
             DeprecationWarning,
@@ -549,7 +633,12 @@ class LHEInit:
 
     def __getitem__(self, key: str) -> Any:
         """
-        Get a dict fieldname. For backward compatibility with versions < 1.0.0.
+        Get a dict fieldname.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheinit["key"]` is deprecated and will be removed in a future version.
         """
         warnings.warn(
             f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
@@ -565,7 +654,12 @@ class LHEInit:
 
     def __setitem__(self, key: str, value: Any) -> None:
         """
-        Set a dict fieldname. For backward compatibility with versions < 1.0.0.
+        Set a dict fieldname.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheinit["key"]` is deprecated and will be removed in a future version.
         """
         warnings.warn(
             f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
@@ -646,7 +740,14 @@ class LHEInit:
 
     @property
     def fieldnames(self) -> list[str]:
-        """Return the fieldnames. For backward compatibility with versions < 1.0.0."""
+        """
+        Return the fieldnames.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Listing fieldnames via `lheinit.fieldnames` is deprecated and will be removed in a future version.
+        """
         return [f.name for f in fields(self)]
 
 

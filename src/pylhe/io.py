@@ -256,6 +256,7 @@ def write_lhe_file(
 
     .. deprecated:: 0.9.1
        Instead of :func:`~pylhe.write_lhe_file` use :func:`~pylhe.write_lhe_file_path`
+
     .. warning:: :func:`~pylhe.write_lhe_file` will be removed in
      ``pylhe`` ``v0.11.0``.
     """

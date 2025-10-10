@@ -17,6 +17,8 @@
    :caption: Modules:
 
    pylhe
+   pylhe.lhe
+   pylhe.io
    pylhe.awkward
 
 
