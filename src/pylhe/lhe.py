@@ -658,7 +658,7 @@ class LHEFile:
 
     init: Optional[LHEInit] = None
     """Init block"""
-    events: Optional[Iterable[LHEEvent]] = None
+    events: Iterable[LHEEvent] = ()
     """Event block"""
 
     def write(
@@ -673,9 +673,8 @@ class LHEFile:
         output_stream.write(">\n")
         if self.init is not None:
             output_stream.write(self.init.tolhe() + "\n")
-        if self.events is not None:
-            for e in self.events:
-                output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
+        for e in self.events:
+            output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
         output_stream.write("</LesHouchesEvents>")
         return output_stream
 
