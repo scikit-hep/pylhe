@@ -615,7 +615,7 @@ class LHEInit:
                                 ae = "weight must have attribute 'id'"
                                 raise AttributeError(ae)
                             wg_id = w.attrib["id"]
-                            _temp["weights"][wg_id] = LHEWeightInfo(
+                            _temp.weights[wg_id] = LHEWeightInfo(
                                 attrib=w.attrib,
                                 name=w.text.strip() if w.text else "",
                                 index=index,
