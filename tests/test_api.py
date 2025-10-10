@@ -10,6 +10,8 @@ def test_top_level_api():
         "LHEInitInfo",
         "LHEParticle",
         "LHEProcInfo",
+        "LHEWeightGroup",
+        "LHEWeightInfo",
         "__version__",
         "read_lhe",
         "read_lhe_file",

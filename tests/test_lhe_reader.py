@@ -61,18 +61,22 @@ def testdata_gzip_file():
 
 
 def test_gzip_open(testdata_gzip_file):
-    assert pylhe._extract_fileobj(TEST_FILE_LHE_v1)
-    assert pylhe._extract_fileobj(testdata_gzip_file)
+    assert pylhe.io._extract_fileobj(TEST_FILE_LHE_v1)
+    assert pylhe.io._extract_fileobj(testdata_gzip_file)
 
     # Needs path-like object, not a fileobj
     with pytest.raises(TypeError), open(TEST_FILE_LHE_v1, "rb") as fileobj:
-        pylhe._extract_fileobj(fileobj)
+        pylhe.io._extract_fileobj(fileobj)
 
     with open(TEST_FILE_LHE_v1, "rb") as fileobj:
-        assert isinstance(pylhe._extract_fileobj(TEST_FILE_LHE_v1), type(fileobj))
-        assert isinstance(pylhe._extract_fileobj(Path(TEST_FILE_LHE_v1)), type(fileobj))
-    assert isinstance(pylhe._extract_fileobj(testdata_gzip_file), gzip.GzipFile)
-    assert isinstance(pylhe._extract_fileobj(Path(testdata_gzip_file)), gzip.GzipFile)
+        assert isinstance(pylhe.io._extract_fileobj(TEST_FILE_LHE_v1), type(fileobj))
+        assert isinstance(
+            pylhe.io._extract_fileobj(Path(TEST_FILE_LHE_v1)), type(fileobj)
+        )
+    assert isinstance(pylhe.io._extract_fileobj(testdata_gzip_file), gzip.GzipFile)
+    assert isinstance(
+        pylhe.io._extract_fileobj(Path(testdata_gzip_file)), gzip.GzipFile
+    )
 
 
 def test_read_num_events(testdata_gzip_file):
