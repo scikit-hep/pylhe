@@ -593,7 +593,7 @@ class LHEWeightGroup:
         """
         Get a weight by its ID.
 
-        For Backward compatibility for < 1.0.0.
+        For backward compatibility for < 1.0.0.
 
         .. deprecated:: 1.0.0
             Access by `lheweightgroup['key']` is deprecated and will be removed in a future version. Use `lheweightgroup.key` instead.
