@@ -69,8 +69,9 @@ def test_LHEEventInfo_backwards_compatibility():
     ]
 
 
-def test_LHEFile_default_init():
-    assert LHEFile() is not None
+def test_LHEFile_no_default_init():
+    with pytest.raises(TypeError):
+        _ = LHEFile()
 
 
 def test_LHEInit_no_default_init():
