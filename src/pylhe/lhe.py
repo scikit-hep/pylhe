@@ -531,9 +531,9 @@ class LHEInit:
             weightgroup_elem = ET.SubElement(root, "weightgroup", attrib=v.attrib)
             for _key, value in v.weights.items():
                 weight_elem = ET.SubElement(
-                    weightgroup_elem, "weight", **value["attrib"]
+                    weightgroup_elem, "weight", attrib=value.attrib
                 )
-                weight_elem.text = value["name"]
+                weight_elem.text = value.name
         _indent(root)
         sweightgroups = ET.tostring(root, encoding="unicode", method="xml")
 
