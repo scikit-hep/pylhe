@@ -42,6 +42,16 @@ __all__ = [
 ]
 
 
+def __dir__() -> list[str]:
+    return __all__
+
+
+# retrieve mapping of PDG ID to particle name as LaTeX string
+_PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
+
+PathLike = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
+
+
 class Writeable(Protocol):
     """
     A protocol for writeable objects.
@@ -53,15 +63,6 @@ class Writeable(Protocol):
 
 
 TWriteable = TypeVar("TWriteable", bound=Writeable)
-
-# retrieve mapping of PDG ID to particle name as LaTeX string
-_PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
-
-PathLike = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
-
-
-def __dir__() -> list[str]:
-    return __all__
 
 
 @dataclass
@@ -789,7 +790,7 @@ class LHEFile:
     Represents an LHE file as a dataclass.
     """
 
-    init: Optional[LHEInit] = None
+    init: LHEInit
     """Init block"""
     events: Iterable[LHEEvent] = ()
     """Event block"""
