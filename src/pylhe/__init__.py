@@ -313,7 +313,7 @@ class LHEParticle:
         Return a list of the particle's mothers.
         """
         if self.event is None:
-            err = "Particle is not associated with an event."
+            err = "Particle is not associated to an event."
             raise ValueError(err)
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
