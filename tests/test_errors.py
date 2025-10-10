@@ -49,7 +49,6 @@ def test_missing_init_block_error_with_file():
         with pytest.raises(ValueError, match="No <init> block found in the LHE file"):
             pylhe.read_lhe_init(tmp_file_path)
     finally:
-
         os.unlink(tmp_file_path)
 
 
