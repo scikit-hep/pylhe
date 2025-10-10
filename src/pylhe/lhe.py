@@ -16,14 +16,6 @@ from particle.converters.bimap import DirectionalMaps
 from particle.exceptions import MatchingIDNotFound
 
 
-# Add a lazy import function at the end of the file:
-def to_awkward(events: Iterable["LHEEvent"]) -> Any:
-    """Lazy import wrapper for to_awkward function."""
-    from pylhe.awkward import to_awkward as _to_awkward  # noqa: PLC0415
-
-    return _to_awkward(events)
-
-
 class Writeable(Protocol):
     """
     A protocol for writeable objects.
