@@ -7,7 +7,7 @@ from collections.abc import Iterable
 import awkward as ak
 import vector
 
-from pylhe.lhe import LHEEvent
+from pylhe import LHEEvent
 
 __all__ = ["to_awkward"]
 
