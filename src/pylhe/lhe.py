@@ -25,7 +25,13 @@ def to_awkward(events: Iterable["LHEEvent"]) -> Any:
 
 
 class Writeable(Protocol):
-    def write(self, s: str) -> Any: ...
+    """
+    A protocol for writeable objects.
+    """
+
+    def write(self, s: str) -> Any:
+        """Write a string to the object."""
+        ...
 
 
 TWriteable = TypeVar("TWriteable", bound=Writeable)
