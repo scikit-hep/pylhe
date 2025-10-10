@@ -195,6 +195,10 @@ def test_LHEParticle_backwards_compatibility():
         "spin",
     ]
 
+    # particle is not assosicated to an event thus mothers should raise a ValueError
+    with pytest.raises(ValueError, match="Particle is not associated to an event    "):
+        _ = particle.mothers()
+
 
 def test_LHEProcInfo_no_default_init():
     with pytest.raises(TypeError):
