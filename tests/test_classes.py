@@ -196,7 +196,7 @@ def test_LHEParticle_backwards_compatibility():
     ]
 
     # particle is not assosicated to an event thus mothers should raise a ValueError
-    with pytest.raises(ValueError, match="Particle is not associated to an event    "):
+    with pytest.raises(ValueError, match="Particle is not associated to an event"):
         _ = particle.mothers()
 
 
