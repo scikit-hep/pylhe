@@ -168,7 +168,7 @@ class LHEEvent(DictCompatibility):
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
 
     def __post_init__(self) -> None:
-        """Set up bidirectional relationship between event and particles."""
+        """Set up a bidirectional relationship between event and particles."""
         for p in self.particles:
             p.event = self
 
