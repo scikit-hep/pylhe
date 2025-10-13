@@ -37,3 +37,4 @@ repos:
     - id: mypy
       files: src
       args: [--show-error-codes]
+      additional_dependencies: [particle, awkward, vector]
