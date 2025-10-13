@@ -55,4 +55,6 @@ html_static_path = ["_static"]
 linkcheck_ignore = [
     # Currently, down or blocking
     r"https?://allcontributors\.org/.*",
+    # Often interrupted service
+    r"https?://.*\.hepforge\.org/.*",
 ]

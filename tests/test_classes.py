@@ -69,8 +69,9 @@ def test_LHEEventInfo_backwards_compatibility():
     ]
 
 
-def test_LHEFile_default_init():
-    assert LHEFile() is not None
+def test_LHEFile_no_default_init():
+    with pytest.raises(TypeError):
+        _ = LHEFile()
 
 
 def test_LHEInit_no_default_init():
@@ -193,6 +194,10 @@ def test_LHEParticle_backwards_compatibility():
         "lifetime",
         "spin",
     ]
+
+    # particle is not associated to an event thus mothers should raise a ValueError
+    with pytest.raises(ValueError, match="Particle is not associated to an event."):
+        _ = particle.mothers()
 
 
 def test_LHEProcInfo_no_default_init():

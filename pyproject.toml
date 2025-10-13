@@ -48,6 +48,7 @@ dependencies = [
 [project.optional-dependencies]
 lint = [
     "ruff",
+    "mypy>=1.0.0",
 ]
 test = [
     "pydocstyle",
@@ -101,6 +102,19 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pylhe"]
+
+[tool.mypy]
+warn_unused_configs = true
+warn_unused_ignores = true
+python_version = "3.9"
+files = "src"
+strict = true
+warn_unreachable = true
+enable_error_code = [
+    "ignore-without-code",
+    "redundant-expr",
+    "truthy-bool",
+]
 
 [tool.ruff.lint]
 extend-select = [

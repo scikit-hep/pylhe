@@ -19,7 +19,7 @@
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/scikit-hep/pylhe/main.svg)](https://results.pre-commit.ci/latest/github/scikit-hep/pylhe/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-Small and thin Python interface to read [Les Houches Event (LHE)](https://inspirehep.net/record/725284) files
+Small and thin Python interface to read [Les Houches Event (LHE)](https://inspirehep.net/literature/725284) files
 
 
 ## Tested Monte Carlo Generators' LHE output
