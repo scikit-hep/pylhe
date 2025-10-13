@@ -32,7 +32,8 @@ repos:
     - id: ruff-format
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.13.0'  # Use the sha / tag you want to point at
+    rev: v1.18.2
     hooks:
-    -   id: mypy
-        files: src
+    - id: mypy
+      files: src
+      args: [--show-error-codes]
