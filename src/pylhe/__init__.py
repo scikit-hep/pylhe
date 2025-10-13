@@ -677,7 +677,7 @@ class LHEInit(DictCompatibility):
                 break
         if initInfo is None:
             err = "No <init> block found in the LHE file."
-            raise ValueError(err) from None
+            raise ValueError(err)
         return cls(
             initInfo=initInfo,
             procInfo=procInfo,
