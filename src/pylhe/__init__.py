@@ -239,13 +239,14 @@ class LHEEvent(DictCompatibility):
 
         self._graph = graphviz.Digraph()
         for i, p in enumerate(self.particles):
+            iid = int(p.id)
+            sid = str(iid)
             try:
-                iid = int(p.id)
-                name = _PDGID2LaTeXNameMap[str(iid)]
+                name = _PDGID2LaTeXNameMap[sid]
                 texlbl = f"${name}$"
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{safe_html_name(name)}</td></tr></table>>'
             except MatchingIDNotFound:
-                texlbl = str(int(p.id))
+                texlbl = sid
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
             self._graph.node(
                 str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
