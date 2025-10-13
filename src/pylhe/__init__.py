@@ -18,7 +18,7 @@ from particle.converters.bimap import DirectionalMaps
 from particle.exceptions import MatchingIDNotFound
 
 from pylhe._version import (
-    version as __version__,  # type: ignore[unused-ignore,import-untyped]
+    version as __version__,  # type: ignore[unused-ignore,import-untyped,import-not-found]
 )
 
 __all__ = [
