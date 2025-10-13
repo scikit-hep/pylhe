@@ -4,17 +4,20 @@ Python interface to read Les Houches Event (LHE) files.
 
 import gzip
 import io
+import os
+import warnings
 import xml.etree.ElementTree as ET
-from collections.abc import Iterable
-from typing import Optional
+from abc import ABC
+from collections.abc import Iterable, MutableMapping
+from dataclasses import asdict, dataclass, fields
+from typing import Any, BinaryIO, Optional, Protocol, TextIO, TypeVar, Union
 
-import graphviz
+import graphviz  # type: ignore[import-untyped]
 from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 from particle.exceptions import MatchingIDNotFound
 
 from pylhe._version import version as __version__
-from pylhe.awkward import to_awkward
 
 __all__ = [
     "LHEEvent",
@@ -24,6 +27,8 @@ __all__ = [
     "LHEInitInfo",
     "LHEParticle",
     "LHEProcInfo",
+    "LHEWeightGroup",
+    "LHEWeightInfo",
     "__version__",
     "read_lhe",
     "read_lhe_file",
@@ -38,32 +43,136 @@ __all__ = [
 ]
 
 
-def __dir__():
+def __dir__() -> list[str]:
     return __all__
 
 
 # retrieve mapping of PDG ID to particle name as LaTeX string
-_PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
+_PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(str, str))
+
+PathLike = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
 
 
-class LHEEvent:
+class Writeable(Protocol):
+    """
+    A protocol for writeable objects.
+    """
+
+    def write(self, s: str) -> Any:
+        """Write a string to the object."""
+        ...
+
+
+TWriteable = TypeVar("TWriteable", bound=Writeable)
+
+
+@dataclass
+class DictCompatibility(MutableMapping[str, Any], ABC):
+    """
+    Mixin for dataclasses to behave like mutable dictionaries.
+    """
+
+    def __getitem__(self, key: str) -> Any:
+        """
+        Get a dict by fieldname.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `object['key']` is deprecated and will be removed in a future version. Use `object.key` instead.
+        """
+        warnings.warn(
+            f'Access by `object["{key}"]` is deprecated and will be removed in a future version. '
+            f"Use `object.{key}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return getattr(self, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        """
+        Set a dict by fieldname.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `object['key']` is deprecated and will be removed in a future version. Use `object.key` instead.
+        """
+        warnings.warn(
+            f'Access by `object["{key}"]` is deprecated and will be removed in a future version. '
+            f"Use `object.{key}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        setattr(self, key, value)
+
+    def __delitem__(self, key: str) -> None:
+        err = f"Cannot delete field {key!r} from dataclass instance"
+        raise TypeError(err)
+
+    def __iter__(self) -> Any:
+        warnings.warn(
+            "Dict-like iteration is deprecated and will be removed in a future version. "
+            "Use `asdict(object)` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return iter(asdict(self))
+
+    def __len__(self) -> int:
+        warnings.warn(
+            "Dict-like length is deprecated and will be removed in a future version. "
+            "Use `asdict(object)` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return len(asdict(self))
+
+    @property
+    def fieldnames(self) -> list[str]:
+        """
+        Return the fieldnames.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Listing fieldnames via `object.fieldnames` is deprecated and will be removed in a future version.
+        """
+        # "event" would be more fittingly called "_event" since was never in the fieldnames
+        warnings.warn(
+            "The fieldnames property is deprecated and will be removed in a future version. "
+            "Use `asdict(object)` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return [f.name for f in fields(self)]
+
+
+@dataclass
+class LHEEvent(DictCompatibility):
     """
     Store a single event in the LHE format.
     """
 
-    def __init__(
-        self, eventinfo, particles, weights=None, attributes=None, optional=None
-    ):
-        self.eventinfo = eventinfo
-        self.particles = particles
-        self.weights = weights
-        self.attributes = attributes
-        self.optional = optional
+    eventinfo: "LHEEventInfo"
+    """Event information"""
+    particles: list["LHEParticle"]
+    """List of particles in the event"""
+    weights: Optional[dict[Union[str, int], float]] = None
+    """Event weights"""
+    attributes: Optional[dict[str, str]] = None
+    """Event attributes"""
+    optional: Optional[list[str]] = None
+    """Optional '#' comments stored in the event"""
+    _graph: Optional[graphviz.Digraph] = None
+    """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
+
+    def __post_init__(self) -> None:
+        """Set up a bidirectional relationship between event and particles."""
         for p in self.particles:
             p.event = self
-        self._graph = None
 
-    def tolhe(self, rwgt=True, weights=False):
+    def tolhe(self, rwgt: bool = True, weights: bool = False) -> str:
         """
         Return the event as a string in LHE format.
 
@@ -97,7 +206,7 @@ class LHEEvent:
         )
 
     @property
-    def graph(self):
+    def graph(self) -> graphviz.Digraph:
         """
         Get the `graphviz.Digraph` object.
         The user now has full control ...
@@ -112,12 +221,12 @@ class LHEEvent:
             self._build_graph()
         return self._graph
 
-    def _build_graph(self):
+    def _build_graph(self) -> None:
         """
         Navigate the particles in the event and produce a Digraph in the DOT language.
         """
 
-        def safe_html_name(name):
+        def safe_html_name(name: str) -> str:
             """
             Get a safe HTML name from the LaTex name.
             """
@@ -128,13 +237,14 @@ class LHEEvent:
 
         self._graph = graphviz.Digraph()
         for i, p in enumerate(self.particles):
+            iid = int(p.id)
+            sid = str(iid)
             try:
-                iid = int(p.id)
-                name = _PDGID2LaTeXNameMap[iid]
+                name = _PDGID2LaTeXNameMap[sid]
                 texlbl = f"${name}$"
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{safe_html_name(name)}</td></tr></table>>'
             except MatchingIDNotFound:
-                texlbl = str(int(p.id))
+                texlbl = sid
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
             self._graph.node(
                 str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
@@ -145,10 +255,10 @@ class LHEEvent:
 
     def _repr_mimebundle_(
         self,
-        include=None,
-        exclude=None,
-        **kwargs,
-    ):
+        include: Optional[Iterable[str]] = None,
+        exclude: Optional[Iterable[str]] = None,
+        **kwargs: dict[str, Any],
+    ) -> Any:
         """
         IPython display helper.
         """
@@ -160,74 +270,121 @@ class LHEEvent:
             return {"image/svg+xml": self.graph._repr_svg_()}  # for graphviz < 0.19
 
 
-class LHEEventInfo:
+@dataclass
+class LHEEventInfo(DictCompatibility):
     """
     Store the event information in the LHE format.
     """
 
-    fieldnames = ["nparticles", "pid", "weight", "scale", "aqed", "aqcd"]
+    nparticles: int
+    """Number of particles in the event"""
+    pid: int
+    """Process ID for the event"""
+    weight: float
+    """Event weight"""
+    scale: float
+    """Energy scale of the event"""
+    aqed: float
+    """QED coupling constant alpha_QED"""
+    aqcd: float
+    """QCD coupling constant alpha_QCD"""
 
-    def __init__(self, **kwargs):
-        if set(kwargs.keys()) != set(self.fieldnames):
-            msg = f"LHEEventInfo constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
-            raise RuntimeError(msg)
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
-    def tolhe(self):
+    def tolhe(self) -> str:
         """
         Return the event info as a string in LHE format.
 
         Returns:
             str: The event info as a string in LHE format.
         """
-        return "{:3d} {:6d} {: 15.10e} {: 15.10e} {: 15.10e} {: 15.10e}".format(
-            *[int(getattr(self, f)) for f in self.fieldnames[:2]],
-            *[getattr(self, f) for f in self.fieldnames[2:]],
-        )
+        return f"{self.nparticles:3d} {self.pid:6d} {self.weight: 15.10e} {self.scale: 15.10e} {self.aqed: 15.10e} {self.aqcd: 15.10e}"
 
     @classmethod
     def fromstring(cls, string: str) -> "LHEEventInfo":
         """
         Create an `LHEEventInfo` instance from a string in LHE format.
         """
-        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
+        values = string.split()
+        return cls(
+            nparticles=int(float(values[0])),
+            pid=int(float(values[1])),
+            weight=float(values[2]),
+            scale=float(values[3]),
+            aqed=float(values[4]),
+            aqcd=float(values[5]),
+        )
 
 
-class LHEParticle:
+@dataclass
+class LHEParticle(DictCompatibility):
     """
     Represents a single particle in the LHE format.
     """
 
-    fieldnames = [
-        "id",
-        "status",
-        "mother1",
-        "mother2",
-        "color1",
-        "color2",
-        "px",
-        "py",
-        "pz",
-        "e",
-        "m",
-        "lifetime",
-        "spin",
-    ]
+    id: int
+    """PDG ID of the particle"""
+    status: int
+    """Status code of the particle"""
+    mother1: int
+    """First mother particle ID"""
+    mother2: int
+    """Second mother particle ID"""
+    color1: int
+    """First color line ID"""
+    color2: int
+    """Second color line ID"""
+    px: float
+    """Momentum x coordinate of the particle"""
+    py: float
+    """Momentum y coordinate of the particle"""
+    pz: float
+    """Momentum z coordinate of the particle"""
+    e: float
+    """Energy of the particle"""
+    m: float
+    """Mass of the particle"""
+    lifetime: float
+    """Lifetime of the particle"""
+    spin: float
+    """Spin of the particle"""
 
-    def __init__(self, **kwargs):
-        if set(kwargs.keys()) != set(self.fieldnames):
-            msg = f"LHEParticle constructor expects fields {self.fieldnames}! Got {kwargs.keys()}."
-            raise RuntimeError(msg)
-        for k, v in kwargs.items():
-            setattr(self, k, v)
+    def __post_init__(self) -> None:
+        """Initialize the event reference."""
+        # we store the circular event reference in a private attribute
+        self._event: Optional[LHEEvent] = None
+
+    @property
+    def event(self) -> Optional["LHEEvent"]:
+        """Reference to the parent event, set when the particle is added to an event."""
+        # Previously it was just event so we still allow that for backward compatibility
+        return self._event
+
+    @event.setter
+    def event(self, value: Optional["LHEEvent"]) -> None:
+        """Set the parent event reference."""
+        # Previously it was just event so we still allow that for backward compatibility
+        self._event = value
 
     @classmethod
     def fromstring(cls, string: str) -> "LHEParticle":
         """
         Create an `LHEParticle` instance from a string in LHE format.
         """
-        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
+        values = string.split()
+        return cls(
+            id=int(float(values[0])),
+            status=int(float(values[1])),
+            mother1=int(float(values[2])),
+            mother2=int(float(values[3])),
+            color1=int(float(values[4])),
+            color2=int(float(values[5])),
+            px=float(values[6]),
+            py=float(values[7]),
+            pz=float(values[8]),
+            e=float(values[9]),
+            m=float(values[10]),
+            lifetime=float(values[11]),
+            spin=float(values[12]),
+        )
 
     def tolhe(self) -> str:
         """
@@ -236,15 +393,15 @@ class LHEParticle:
         Returns:
             str: The particle as a string in LHE format.
         """
-        return "{:5d} {:3d} {:3d} {:3d} {:3d} {:3d} {: 15.8e} {: 15.8e} {: 15.8e} {: 15.8e} {: 15.8e} {: 10.4e} {: 10.4e}".format(
-            *[int(getattr(self, f)) for f in self.fieldnames[:6]],
-            *[getattr(self, f) for f in self.fieldnames[6:]],
-        )
+        return f"{self.id:5d} {self.status:3d} {self.mother1:3d} {self.mother2:3d} {self.color1:3d} {self.color2:3d} {self.px: 15.8e} {self.py: 15.8e} {self.pz: 15.8e} {self.e: 15.8e} {self.m: 15.8e} {self.lifetime: 10.4e} {self.spin: 10.4e}"
 
     def mothers(self) -> list["LHEParticle"]:
         """
         Return a list of the particle's mothers.
         """
+        if self.event is None:
+            err = "Particle is not associated to an event."
+            raise ValueError(err)
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
         return [
@@ -252,7 +409,7 @@ class LHEParticle:
         ]
 
 
-def _indent(elem, level=0):
+def _indent(elem: ET.Element, level: int = 0) -> None:
     """
     XML indentation helper from https://stackoverflow.com/a/33956544.
     """
@@ -271,24 +428,30 @@ def _indent(elem, level=0):
         elem.tail = i
 
 
-class LHEInitInfo(dict):
-    """Store the first line of the <init> block as dict."""
+@dataclass
+class LHEInitInfo(DictCompatibility):
+    """Store the first line of the <init> block as a dataclass."""
 
-    fieldnames = [
-        "beamA",
-        "beamB",
-        "energyA",
-        "energyB",
-        "PDFgroupA",
-        "PDFgroupB",
-        "PDFsetA",
-        "PDFsetB",
-        "weightingStrategy",
-        "numProcesses",
-    ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    beamA: int
+    """Beam A PDG ID"""
+    beamB: int
+    """Beam B PDG ID"""
+    energyA: float
+    """Beam A energy"""
+    energyB: float
+    """Beam B energy"""
+    PDFgroupA: int
+    """PDF group for beam A"""
+    PDFgroupB: int
+    """PDF group for beam B"""
+    PDFsetA: int
+    """PDF set for beam A"""
+    PDFsetB: int
+    """PDF set for beam B"""
+    weightingStrategy: int
+    """Weighting strategy"""
+    numProcesses: int
+    """Number of processes"""
 
     def tolhe(self) -> str:
         """
@@ -297,36 +460,40 @@ class LHEInitInfo(dict):
         Returns:
             str: The init info block as a string in LHE format.
         """
-        return (
-            " {: 6d} {: 6d} {: 14.7e} {: 14.7e} {: 5d} {: 5d} {: 5d} {: 5d} {: 5d} {: 5d}"
-        ).format(
-            int(self["beamA"]),
-            int(self["beamB"]),
-            self["energyA"],
-            self["energyB"],
-            int(self["PDFgroupA"]),
-            int(self["PDFgroupB"]),
-            int(self["PDFsetA"]),
-            int(self["PDFsetB"]),
-            int(self["weightingStrategy"]),
-            int(self["numProcesses"]),
-        )
+        return f" {self.beamA: 6d} {self.beamB: 6d} {self.energyA: 14.7e} {self.energyB: 14.7e} {self.PDFgroupA: 5d} {self.PDFgroupB: 5d} {self.PDFsetA: 5d} {self.PDFsetB: 5d} {self.weightingStrategy: 5d} {self.numProcesses: 5d}"
 
     @classmethod
     def fromstring(cls, string: str) -> "LHEInitInfo":
         """
         Create an `LHEInitInfo` instance from a string in LHE format.
         """
-        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
+        values = string.split()
+        return cls(
+            beamA=int(float(values[0])),
+            beamB=int(float(values[1])),
+            energyA=float(values[2]),
+            energyB=float(values[3]),
+            PDFgroupA=int(float(values[4])),
+            PDFgroupB=int(float(values[5])),
+            PDFsetA=int(float(values[6])),
+            PDFsetB=int(float(values[7])),
+            weightingStrategy=int(float(values[8])),
+            numProcesses=int(float(values[9])),
+        )
 
 
-class LHEProcInfo(dict):
-    """Store the process info block as dict."""
+@dataclass
+class LHEProcInfo(DictCompatibility):
+    """Store the process info block as a dataclass."""
 
-    fieldnames = ["xSection", "error", "unitWeight", "procId"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    xSection: float
+    """Cross section of the process"""
+    error: float
+    """Uncertainty/error of the cross section"""
+    unitWeight: float
+    """Unit weight of the process"""
+    procId: int
+    """Process ID"""
 
     def tolhe(self) -> str:
         """
@@ -335,25 +502,56 @@ class LHEProcInfo(dict):
         Returns:
             str: The process info block as a string in LHE format.
         """
-        return ("{: 14.7e} {: 14.7e} {: 14.7e} {: 5d}").format(
-            self["xSection"], self["error"], self["unitWeight"], int(self["procId"])
-        )
+        return f"{self.xSection: 14.7e} {self.error: 14.7e} {self.unitWeight: 14.7e} {self.procId: 5d}"
 
     @classmethod
     def fromstring(cls, string: str) -> "LHEProcInfo":
         """
         Create an `LHEProcInfo` instance from a string in LHE format.
         """
-        return cls(**dict(zip(cls.fieldnames, map(float, string.split()))))
+        values = string.split()
+        return cls(
+            xSection=float(values[0]),
+            error=float(values[1]),
+            unitWeight=float(values[2]),
+            procId=int(float(values[3])),
+        )
 
 
-class LHEInit(dict):
-    """Store the <init> block as dict."""
+@dataclass
+class LHEWeightInfo(DictCompatibility):
+    """Information about a single weight in a weight group."""
 
-    fieldnames = ["initInfo", "procInfo", "weightgroup", "LHEVersion"]
+    attrib: dict[str, str]
+    """Weight XML attributes"""
+    name: str
+    """Weight description text"""
+    index: int
+    """Sequential index for ordering"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+@dataclass
+class LHEWeightGroup(DictCompatibility):
+    """Information about a weight group."""
+
+    attrib: dict[str, str]
+    """Weight group XML attributes"""
+    weights: dict[str, LHEWeightInfo]
+    """Dictionary of weight ID to weight information"""
+
+
+@dataclass
+class LHEInit(DictCompatibility):
+    """Store the <init> block as a dataclass."""
+
+    initInfo: LHEInitInfo
+    """Init information"""
+    procInfo: list[LHEProcInfo]
+    """Process information"""
+    weightgroup: dict[str, LHEWeightGroup]
+    """Weight group information"""
+    LHEVersion: str
+    """LHE version"""
 
     def tolhe(self) -> str:
         """
@@ -364,54 +562,87 @@ class LHEInit(dict):
         """
         # weightgroups to xml
         root = ET.Element("initrwgt")
-        for _k, v in self["weightgroup"].items():
-            weightgroup_elem = ET.SubElement(root, "weightgroup", **v["attrib"])
-            for _key, value in v["weights"].items():
+        for _k, v in self.weightgroup.items():
+            weightgroup_elem = ET.SubElement(root, "weightgroup", attrib=v.attrib)
+            for _key, value in v.weights.items():
                 weight_elem = ET.SubElement(
-                    weightgroup_elem, "weight", **value["attrib"]
+                    weightgroup_elem, "weight", attrib=value.attrib
                 )
-                weight_elem.text = value["name"]
+                weight_elem.text = value.name
         _indent(root)
         sweightgroups = ET.tostring(root, encoding="unicode", method="xml")
 
         return (
             "<init>\n"
-            + self["initInfo"].tolhe()
+            + self.initInfo.tolhe()
             + "\n"
-            + "\n".join([p.tolhe() for p in self["procInfo"]])
+            + "\n".join([p.tolhe() for p in self.procInfo])
             + "\n"
             + f"{sweightgroups}"
             + "</init>"
         )
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         """
-        custom backwards compatibility get for dict
-        """
-        if key not in self:
-            return self["initInfo"][key]
-        return super().__getitem__(key)
+        Get a dict fieldname.
 
-    def __setitem__(self, key, value):
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheinit["key"]` is deprecated and will be removed in a future version.
         """
-        custom backwards compatibility set for dict
+        warnings.warn(
+            f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
+            f"Use `lheinit.{key}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        # Map field names to dataclass attributes
+        if key in self.fieldnames:
+            return getattr(self, key)
+        # Try to get from initInfo for backward compatibility
+        return getattr(self.initInfo, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:
         """
-        if key not in self:
-            self["initInfo"][key] = value
+        Set a dict fieldname.
+
+        For backward compatibility with versions < 1.0.0.
+
+        .. deprecated:: 1.0.0
+            Access by `lheinit["key"]` is deprecated and will be removed in a future version.
+        """
+        warnings.warn(
+            f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
+            f"Use `lheinit.{key}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        # Map field names to dataclass attributes
+        if key in self.fieldnames:
+            setattr(self, key, value)
         else:
-            self.super().__setitem__(key, value)
+            # Try to set on initInfo for backward compatibility
+            setattr(self.initInfo, key, value)
 
     @classmethod
-    def frombuffer(cls, fileobj):
+    def frombuffer(cls, fileobj: Union[TextIO, BinaryIO, gzip.GzipFile]) -> "LHEInit":
         """Create an instance from a file-like object (buffer)."""
-        initDict = {}
+        initInfo = None
+        procInfo = []
+        weightgroup: dict[str, LHEWeightGroup] = {}
+        LHEVersion: str = ""
+
         for _event, element in ET.iterparse(fileobj, events=["start", "end"]):
             if element.tag == "init":
+                if element.text is None:
+                    err = "<init> block has no text."
+                    raise ValueError(err)
                 data = element.text.split("\n")[1:-1]
-                initDict["initInfo"] = LHEInitInfo.fromstring(data[0])
-                initDict["procInfo"] = [LHEProcInfo.fromstring(d) for d in data[1:]]
+                initInfo = LHEInitInfo.fromstring(data[0])
+                procInfo = [LHEProcInfo.fromstring(d) for d in data[1:]]
             if element.tag == "initrwgt":
-                initDict["weightgroup"] = {}
+                weightgroup = {}
                 index = 0
                 for child in element:
                     # Find all weightgroups
@@ -423,7 +654,7 @@ class LHEInit(dict):
                         else:
                             ae = "weightgroup must have attribute 'type' or 'name'."
                             raise AttributeError(ae)
-                        _temp = {"attrib": child.attrib, "weights": {}}
+                        _temp = LHEWeightGroup(attrib=child.attrib, weights={})
                         # Iterate over all weights in this weightgroup
                         for w in child:
                             if w.tag != "weight":
@@ -432,19 +663,27 @@ class LHEInit(dict):
                                 ae = "weight must have attribute 'id'"
                                 raise AttributeError(ae)
                             wg_id = w.attrib["id"]
-                            _temp["weights"][wg_id] = {
-                                "attrib": w.attrib,
-                                "name": w.text.strip() if w.text else "",
-                                "index": index,
-                            }
+                            _temp.weights[wg_id] = LHEWeightInfo(
+                                attrib=w.attrib,
+                                name=w.text.strip() if w.text else "",
+                                index=index,
+                            )
                             index += 1
 
-                        initDict["weightgroup"][wg_type] = _temp
+                        weightgroup[wg_type] = _temp
             if element.tag == "LesHouchesEvents":
-                initDict["LHEVersion"] = float(element.attrib["version"])
+                LHEVersion = element.attrib["version"]
             if element.tag == "event":
                 break
-        return cls(**initDict)
+        if initInfo is None:
+            err = "No <init> block found in the LHE file."
+            raise ValueError(err)
+        return cls(
+            initInfo=initInfo,
+            procInfo=procInfo,
+            weightgroup=weightgroup,
+            LHEVersion=LHEVersion,
+        )
 
     @classmethod
     def fromstring(cls, string: str) -> "LHEInit":
@@ -454,36 +693,38 @@ class LHEInit(dict):
         return cls.frombuffer(io.StringIO(string))
 
 
-class LHEFile:
+@dataclass
+class LHEFile(DictCompatibility):
     """
-    Represents an LHE file.
+    Represents an LHE file as a dataclass.
     """
 
-    def __init__(
-        self, init: LHEInit = None, events: Optional[Iterable[LHEEvent]] = None
-    ):
-        self.init = init
-        self.events = events
+    init: LHEInit
+    """Init block"""
+    events: Iterable[LHEEvent] = ()
+    """Event block"""
 
-    def write(self, output_stream, rwgt=True, weights=False):
+    def write(
+        self, output_stream: TWriteable, rwgt: bool = True, weights: bool = False
+    ) -> TWriteable:
         """
         Write the LHE file to an output stream.
         """
-        output_stream.write(f'<LesHouchesEvents version="{self.init["LHEVersion"]}">\n')
+        output_stream.write(f'<LesHouchesEvents version="{self.init.LHEVersion}">\n')
         output_stream.write(self.init.tolhe() + "\n")
         for e in self.events:
             output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
         output_stream.write("</LesHouchesEvents>")
         return output_stream
 
-    def tolhe(self, rwgt=True, weights=False) -> str:
+    def tolhe(self, rwgt: bool = True, weights: bool = False) -> str:
         """
         Return the LHE file as a string.
         """
         return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
 
 
-def read_lhe_file(filepath, with_attributes=True) -> LHEFile:
+def read_lhe_file(filepath: PathLike, with_attributes: bool = True) -> LHEFile:
     """
     Read an LHE file and return an LHEFile object.
     """
@@ -494,7 +735,7 @@ def read_lhe_file(filepath, with_attributes=True) -> LHEFile:
     return LHEFile(init=lheinit, events=lheevents)
 
 
-def _extract_fileobj(filepath):
+def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFile]:
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
     so that the uncompressed file can be returned.
@@ -516,7 +757,7 @@ def _extract_fileobj(filepath):
     )
 
 
-def read_lhe_init(filepath) -> LHEInit:
+def read_lhe_init(filepath: PathLike) -> LHEInit:
     """
     Read and return the init blocks. This encodes the weight group
     and related things according to https://arxiv.org/abs/1405.1067
@@ -531,7 +772,7 @@ def read_lhe_init(filepath) -> LHEInit:
         return LHEInit.frombuffer(fileobj)
 
 
-def read_lhe(filepath):
+def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
     """
     Read and yield the events in the LHE file.
     """
@@ -541,6 +782,9 @@ def read_lhe(filepath):
             _, root = next(context)  # Get the root element
             for event, element in context:
                 if event == "end" and element.tag == "event":
+                    if element.text is None:
+                        err = "<event> block has no text."
+                        raise ValueError(err)
                     data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventinfo = LHEEventInfo.fromstring(eventdata)
@@ -556,7 +800,7 @@ def read_lhe(filepath):
         return
 
 
-def _get_index_to_id_map(init):
+def _get_index_to_id_map(init: LHEInit) -> dict[int, str]:
     """
     Produce a dictionary to map weight indices to the id of the weight.
 
@@ -565,19 +809,19 @@ def _get_index_to_id_map(init):
     Ideally, this needs to be done only once and the dictionary can be reused.
 
     Args:
-        init (dict): init block as returned by read_lhe_init
+        init (LHEInit): init block as returned by read_lhe_init
 
     Returns:
         dict: {weight index: weight id}
     """
     ret = {}
-    for wg in init["weightgroup"].values():
-        for id, w in wg["weights"].items():
-            ret[w["index"]] = id
+    for wg in init.weightgroup.values():
+        for id, w in wg.weights.items():
+            ret[w.index] = id
     return ret
 
 
-def read_lhe_with_attributes(filepath):
+def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
     """
     Iterate through file, similar to read_lhe but also set
     weights and attributes.
@@ -589,7 +833,10 @@ def read_lhe_with_attributes(filepath):
             _, root = next(context)  # Get the root element
             for event, element in context:
                 if event == "end" and element.tag == "event":
-                    eventdict = {}
+                    eventdict: dict[str, Any] = {}
+                    if element.text is None:
+                        err = "<event> block has no text."
+                        raise ValueError(err)
                     data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventdict["eventinfo"] = LHEEventInfo.fromstring(eventdata)
@@ -608,22 +855,28 @@ def read_lhe_with_attributes(filepath):
                                 index_map = _get_index_to_id_map(
                                     read_lhe_init(filepath)
                                 )
+                            if sub.text is None:
+                                err = "<weights> block has no text."
+                                raise ValueError(err)
                             for i, w in enumerate(sub.text.split()):
                                 if w and index_map[i] not in eventdict["weights"]:
                                     eventdict["weights"][index_map[i]] = float(w)
                         if sub.tag == "rwgt":
                             for r in sub:
                                 if r.tag == "wgt":
+                                    if r.text is None:
+                                        err = "<wgt> block has no text."
+                                        raise ValueError(err)
                                     eventdict["weights"][r.attrib["id"]] = float(
                                         r.text.strip()
                                     )
                     # yield eventdict
                     yield LHEEvent(
-                        eventdict["eventinfo"],
-                        eventdict["particles"],
-                        eventdict["weights"],
-                        eventdict["attrib"],
-                        eventdict["optional"],
+                        eventinfo=eventdict["eventinfo"],
+                        particles=eventdict["particles"],
+                        weights=eventdict["weights"],
+                        attributes=eventdict["attrib"],
+                        optional=eventdict["optional"],
                     )
                     # Clear processed elements
                     element.clear()
@@ -634,7 +887,7 @@ def read_lhe_with_attributes(filepath):
         return
 
 
-def read_num_events(filepath) -> int:
+def read_num_events(filepath: PathLike) -> int:
     """
     Moderately efficient way to get the number of events stored in a file.
     """
@@ -665,21 +918,30 @@ def write_lhe_file_string(
     return lhefile.tolhe(rwgt=rwgt, weights=weights)
 
 
-def write_lhe_string(lheinit, lheevents, rwgt=True, weights=False):
+def write_lhe_string(
+    lheinit: LHEInit,
+    lheevents: Iterable[LHEEvent],
+    rwgt: bool = True,
+    weights: bool = False,
+) -> str:
     """
     Return the LHE file as a string.
 
     .. deprecated:: 0.9.1
-       Instead of :func:`~pylhe.write_lhe_string` use :func:`~pylhe.write_lhe_file_string`
-    .. warning:: :func:`~pylhe.write_lhe_string` will be removed in
-     ``pylhe`` ``v0.11.0``.
+       Instead of :func:`~pylhe.write_lhe_string` use :func:`~pylhe.write_lhe_file_string`. :func:`~pylhe.write_lhe_string` will be removed in a future version of ``pylhe``.
     """
+    warnings.warn(
+        "`write_lhe_string` is deprecated and will be removed in a future version. "
+        "Use `write_lhe_file_string` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return write_lhe_file_string(
         LHEFile(init=lheinit, events=lheevents), rwgt=rwgt, weights=weights
     )
 
 
-def _open_write_file(filepath: str, gz: bool = False):
+def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
     if filepath.endswith((".gz", ".gzip")) or gz:
         return gzip.open(filepath, "wt")
     return open(filepath, "w")
@@ -691,7 +953,7 @@ def write_lhe_file_path(
     gz: bool = False,
     rwgt: bool = True,
     weights: bool = False,
-):
+) -> None:
     """
     Write the LHE file.
     """
@@ -700,15 +962,26 @@ def write_lhe_file_path(
         lhefile.write(f, rwgt=rwgt, weights=weights)
 
 
-def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=False):
+def write_lhe_file(
+    lheinit: LHEInit,
+    lheevents: Iterable[LHEEvent],
+    filepath: str,
+    gz: bool = False,
+    rwgt: bool = True,
+    weights: bool = False,
+) -> None:
     """
     Write the LHE file.
 
     .. deprecated:: 0.9.1
-       Instead of :func:`~pylhe.write_lhe_file` use :func:`~pylhe.write_lhe_file_path`
-    .. warning:: :func:`~pylhe.write_lhe_file` will be removed in
-     ``pylhe`` ``v0.11.0``.
+       Instead of :func:`~pylhe.write_lhe_file` use :func:`~pylhe.write_lhe_file_path`. :func:`~pylhe.write_lhe_file` will be removed in a future version of ``pylhe``.
     """
+    warnings.warn(
+        "`write_lhe_file` is deprecated and will be removed in a future version. "
+        "Use `write_lhe_file_path` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     write_lhe_file_path(
         LHEFile(init=lheinit, events=lheevents),
         filepath,
@@ -716,3 +989,7 @@ def write_lhe_file(lheinit, lheevents, filepath, gz=False, rwgt=True, weights=Fa
         rwgt=rwgt,
         weights=weights,
     )
+
+
+# we import this later to avoid circular imports
+from .awkward import to_awkward  # noqa: E402

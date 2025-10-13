@@ -2,17 +2,21 @@
 `Awkward array <https://github.com/scikit-hep/awkward>`_ interface for `pylhe`.
 """
 
-import awkward as ak
+from collections.abc import Iterable
+
+import awkward as ak  # type: ignore[import-untyped]
 import vector
+
+from pylhe import LHEEvent
 
 __all__ = ["to_awkward"]
 
 
-def __dir__():
+def __dir__() -> list[str]:
     return __all__
 
 
-def to_awkward(event_iterable):
+def to_awkward(event_iterable: Iterable[LHEEvent]) -> ak.Array:
     """Convert an iterable of LHEEvent instances to an Awkward-Array.
 
     Uses Awkward's ArrayBuilder to construct the array by iterating over the events.

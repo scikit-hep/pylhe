@@ -1,3 +1,5 @@
+import dataclasses
+
 import pytest
 import skhep_testdata
 
@@ -29,7 +31,7 @@ def test_LHEEvent():
 
 
 def test_LHEEventInfo_no_default_init():
-    with pytest.raises(RuntimeError):
+    with pytest.raises(TypeError):
         _ = LHEEventInfo()
 
 
@@ -49,12 +51,32 @@ def test_LHEEventInfo_fromstring():
     assert event_info.aqcd == pytest.approx(0.12114027e00)
 
 
-def test_LHEFile_default_init():
-    assert LHEFile() is not None
+def test_LHEEventInfo_backwards_compatibility():
+    """
+    Test backwards-compatibility of fieldnames.
+    """
+    event_info = LHEEventInfo(
+        nparticles=6, pid=67, weight=0.6, scale=0.2, aqed=0.8, aqcd=0.2
+    )
+
+    assert event_info.fieldnames == [
+        "nparticles",
+        "pid",
+        "weight",
+        "scale",
+        "aqed",
+        "aqcd",
+    ]
 
 
-def test_LHEInit_default_init():
-    assert LHEInit() is not None
+def test_LHEFile_no_default_init():
+    with pytest.raises(TypeError):
+        _ = LHEFile()
+
+
+def test_LHEInit_no_default_init():
+    with pytest.raises(TypeError):
+        _ = LHEInit()
 
 
 def test_LHEInit_fromstring():
@@ -75,11 +97,11 @@ def test_LHEInit_fromstring():
         "weightingStrategy": -4.0,
         "numProcesses": 1.0,
     }
-    assert LHEInitInfo.fromstring(data) == result
+    assert dataclasses.asdict(LHEInitInfo.fromstring(data)) == result
 
 
 def test_LHEParticle_no_default_init():
-    with pytest.raises(RuntimeError):
+    with pytest.raises(TypeError):
         _ = LHEParticle()
 
 
@@ -137,8 +159,50 @@ def test_LHEParticle_fromstring():
     assert [p.spin for p in particle_objs] == [0.0, 0.0, 0.0, 0.0, 0.0]
 
 
-def test_LHEProcInfo_default_init():
-    assert LHEProcInfo() is not None
+def test_LHEParticle_backwards_compatibility():
+    """
+    Test backwards-compatibility of fieldnames.
+    """
+    particle = LHEParticle(
+        id=5,
+        status=-1,
+        mother1=0,
+        mother2=0,
+        color1=501,
+        color2=0,
+        px=0,
+        py=0,
+        pz=143.22906,
+        e=143.30946,
+        m=4.8,
+        lifetime=0,
+        spin=0,
+    )
+
+    assert particle.fieldnames == [
+        "id",
+        "status",
+        "mother1",
+        "mother2",
+        "color1",
+        "color2",
+        "px",
+        "py",
+        "pz",
+        "e",
+        "m",
+        "lifetime",
+        "spin",
+    ]
+
+    # particle is not associated to an event thus mothers should raise a ValueError
+    with pytest.raises(ValueError, match="Particle is not associated to an event."):
+        _ = particle.mothers()
+
+
+def test_LHEProcInfo_no_default_init():
+    with pytest.raises(TypeError):
+        _ = LHEProcInfo()
 
 
 def test_LHEProcInfo_fromstring():
@@ -153,4 +217,94 @@ def test_LHEProcInfo_fromstring():
         "unitWeight": 50.109093,
         "procId": 66.0,
     }
-    assert LHEProcInfo.fromstring(data) == result
+    assert dataclasses.asdict(LHEProcInfo.fromstring(data)) == result
+
+
+def test_LHEProcInfo_backwards_compatibility():
+    """
+    Test backwards-compatibility of dict like access and fieldnames.
+    """
+    proc_info = LHEProcInfo(
+        xSection=50.109086, error=0.089185414, unitWeight=50.109093, procId=66.0
+    )
+
+    assert proc_info.fieldnames == ["xSection", "error", "unitWeight", "procId"]
+
+    assert proc_info["xSection"] == pytest.approx(50.109086)
+    assert proc_info["error"] == pytest.approx(0.089185414)
+    assert proc_info["unitWeight"] == pytest.approx(50.109093)
+    assert proc_info["procId"] == pytest.approx(66.0)
+
+    proc_info["xSection"] = 60.0
+    proc_info["error"] = 0.1
+    proc_info["unitWeight"] = 60.0
+    proc_info["procId"] = 67.0
+
+    assert proc_info["xSection"] == pytest.approx(60.0)
+    assert proc_info["error"] == pytest.approx(0.1)
+    assert proc_info["unitWeight"] == pytest.approx(60.0)
+    assert proc_info["procId"] == pytest.approx(67.0)
+
+
+def test_LHEInitInfo_backwards_compatibility():
+    """
+    Test backwards-compatibility of dict like access and fieldnames.
+    """
+    lheii = LHEInitInfo(
+        beamA=1,
+        beamB=2,
+        energyA=3.0,
+        energyB=4.0,
+        PDFgroupA=-1,
+        PDFgroupB=-1,
+        PDFsetA=21100,
+        PDFsetB=21100,
+        weightingStrategy=1,
+        numProcesses=1,
+    )
+
+    assert lheii.fieldnames == [
+        "beamA",
+        "beamB",
+        "energyA",
+        "energyB",
+        "PDFgroupA",
+        "PDFgroupB",
+        "PDFsetA",
+        "PDFsetB",
+        "weightingStrategy",
+        "numProcesses",
+    ]
+
+    assert lheii["beamA"] == 1
+    assert lheii["beamB"] == 2
+    assert lheii["energyA"] == 3.0
+    assert lheii["energyB"] == 4.0
+    assert lheii["PDFgroupA"] == -1
+    assert lheii["PDFgroupB"] == -1
+    assert lheii["PDFsetA"] == 21100
+    assert lheii["PDFsetB"] == 21100
+    assert lheii["weightingStrategy"] == 1
+    assert lheii["numProcesses"] == 1
+
+    lheii["beamA"] = 5
+    lheii["beamB"] = 6
+    lheii["energyA"] = 7.0
+    lheii["energyB"] = 8.0
+    lheii["PDFgroupA"] = -2
+    lheii["PDFgroupB"] = -2
+    lheii["PDFsetA"] = 21101
+    lheii["PDFsetB"] = 21101
+    lheii["weightingStrategy"] = 2
+    lheii["numProcesses"] = 2
+
+    assert lheii["beamA"] == 5
+    assert lheii["beamB"] == 6
+    assert lheii["energyA"] == 7.0
+    assert lheii["energyB"] == 8.0
+    assert lheii["PDFgroupA"] == -2
+    assert lheii["PDFgroupB"] == -2
+    assert lheii["PDFsetA"] == 21101
+    assert lheii["PDFsetB"] == 21101
+    assert lheii["weightingStrategy"] == 2
+    assert lheii["numProcesses"] == 2
