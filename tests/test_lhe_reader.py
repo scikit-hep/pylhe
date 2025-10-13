@@ -250,7 +250,7 @@ def test_read_lhe_init_raises():
     """
 
     with pytest.raises(
-        AttributeError, match="weightgroup must have attribute 'type' or 'name'."
+        AttributeError, match=r"weightgroup must have attribute 'type' or 'name'."
     ):
         pylhe.LHEInit.fromstring(
             """<init>
@@ -272,7 +272,7 @@ def test_read_lhe_init_raises():
 </init>"""
         )
 
-    with pytest.raises(AttributeError, match="weight must have attribute 'id'"):
+    with pytest.raises(AttributeError, match=r"weight must have attribute 'id'"):
         pylhe.LHEInit.fromstring(
             """<init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1

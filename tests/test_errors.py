@@ -20,12 +20,12 @@ def test_missing_init_block_error():
 </LesHouchesEvents>"""
 
     # Test with string buffer
-    with pytest.raises(ValueError, match="No <init> block found in the LHE file"):
+    with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
         pylhe.LHEInit.fromstring(invalid_lhe_content)
 
     # Test with file-like object
     buffer = io.StringIO(invalid_lhe_content)
-    with pytest.raises(ValueError, match="No <init> block found in the LHE file"):
+    with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
         pylhe.LHEInit.frombuffer(buffer)
 
 
@@ -47,7 +47,7 @@ def test_missing_init_block_error_with_file():
 
     try:
         # Test reading the file through read_lhe_init function
-        with pytest.raises(ValueError, match="No <init> block found in the LHE file"):
+        with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
             pylhe.read_lhe_init(tmp_file_path)
     finally:
         os.unlink(tmp_file_path)
@@ -69,7 +69,7 @@ def test_missing_init_block_error_with_only_events():
 </event>
 </LesHouchesEvents>"""
 
-    with pytest.raises(ValueError, match="No <init> block found in the LHE file"):
+    with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
         pylhe.LHEInit.fromstring(events_only_content)
 
 
@@ -82,19 +82,19 @@ def test_dataclass_delete_field_error():
 
     # Test that attempting to delete a field raises TypeError
     with pytest.raises(
-        TypeError, match="Cannot delete field 'nparticles' from dataclass instance"
+        TypeError, match=r"Cannot delete field 'nparticles' from dataclass instance"
     ):
         del eventinfo["nparticles"]
 
     # Test with a different field
     with pytest.raises(
-        TypeError, match="Cannot delete field 'weight' from dataclass instance"
+        TypeError, match=r"Cannot delete field 'weight' from dataclass instance"
     ):
         del eventinfo["weight"]
 
     # Test with a non-existent field (should also raise TypeError)
     with pytest.raises(
-        TypeError, match="Cannot delete field 'nonexistent' from dataclass instance"
+        TypeError, match=r"Cannot delete field 'nonexistent' from dataclass instance"
     ):
         del eventinfo["nonexistent"]
 
@@ -112,12 +112,12 @@ def test_empty_init_block_error():
 </LesHouchesEvents>"""
 
     # Test with string buffer
-    with pytest.raises(ValueError, match="<init> block has no text"):
+    with pytest.raises(ValueError, match=r"<init> block has no text"):
         pylhe.LHEInit.fromstring(empty_init_content)
 
     # Test with file-like object
     buffer = io.StringIO(empty_init_content)
-    with pytest.raises(ValueError, match="<init> block has no text"):
+    with pytest.raises(ValueError, match=r"<init> block has no text"):
         pylhe.LHEInit.frombuffer(buffer)
 
 
@@ -138,7 +138,7 @@ def test_empty_event_block_error():
         tmp_file_path = tmp_file.name
 
     try:
-        with pytest.raises(ValueError, match="<event> block has no text"):
+        with pytest.raises(ValueError, match=r"<event> block has no text"):
             list(pylhe.read_lhe(tmp_file_path))
     finally:
         os.unlink(tmp_file_path)
@@ -166,7 +166,7 @@ def test_empty_weights_block_error():
         tmp_file_path = tmp_file.name
 
     try:
-        with pytest.raises(ValueError, match="<weights> block has no text"):
+        with pytest.raises(ValueError, match=r"<weights> block has no text"):
             list(pylhe.read_lhe_with_attributes(tmp_file_path))
     finally:
         os.unlink(tmp_file_path)
@@ -196,7 +196,7 @@ def test_empty_wgt_block_error():
         tmp_file_path = tmp_file.name
 
     try:
-        with pytest.raises(ValueError, match="<wgt> block has no text"):
+        with pytest.raises(ValueError, match=r"<wgt> block has no text"):
             list(pylhe.read_lhe_with_attributes(tmp_file_path))
     finally:
         os.unlink(tmp_file_path)
@@ -228,7 +228,7 @@ def test_whitespace_only_wgt_block_error():
     try:
         with pytest.raises(
             ValueError,
-            match="could not convert string to float|invalid literal for float",
+            match=r"could not convert string to float|invalid literal for float",
         ):
             list(pylhe.read_lhe_with_attributes(tmp_file_path))
     finally:
