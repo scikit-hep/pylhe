@@ -226,7 +226,7 @@ class LHEEvent(DictCompatibility):
         Navigate the particles in the event and produce a Digraph in the DOT language.
         """
 
-        def safe_html_name(name: str) -> Any:
+        def safe_html_name(name: str) -> str:
             """
             Get a safe HTML name from the LaTex name.
             """
@@ -634,6 +634,9 @@ class LHEInit(DictCompatibility):
 
         for _event, element in ET.iterparse(fileobj, events=["start", "end"]):
             if element.tag == "init":
+                if element.text is None:
+                    err = "<init> block has no text."
+                    raise ValueError(err)
                 data = element.text.split("\n")[1:-1]
                 initInfo = LHEInitInfo.fromstring(data[0])
                 procInfo = [LHEProcInfo.fromstring(d) for d in data[1:]]
@@ -778,6 +781,9 @@ def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
             _, root = next(context)  # Get the root element
             for event, element in context:
                 if event == "end" and element.tag == "event":
+                    if element.text is None:
+                        err = "<event> block has no text."
+                        raise ValueError(err)
                     data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventinfo = LHEEventInfo.fromstring(eventdata)
@@ -827,6 +833,9 @@ def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
             for event, element in context:
                 if event == "end" and element.tag == "event":
                     eventdict: dict[str, Any] = {}
+                    if element.text is None:
+                        err = "<event> block has no text."
+                        raise ValueError(err)
                     data = element.text.strip().split("\n")
                     eventdata, particles = data[0], data[1:]
                     eventdict["eventinfo"] = LHEEventInfo.fromstring(eventdata)
@@ -845,12 +854,18 @@ def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
                                 index_map = _get_index_to_id_map(
                                     read_lhe_init(filepath)
                                 )
+                            if sub.text is None:
+                                err = "<weights> block has no text."
+                                raise ValueError(err)
                             for i, w in enumerate(sub.text.split()):
                                 if w and index_map[i] not in eventdict["weights"]:
                                     eventdict["weights"][index_map[i]] = float(w)
                         if sub.tag == "rwgt":
                             for r in sub:
                                 if r.tag == "wgt":
+                                    if r.text is None:
+                                        err = "<wgt> block has no text."
+                                        raise ValueError(err)
                                     eventdict["weights"][r.attrib["id"]] = float(
                                         r.text.strip()
                                     )
