@@ -17,9 +17,7 @@ from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 from particle.exceptions import MatchingIDNotFound
 
-from pylhe._version import (
-    version as __version__,  # type: ignore[import-not-found,unused-ignore]
-)
+from pylhe._version import version as __version__
 
 __all__ = [
     "LHEEvent",
