@@ -12,12 +12,14 @@ from collections.abc import Iterable, MutableMapping
 from dataclasses import asdict, dataclass, fields
 from typing import Any, BinaryIO, Optional, Protocol, TextIO, TypeVar, Union
 
-import graphviz
+import graphviz  # type: ignore[import-untyped]
 from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 from particle.exceptions import MatchingIDNotFound
 
-from pylhe._version import version as __version__
+from pylhe._version import (
+    version as __version__,  # type: ignore[unused-ignore,import-untyped]
+)
 
 __all__ = [
     "LHEEvent",
@@ -48,7 +50,7 @@ def __dir__() -> list[str]:
 
 
 # retrieve mapping of PDG ID to particle name as LaTeX string
-_PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(int, str))
+_PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(str, str))
 
 PathLike = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
 
@@ -239,7 +241,7 @@ class LHEEvent(DictCompatibility):
         for i, p in enumerate(self.particles):
             try:
                 iid = int(p.id)
-                name = _PDGID2LaTeXNameMap[iid]
+                name = _PDGID2LaTeXNameMap[str(iid)]
                 texlbl = f"${name}$"
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{safe_html_name(name)}</td></tr></table>>'
             except MatchingIDNotFound:

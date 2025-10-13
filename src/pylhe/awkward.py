@@ -4,7 +4,7 @@
 
 from collections.abc import Iterable
 
-import awkward as ak
+import awkward as ak  # type: ignore[import-untyped]
 import vector
 
 from pylhe import LHEEvent
