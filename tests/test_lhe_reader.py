@@ -210,6 +210,23 @@ def test_read_lhe_file(file):
     assert next(lheevents).tolhe() == next(lhefile.events).tolhe()
 
 
+@pytest.mark.parametrize(
+    "file", [TEST_FILE_LHE_INITRWGT_WEIGHTS, TEST_FILE_LHE_RWGT_WGT]
+)
+def test_read_buffer(file):
+    with open(file, "rb") as f:
+        lhef1 = pylhe.LHEFile.frombuffer(f, with_attributes=True)
+        next(lhef1.events)
+    next(lhef1.events)
+
+    def faulty_early_closed_buffer():
+        with open(file, "rb") as f:
+            return pylhe.LHEFile.frombuffer(f, with_attributes=False)
+
+    with pytest.raises(ValueError, match=r".*closed file.*"):
+        next(faulty_early_closed_buffer().events)
+
+
 def test_read_lhe_initrwgt_weights():
     """
     Test the weights from initrwgt with a weights list.
