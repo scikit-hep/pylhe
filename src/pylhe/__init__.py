@@ -646,10 +646,10 @@ class LHEEvent(DictCompatibility):
         """
         Iterate through LHE events from a buffer.
 
-        Parameters:
-        - buffer: File-like object or string containing the LHE XML data.
-        - with_attributes: If True, include weights, attributes, and optional lines.
-        - lheinit: Optional LHEInit object for weight ID mapping.
+        Args:
+            buffer: File-like object or string containing the LHE XML data.
+            with_attributes: If True, include weights, attributes, and optional lines.
+            lheinit: Optional LHEInit object for weight ID mapping.
         """
         index_map = {}
         if with_attributes:
@@ -731,10 +731,10 @@ class LHEEvent(DictCompatibility):
         """
         Iterate through LHE events from a file.
 
-        Parameters:
-        - filepath: Path to the LHE XML file.
-        - with_attributes: If True, include weights, attributes, and optional lines.
-        - lheinit: Optional LHEInit object for weight ID mapping.
+        Args:
+            filepath: Path to the LHE XML file.
+            with_attributes: If True, include weights, attributes, and optional lines.
+            lheinit: Optional LHEInit object for weight ID mapping.
         """
         with _extract_fileobj(filepath) as fileobj:
             yield from cls.frombuffer(
@@ -871,6 +871,10 @@ class LHEFile(DictCompatibility):
     ) -> "LHEFile":
         """
         Read an LHE file and return an LHEFile object.
+
+        .. warning::
+            It is the user's responsibility to ensure that the buffer lives long enough
+            to iterate through all events if the events.
         """
         lheinit = LHEInit.frombuffer(fileobj)
         fileobj.seek(0)
