@@ -768,16 +768,6 @@ class LHEEvent(DictCompatibility):
         """
         Navigate the particles in the event and produce a Digraph in the DOT language.
         """
-
-        def safe_html_name(name: str) -> str:
-            """
-            Get a safe HTML name from the LaTex name.
-            """
-            try:
-                return latex_to_html_name(name)
-            except Exception:
-                return name
-
         self._graph = graphviz.Digraph()
         for i, p in enumerate(self.particles):
             iid = int(p.id)
@@ -785,7 +775,7 @@ class LHEEvent(DictCompatibility):
             try:
                 name = _PDGID2LaTeXNameMap[sid]
                 texlbl = f"${name}$"
-                label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{safe_html_name(name)}</td></tr></table>>'
+                label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{latex_to_html_name(name)}</td></tr></table>>'
             except MatchingIDNotFound:
                 texlbl = sid
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
