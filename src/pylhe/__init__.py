@@ -846,14 +846,14 @@ class LHEFile(DictCompatibility):
         Read an LHE file and return an LHEFile object.
         """
 
-        # This function ensures that the file remains open while reading events
+        # This function ensures that the file remains open while yielding events
         def _generate_from_file(lheinit: LHEInit) -> Iterable[LHEEvent]:
             with _extract_fileobj(filepath) as fileobj:
                 yield from LHEEvent.frombuffer(
                     fileobj, with_attributes=with_attributes, lheinit=lheinit
                 )
 
-        # Read init separately to get it immediately
+        # Read init now
         with _extract_fileobj(filepath) as fileobj:
             lheinit = LHEInit.frombuffer(fileobj)
 
@@ -874,11 +874,6 @@ def read_lhe_file(filepath: PathLike, with_attributes: bool = True) -> LHEFile:
         stacklevel=2,
     )
     return LHEFile.fromfile(filepath, with_attributes=with_attributes)
-    # lheinit = read_lhe_init(filepath)
-    # lheevents = (
-    #    read_lhe_with_attributes(filepath) if with_attributes else read_lhe(filepath)
-    # )
-    # return LHEFile(init=lheinit, events=lheevents)
 
 
 def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFile]:
