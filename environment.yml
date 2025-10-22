@@ -1,5 +1,8 @@
 name: pylhe
 dependencies:
+  - hist
+  - awkward
   - scikit-hep-testdata
+  - numpy
   - pip:
     - .
