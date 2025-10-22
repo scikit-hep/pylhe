@@ -516,7 +516,7 @@ class LHEInit(DictCompatibility):
                 element.tag == "init" and event == "end"
             ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
                 if element.text is None:
-                    err = f"<init> block has no text.\n{ET.tostring(element, encoding='unicode')}"
+                    err = "<init> block has no text."
                     raise ValueError(err)
                 data = element.text.split("\n")[1:-1]
                 initInfo = LHEInitInfo.fromstring(data[0])
