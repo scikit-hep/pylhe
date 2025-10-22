@@ -566,9 +566,15 @@ class LHEInit(DictCompatibility):
         )
 
     @classmethod
+    def fromfile(cls, filepath: PathLike) -> "LHEInit":
+        """Create an instance from a file path."""
+        with _extract_fileobj(filepath) as fileobj:
+            return cls.frombuffer(fileobj)
+
+    @classmethod
     def fromstring(cls, string: str) -> "LHEInit":
         """
-        Create an `LHEEventInfo` instance from a string in LHE format.
+        Create an `LHEInfo` instance from a string in LHE format.
         """
         return cls.frombuffer(io.StringIO(string))
 
@@ -716,6 +722,26 @@ class LHEEvent(DictCompatibility):
             return
 
     @classmethod
+    def fromfile(
+        cls,
+        filepath: PathLike,
+        with_attributes: bool = False,
+        lheinit: Optional[LHEInit] = None,
+    ) -> Iterable["LHEEvent"]:
+        """
+        Iterate through LHE events from a file.
+
+        Parameters:
+        - filepath: Path to the LHE XML file.
+        - with_attributes: If True, include weights, attributes, and optional lines.
+        - lheinit: Optional LHEInit object for weight ID mapping.
+        """
+        with _extract_fileobj(filepath) as fileobj:
+            yield from cls.frombuffer(
+                fileobj, with_attributes=with_attributes, lheinit=lheinit
+            )
+
+    @classmethod
     def fromstring(cls, string: str) -> Iterable["LHEEvent"]:
         """
         Create an `LHEEvent` instance from a string in LHE format.
@@ -817,6 +843,26 @@ class LHEFile(DictCompatibility):
         """
         return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
 
+    def tofile(
+        self,
+        filepath: str,
+        gz: bool = False,
+        rwgt: bool = True,
+        weights: bool = False,
+    ) -> None:
+        """
+        Write the LHE file.
+
+        Args:
+            filepath: Path to the output file.
+            gz: Whether to gzip the output file (ignored if filepath suffix is .gz/.gzip).
+            rwgt: Whether to include weights in 'rwgt' format.
+            weights: Whether to include weights in 'weights' format.
+        """
+        # if filepath suffix is gz, write as gz
+        with _open_write_file(filepath, gz=gz) as f:
+            self.write(f, rwgt=rwgt, weights=weights)
+
     @classmethod
     def frombuffer(
         cls,
@@ -865,11 +911,11 @@ def read_lhe_file(filepath: PathLike, with_attributes: bool = True) -> LHEFile:
     Read an LHE file and return an LHEFile object.
 
     .. deprecated:: 1.0.0
-        Use `LHEFile.frombuffer` or `LHEFile.fromstring` instead.
+        Use `LHEFile.fromfile` instead.
     """
     warnings.warn(
         "read_lhe_file is deprecated and will be removed in a future version. "
-        "Use `LHEFile.frombuffer` or `LHEFile.fromstring` instead",
+        "Use `LHEFile.fromfile` instead",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -908,9 +954,17 @@ def read_lhe_init(filepath: PathLike) -> LHEInit:
 
     Returns:
         dict: Dictionary containing the init blocks of the LHE file.
+
+    .. deprecated:: 1.0.0
+        Use `LHEInit.fromfile` instead.
     """
-    with _extract_fileobj(filepath) as fileobj:
-        return LHEInit.frombuffer(fileobj)
+    warnings.warn(
+        "read_lhe_init is deprecated and will be removed in a future version. "
+        "Use `LHEInit.fromfile` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return LHEInit.fromfile(filepath)
 
 
 def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
@@ -918,16 +972,15 @@ def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
     Read and yield the events in the LHE file.
 
     .. deprecated:: 1.0.0
-        Use `LHEEvent.frombuffer` or `LHEEvent.fromstring` instead.
+        Use `LHEEvent.fromfile` instead.
     """
     warnings.warn(
         "read_lhe is deprecated and will be removed in a future version. "
-        "Use `LHEEvent.frombuffer` or `LHEEvent.fromstring` instead",
+        "Use `LHEEvent.fromfile` instead",
         DeprecationWarning,
         stacklevel=2,
     )
-    with _extract_fileobj(filepath) as fileobj:
-        yield from LHEEvent.frombuffer(fileobj, with_attributes=False)
+    yield from LHEEvent.fromfile(filepath)
 
 
 def _get_index_to_id_map(init: LHEInit) -> dict[int, str]:
@@ -957,17 +1010,15 @@ def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
     weights and attributes.
 
     .. deprecated:: 1.0.0
-        Use `LHEEvent.frombuffer` or `LHEEvent.fromstring` with the `with_attributes` parameter instead.
+        Use `LHEEvent.fromfile` with the `with_attributes` parameter instead.
     """
     warnings.warn(
         "read_lhe_with_attributes is deprecated and will be removed in a future version. "
-        "Use `LHEEvent.frombuffer` or `LHEEvent.fromstring` with the "
-        "`with_attributes` parameter instead.",
+        "Use `LHEEvent.fromfile` with the `with_attributes` parameter instead.",
         DeprecationWarning,
         stacklevel=2,
     )
-    with _extract_fileobj(filepath) as fileobj:
-        yield from LHEEvent.frombuffer(fileobj, with_attributes=True)
+    yield from LHEEvent.fromfile(filepath, with_attributes=True)
 
 
 def read_num_events(filepath: PathLike) -> int:
@@ -997,6 +1048,9 @@ def write_lhe_file_string(
 ) -> str:
     """
     Return the LHE file as a string.
+
+    .. deprecated:: 1.0.0
+         Use `LHEFile.tolhe` instead.
     """
     return lhefile.tolhe(rwgt=rwgt, weights=weights)
 
@@ -1011,17 +1065,15 @@ def write_lhe_string(
     Return the LHE file as a string.
 
     .. deprecated:: 0.9.1
-       Instead of :func:`~pylhe.write_lhe_string` use :func:`~pylhe.write_lhe_file_string`. :func:`~pylhe.write_lhe_string` will be removed in a future version of ``pylhe``.
+       Instead of :func:`~pylhe.write_lhe_string(init,events,rwgt,weights)` use `LHEFile(init,events).tolhe(rwgt,weights)`.
     """
     warnings.warn(
         "`write_lhe_string` is deprecated and will be removed in a future version. "
-        "Use `write_lhe_file_string` instead.",
+        "Use `LHEFile(...).tolhe(...)` instead.",
         DeprecationWarning,
         stacklevel=2,
     )
-    return write_lhe_file_string(
-        LHEFile(init=lheinit, events=lheevents), rwgt=rwgt, weights=weights
-    )
+    return LHEFile(init=lheinit, events=lheevents).tolhe(rwgt=rwgt, weights=weights)
 
 
 def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
@@ -1039,10 +1091,11 @@ def write_lhe_file_path(
 ) -> None:
     """
     Write the LHE file.
+
+    .. deprecated:: 1.0.0
+        Use `LHEFile.tofile` instead.
     """
-    # if filepath suffix is gz, write as gz
-    with _open_write_file(filepath, gz=gz) as f:
-        lhefile.write(f, rwgt=rwgt, weights=weights)
+    lhefile.tofile(filepath, gz=gz, rwgt=rwgt, weights=weights)
 
 
 def write_lhe_file(
@@ -1057,16 +1110,15 @@ def write_lhe_file(
     Write the LHE file.
 
     .. deprecated:: 0.9.1
-       Instead of :func:`~pylhe.write_lhe_file` use :func:`~pylhe.write_lhe_file_path`. :func:`~pylhe.write_lhe_file` will be removed in a future version of ``pylhe``.
+       Instead of :func:`~pylhe.write_lhe_file(init,events,filepath,gz,rwgt,weights)` use `LHEFile(init,events).tofile(filepath,gz,rwgt,weights)`.
     """
     warnings.warn(
         "`write_lhe_file` is deprecated and will be removed in a future version. "
-        "Use `write_lhe_file_path` instead.",
+        "Use `LHEFile(...).tofile(...)` instead.",
         DeprecationWarning,
         stacklevel=2,
     )
-    write_lhe_file_path(
-        LHEFile(init=lheinit, events=lheevents),
+    LHEFile(init=lheinit, events=lheevents).tofile(
         filepath,
         gz=gz,
         rwgt=rwgt,
