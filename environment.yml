@@ -1,5 +1,4 @@
 name: pylhe
-# graphviz requires `dot`, conda-forge installs that too
 channels:
   - conda-forge
 dependencies:
