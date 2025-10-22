@@ -1,0 +1,5 @@
+name: pylhe
+dependencies:
+  - scikit-hep-testdata
+  - pip:
+    - .
