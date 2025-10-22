@@ -38,7 +38,7 @@ def to_awkward(event_iterable: Iterable[LHEEvent]) -> ak.Array:
             with builder.record(name="EventInfo"):
                 for fname in event.eventinfo.fieldnames:
                     builder.field(fname).real(getattr(event.eventinfo, fname))
-            if (event.weights is not None) and (event.weights != {}):
+            if event.weights != {}:
                 builder.field("weights")
                 with builder.record(name="Weights"):
                     for label, w in event.weights.items():
