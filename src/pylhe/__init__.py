@@ -583,7 +583,7 @@ class LHEEvent(DictCompatibility):
     """Event information"""
     particles: list[LHEParticle]
     """List of particles in the event"""
-    weights: dict[Union[str], float] = field(default_factory=dict)
+    weights: dict[str, float] = field(default_factory=dict)
     """Event weights"""
     attributes: dict[str, str] = field(default_factory=dict)
     """Event attributes"""
@@ -957,7 +957,7 @@ def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
     weights and attributes.
 
     .. deprecated:: 1.0.0
-        Use `LHEEvent.frombuffer` or `LHEEvent.fromstring` with the
+        Use `LHEEvent.frombuffer` or `LHEEvent.fromstring` with the `with_attributes` parameter instead.
     """
     warnings.warn(
         "read_lhe_with_attributes is deprecated and will be removed in a future version. "
