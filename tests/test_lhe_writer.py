@@ -224,7 +224,7 @@ def test_write_lhe_twice(tmpdir):
     events = pylhe.read_lhe_with_attributes(file1)
 
     # write it again
-    pylhe.write_lhe_file(init, events, filepath=file2.strpath)
+    pylhe.write_lhe_file_path(pylhe.LHEFile(init, events), filepath=file2.strpath)
 
     # assert that the files are the same
     assert file1.read() == file2.read()
