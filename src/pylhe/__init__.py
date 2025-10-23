@@ -510,6 +510,69 @@ class LHEInit(DictCompatibility):
             # Try to set on initInfo for backward compatibility
             setattr(self.initInfo, key, value)
 
+    @classmethod
+    def _fromcontext(cls, root: ET.Element, context: Any) -> "LHEInit":
+        initInfo = None
+        procInfo = []
+        weightgroup: dict[str, LHEWeightGroup] = {}
+        LHEVersion: str = ""
+
+        if root.tag == "LesHouchesEvents":
+            LHEVersion = root.attrib["version"]
+
+        for event, element in context:
+            if element.tag == "initrwgt":
+                weightgroup = {}
+                index = 0
+                for child in element:
+                    # Find all weightgroups
+                    if child.tag == "weightgroup" and child.attrib != {}:
+                        if "type" in child.attrib:
+                            wg_type = child.attrib["type"]
+                        elif "name" in child.attrib:
+                            wg_type = child.attrib["name"]
+                        else:
+                            ae = "weightgroup must have attribute 'type' or 'name'."
+                            raise AttributeError(ae)
+                        _temp = LHEWeightGroup(attrib=child.attrib, weights={})
+                        # Iterate over all weights in this weightgroup
+                        for wc in child:
+                            if wc.tag != "weight":
+                                continue
+                            if "id" not in wc.attrib:
+                                ae = "weight must have attribute 'id'"
+                                raise AttributeError(ae)
+                            wg_id = wc.attrib["id"]
+                            _temp.weights[wg_id] = LHEWeightInfo(
+                                attrib=wc.attrib,
+                                name=wc.text.strip() if wc.text else "",
+                                index=index,
+                            )
+                            index += 1
+
+                        weightgroup[wg_type] = _temp
+            if (
+                element.tag == "init" and event == "end"
+            ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
+                if element.text is None:
+                    err = "<init> block has no text."
+                    raise ValueError(err)
+                data = element.text.split("\n")[1:-1]
+                initInfo = LHEInitInfo.fromstring(data[0])
+                procInfo = [LHEProcInfo.fromstring(d) for d in data[1:]]
+
+            if element.tag == "event":
+                break
+        if initInfo is None:
+            err = "No <init> block found in the LHE file."
+            raise ValueError(err)
+        return LHEInit(
+            initInfo=initInfo,
+            procInfo=procInfo,
+            weightgroup=weightgroup,
+            LHEVersion=LHEVersion,
+        )
+
 
 @dataclass
 class LHEEvent(DictCompatibility):
@@ -567,6 +630,68 @@ class LHEEvent(DictCompatibility):
             + sweights
             + "</event>"
         )
+
+    @classmethod
+    def _fromcontext(
+        cls,
+        root: ET.Element,
+        context: Any,
+        lheinit: LHEInit,
+        with_attributes: bool,
+    ) -> Iterator["LHEEvent"]:
+        index_map = _get_index_to_id_map(lheinit) if with_attributes else {}
+        for event, element in context:
+            if event == "end" and element.tag == "event":
+                if element.text is None:
+                    err = "<event> block has no text."
+                    raise ValueError(err)
+
+                data = element.text.strip().split("\n")
+                eventdata_str, particles_str = data[0], data[1:]
+
+                eventinfo = LHEEventInfo.fromstring(eventdata_str)
+                particles = [
+                    LHEParticle.fromstring(p)
+                    for p in particles_str
+                    if not p.strip().startswith("#")
+                ]
+
+                if with_attributes:
+                    weights = {}
+                    attrib = element.attrib
+                    optional = [
+                        p.strip() for p in particles_str if p.strip().startswith("#")
+                    ]
+
+                    for sub in element:
+                        if sub.tag == "weights":
+                            if sub.text is None:
+                                err = "<weights> block has no text."
+                                raise ValueError(err)
+                            for i, w in enumerate(sub.text.split()):
+                                if w and index_map[i] not in weights:
+                                    weights[index_map[i]] = float(w)
+                        elif sub.tag == "rwgt":
+                            for r in sub:
+                                if r.tag == "wgt":
+                                    if r.text is None:
+                                        err = "<wgt> block has no text."
+                                        raise ValueError(err)
+                                    weights[r.attrib["id"]] = float(r.text.strip())
+
+                    yield LHEEvent(
+                        eventinfo=eventinfo,
+                        particles=particles,
+                        weights=weights,
+                        attributes=attrib,
+                        optional=optional,
+                    )
+                else:
+                    yield LHEEvent(eventinfo, particles)
+
+                # Clear memory
+                element.clear()
+                root.clear()
 
     @property
     def graph(self) -> graphviz.Digraph:
@@ -709,71 +834,10 @@ class LHEFile(DictCompatibility):
         def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
             try:
                 with fileobject as fileobj:
-                    initInfo = None
-                    procInfo = []
-                    weightgroup: dict[str, LHEWeightGroup] = {}
-                    LHEVersion: str = ""
-
                     context = ET.iterparse(fileobj, events=["start", "end"])
                     _, root = next(context)  # Get the root element
 
-                    if root.tag == "LesHouchesEvents":
-                        LHEVersion = root.attrib["version"]
-
-                    for event, element in context:
-                        if element.tag == "initrwgt":
-                            weightgroup = {}
-                            index = 0
-                            for child in element:
-                                # Find all weightgroups
-                                if child.tag == "weightgroup" and child.attrib != {}:
-                                    if "type" in child.attrib:
-                                        wg_type = child.attrib["type"]
-                                    elif "name" in child.attrib:
-                                        wg_type = child.attrib["name"]
-                                    else:
-                                        ae = "weightgroup must have attribute 'type' or 'name'."
-                                        raise AttributeError(ae)
-                                    _temp = LHEWeightGroup(
-                                        attrib=child.attrib, weights={}
-                                    )
-                                    # Iterate over all weights in this weightgroup
-                                    for wc in child:
-                                        if wc.tag != "weight":
-                                            continue
-                                        if "id" not in wc.attrib:
-                                            ae = "weight must have attribute 'id'"
-                                            raise AttributeError(ae)
-                                        wg_id = wc.attrib["id"]
-                                        _temp.weights[wg_id] = LHEWeightInfo(
-                                            attrib=wc.attrib,
-                                            name=wc.text.strip() if wc.text else "",
-                                            index=index,
-                                        )
-                                        index += 1
-
-                                    weightgroup[wg_type] = _temp
-                        if (
-                            element.tag == "init" and event == "end"
-                        ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
-                            if element.text is None:
-                                err = "<init> block has no text."
-                                raise ValueError(err)
-                            data = element.text.split("\n")[1:-1]
-                            initInfo = LHEInitInfo.fromstring(data[0])
-                            procInfo = [LHEProcInfo.fromstring(d) for d in data[1:]]
-
-                        if element.tag == "event":
-                            break
-                    if initInfo is None:
-                        err = "No <init> block found in the LHE file."
-                        raise ValueError(err)
-                    lheinit = LHEInit(
-                        initInfo=initInfo,
-                        procInfo=procInfo,
-                        weightgroup=weightgroup,
-                        LHEVersion=LHEVersion,
-                    )
+                    lheinit = LHEInit._fromcontext(root, context)
                     lhef.init = lheinit
                     # guaranteed dummy to break the loop
                     yield LHEEvent(
@@ -787,69 +851,16 @@ class LHEFile(DictCompatibility):
                         ),
                         particles=[],
                     )
+                    yield from LHEEvent._fromcontext(
+                        root, context, lheinit, with_attributes
+                    )
 
-                    index_map = _get_index_to_id_map(lheinit) if with_attributes else {}
-                    for event, element in context:
-                        if event == "end" and element.tag == "event":
-                            if element.text is None:
-                                err = "<event> block has no text."
-                                raise ValueError(err)
-
-                            data = element.text.strip().split("\n")
-                            eventdata_str, particles_str = data[0], data[1:]
-
-                            eventinfo = LHEEventInfo.fromstring(eventdata_str)
-                            particles = [
-                                LHEParticle.fromstring(p)
-                                for p in particles_str
-                                if not p.strip().startswith("#")
-                            ]
-
-                            if with_attributes:
-                                weights = {}
-                                attrib = element.attrib
-                                optional = [
-                                    p.strip()
-                                    for p in particles_str
-                                    if p.strip().startswith("#")
-                                ]
-
-                                for sub in element:
-                                    if sub.tag == "weights":
-                                        if sub.text is None:
-                                            err = "<weights> block has no text."
-                                            raise ValueError(err)
-                                        for i, w in enumerate(sub.text.split()):
-                                            if w and index_map[i] not in weights:
-                                                weights[index_map[i]] = float(w)
-                                    elif sub.tag == "rwgt":
-                                        for r in sub:
-                                            if r.tag == "wgt":
-                                                if r.text is None:
-                                                    err = "<wgt> block has no text."
-                                                    raise ValueError(err)
-                                                weights[r.attrib["id"]] = float(
-                                                    r.text.strip()
-                                                )
-
-                                yield LHEEvent(
-                                    eventinfo=eventinfo,
-                                    particles=particles,
-                                    weights=weights,
-                                    attributes=attrib,
-                                    optional=optional,
-                                )
-                            else:
-                                yield LHEEvent(eventinfo, particles)
-
-                            # Clear memory
-                            element.clear()
-                            root.clear()
             except ET.ParseError as excep:
                 print("WARNING. Parse Error:", excep)
                 return
 
         lhef = cls(
+            # dummy init, will be replaced
             init=LHEInit(
                 initInfo=LHEInitInfo(0, 0, 0.0, 0.0, 0, 0, 0, 0, 0, 0),
                 procInfo=[],
