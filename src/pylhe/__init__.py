@@ -138,7 +138,6 @@ class DictCompatibility(MutableMapping[str, Any], ABC):
         .. deprecated:: 1.0.0
             Listing fieldnames via `object.fieldnames` is deprecated and will be removed in a future version.
         """
-        # "event" would be more fittingly called "_event" since was never in the fieldnames
         warnings.warn(
             "The fieldnames property is deprecated and will be removed in a future version. "
             "Use `asdict(object)` instead.",
