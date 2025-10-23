@@ -705,10 +705,8 @@ class LHEFile(DictCompatibility):
         """
         Read an LHE file and return an LHEFile object.
         """
-        lheinit: Optional[LHEInit] = None
 
-        def _generator() -> Iterator[LHEEvent]:
-            nonlocal lheinit
+        def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
             try:
                 with fileobject as fileobj:
                     initInfo = None
@@ -776,6 +774,7 @@ class LHEFile(DictCompatibility):
                         weightgroup=weightgroup,
                         LHEVersion=LHEVersion,
                     )
+                    lhef.init = lheinit
                     # guaranteed dummy to break the loop
                     yield LHEEvent(
                         eventinfo=LHEEventInfo(
@@ -850,15 +849,20 @@ class LHEFile(DictCompatibility):
                 print("WARNING. Parse Error:", excep)
                 return
 
-        events = _generator()
+        lhef = cls(
+            init=LHEInit(
+                initInfo=LHEInitInfo(0, 0, 0.0, 0.0, 0, 0, 0, 0, 0, 0),
+                procInfo=[],
+                weightgroup={},
+                LHEVersion="3.0",
+            ),
+            events=[],
+        )
+        events = _generator(lhef)
         next(events)  # advance to read lheinit
 
-        # Ensure lheinit is not None (it should be set by the generator)
-        if lheinit is None:
-            err = "Failed to read LHE init block"
-            raise ValueError(err)
-
-        return cls(init=lheinit, events=events if generator else list(events))
+        lhef.events = events if generator else list(events)
+        return lhef
 
 
 def read_lhe_file(filepath: PathLike, with_attributes: bool = True) -> LHEFile:
