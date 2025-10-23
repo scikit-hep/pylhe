@@ -219,49 +219,6 @@ def test_read_buffer(file):
         next(lhef1.events)
     next(lhef1.events)
 
-    def faulty_early_closed_buffer():
-        with open(file, "rb") as f:
-            return pylhe.LHEFile.frombuffer(f, with_attributes=False)
-
-    with pytest.raises(ValueError, match=r".*closed file.*"):
-        next(faulty_early_closed_buffer().events)
-
-
-def test_read_lhefile_fromstring():
-    mylhe = """
-    <LesHouchesEvents version="1.0">
-    <init>
-    11 -11 100.0 100.0 0 0 0 0 3 1
-    3.783590 0.001676 0.001569 0
-    </init>
-    <event>
-    6 0 3.783590e-06 200 0.007849 0.1075
-    11 -1 0 0 0 0 0 0 100.0 100.0 0 0 9.0
-    -11 -1 0 0 0 0 0 0 -100.0 100.0 0 0 9.0
-    22 2 1 2 0 0 0 0 0 200 200 0 9.0
-    2 1 3 0 0 0 48.253308 67.445271 -54.164510 99.050697 0 0 9.0
-    21 1 3 0 0 0 -1.190913 -12.743630 5.613176 13.975913 0 0 9.0
-    -2 1 3 0 0 0 -47.062395 -54.701640 48.551333 86.973389 0 0 9.0
-    </event>
-    </LesHouchesEvents>
-    """
-    pylhe.LHEFile.fromstring(mylhe)
-
-
-def test_read_lheevent_fromstring():
-    mylhe = """
-    <event>
-    6 0 3.783590e-06 200 0.007849 0.1075
-    11 -1 0 0 0 0 0 0 100.0 100.0 0 0 9.0
-    -11 -1 0 0 0 0 0 0 -100.0 100.0 0 0 9.0
-    22 2 1 2 0 0 0 0 0 200 200 0 9.0
-    2 1 3 0 0 0 48.253308 67.445271 -54.164510 99.050697 0 0 9.0
-    21 1 3 0 0 0 -1.190913 -12.743630 5.613176 13.975913 0 0 9.0
-    -2 1 3 0 0 0 -47.062395 -54.701640 48.551333 86.973389 0 0 9.0
-    </event>
-    """
-    pylhe.LHEEvent.fromstring(mylhe)
-
 
 def test_read_lhe_initrwgt_weights():
     """
@@ -305,7 +262,7 @@ def test_read_lhe_init_raises():
     with pytest.raises(
         AttributeError, match=r"weightgroup must have attribute 'type' or 'name'."
     ):
-        pylhe.LHEInit.fromstring(
+        pylhe.LHEFile.fromstring(
             """<init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66
@@ -326,7 +283,7 @@ def test_read_lhe_init_raises():
         )
 
     with pytest.raises(AttributeError, match=r"weight must have attribute 'id'"):
-        pylhe.LHEInit.fromstring(
+        pylhe.LHEFile.fromstring(
             """<init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66

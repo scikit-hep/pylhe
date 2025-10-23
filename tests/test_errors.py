@@ -21,12 +21,12 @@ def test_missing_init_block_error():
 
     # Test with string buffer
     with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
-        pylhe.LHEInit.fromstring(invalid_lhe_content)
+        pylhe.LHEFile.fromstring(invalid_lhe_content)
 
     # Test with file-like object
     buffer = io.StringIO(invalid_lhe_content)
     with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
-        pylhe.LHEInit.frombuffer(buffer)
+        pylhe.LHEFile.frombuffer(buffer)
 
 
 def test_missing_init_block_error_with_file():
@@ -70,7 +70,7 @@ def test_missing_init_block_error_with_only_events():
 </LesHouchesEvents>"""
 
     with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
-        pylhe.LHEInit.fromstring(events_only_content)
+        pylhe.LHEFile.fromstring(events_only_content)
 
 
 def test_dataclass_delete_field_error():
@@ -113,12 +113,12 @@ def test_empty_init_block_error():
 
     # Test with string buffer
     with pytest.raises(ValueError, match=r"<init> block has no text"):
-        pylhe.LHEInit.fromstring(empty_init_content)
+        pylhe.LHEFile.fromstring(empty_init_content)
 
     # Test with file-like object
     buffer = io.StringIO(empty_init_content)
     with pytest.raises(ValueError, match=r"<init> block has no text"):
-        pylhe.LHEInit.frombuffer(buffer)
+        pylhe.LHEFile.frombuffer(buffer)
 
 
 def test_empty_event_block_error():

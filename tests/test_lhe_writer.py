@@ -110,7 +110,7 @@ def test_write_lhe_init():
 </initrwgt>
 </init>"""
     )
-    assert init.tolhe() == pylhe.LHEInit.fromstring(init.tolhe()).tolhe()
+    assert init.tolhe() == pylhe.LHEFile.fromstring(init.tolhe()).init.tolhe()
 
 
 def test_write_lhe():
@@ -234,6 +234,7 @@ def test_write_lhe_gzip(tmpdir):
     file1 = tmpdir.join("test1.lhe.gz")
 
     init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
+    assert init is not None
     events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
     # single test event
     events = [next(events)]
