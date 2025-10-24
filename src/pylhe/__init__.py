@@ -839,7 +839,7 @@ class LHEFile(DictCompatibility):
 
                     lheinit = LHEInit._fromcontext(root, context)
                     lhef.init = lheinit
-                    # guaranteed dummy to break the loop
+                    # First yield allows caller to advance generator to read lheinit before consuming real events
                     yield LHEEvent(
                         eventinfo=LHEEventInfo(
                             nparticles=0,
