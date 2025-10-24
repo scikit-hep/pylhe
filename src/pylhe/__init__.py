@@ -926,11 +926,11 @@ def read_lhe_init(filepath: PathLike) -> LHEInit:
         dict: Dictionary containing the init blocks of the LHE file.
 
     .. deprecated:: 1.0.0
-        Use `LHEInit.fromfile` instead.
+        Use `LHEFile.fromfile(...).init` instead.
     """
     warnings.warn(
         "read_lhe_init is deprecated and will be removed in a future version. "
-        "Use `LHEInit.fromfile` instead",
+        "Use `LHEFile.fromfile(...).init` instead",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -942,11 +942,11 @@ def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
     Read and yield the events in the LHE file.
 
     .. deprecated:: 1.0.0
-        Use `LHEEvent.fromfile` instead.
+        Use `LHEFile.fromfile(...).events` instead.
     """
     warnings.warn(
         "read_lhe is deprecated and will be removed in a future version. "
-        "Use `LHEEvent.fromfile` instead",
+        "Use `LHEFile.fromfile(...).events` instead",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -1022,6 +1022,12 @@ def write_lhe_file_string(
     .. deprecated:: 1.0.0
          Use `LHEFile.tolhe` instead.
     """
+    warnings.warn(
+        "write_lhe_file_string is deprecated and will be removed in a future version. "
+        "Use `LHEFile.tolhe` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return lhefile.tolhe(rwgt=rwgt, weights=weights)
 
 
@@ -1065,6 +1071,12 @@ def write_lhe_file_path(
     .. deprecated:: 1.0.0
         Use `LHEFile.tofile` instead.
     """
+    warnings.warn(
+        "write_lhe_file_path is deprecated and will be removed in a future version. "
+        "Use `LHEFile.tofile` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     lhefile.tofile(filepath, gz=gz, rwgt=rwgt, weights=weights)
 
 
