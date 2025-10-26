@@ -799,11 +799,15 @@ class LHEFile(DictCompatibility):
             self.write(f, rwgt=rwgt, weights=weights)
 
     @classmethod
-    def fromstring(cls, string: str, with_attributes: bool = True) -> "LHEFile":
+    def fromstring(
+        cls, string: str, with_attributes: bool = True, generator: bool = True
+    ) -> "LHEFile":
         """
         Create an LHEFile instance from a string in LHE format.
         """
-        return cls.frombuffer(io.StringIO(string), with_attributes=with_attributes)
+        return cls.frombuffer(
+            io.StringIO(string), with_attributes=with_attributes, generator=generator
+        )
 
     @classmethod
     def fromfile(
