@@ -22,7 +22,7 @@ def to_awkward(event_iterable: Iterable[LHEEvent]) -> ak.Array:
     Uses Awkward's ArrayBuilder to construct the array by iterating over the events.
     The events_iterable should yield instances of LHEEvent.
     This is typically created by one of the reading functions pylhe provides like
-    pylhe.read_lhe(filepath), pylhe.read_lhe_with_attributes(filepath), or pylhe.read_lhe_file(filepath).events.
+    pylhe.LHEFile.fromfile(filepath).events.
 
     Args:
         event_iterable (iterable): An iterable of LHEEvent instances.
