@@ -8,9 +8,17 @@ import os
 import warnings
 import xml.etree.ElementTree as ET
 from abc import ABC
-from collections.abc import Iterable, MutableMapping
-from dataclasses import asdict, dataclass, fields
-from typing import Any, BinaryIO, Optional, Protocol, TextIO, TypeVar, Union
+from collections.abc import Iterable, Iterator, MutableMapping
+from dataclasses import asdict, dataclass, field, fields
+from typing import (
+    Any,
+    BinaryIO,
+    Optional,
+    Protocol,
+    TextIO,
+    TypeVar,
+    Union,
+)
 
 import graphviz  # type: ignore[import-untyped]
 from particle import latex_to_html_name
@@ -138,7 +146,6 @@ class DictCompatibility(MutableMapping[str, Any], ABC):
         .. deprecated:: 1.0.0
             Listing fieldnames via `object.fieldnames` is deprecated and will be removed in a future version.
         """
-        # "event" would be more fittingly called "_event" since was never in the fieldnames
         warnings.warn(
             "The fieldnames property is deprecated and will be removed in a future version. "
             "Use `asdict(object)` instead.",
@@ -146,128 +153,6 @@ class DictCompatibility(MutableMapping[str, Any], ABC):
             stacklevel=2,
         )
         return [f.name for f in fields(self)]
-
-
-@dataclass
-class LHEEvent(DictCompatibility):
-    """
-    Store a single event in the LHE format.
-    """
-
-    eventinfo: "LHEEventInfo"
-    """Event information"""
-    particles: list["LHEParticle"]
-    """List of particles in the event"""
-    weights: Optional[dict[Union[str, int], float]] = None
-    """Event weights"""
-    attributes: Optional[dict[str, str]] = None
-    """Event attributes"""
-    optional: Optional[list[str]] = None
-    """Optional '#' comments stored in the event"""
-    _graph: Optional[graphviz.Digraph] = None
-    """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
-
-    def __post_init__(self) -> None:
-        """Set up a bidirectional relationship between event and particles."""
-        for p in self.particles:
-            p.event = self
-
-    def tolhe(self, rwgt: bool = True, weights: bool = False) -> str:
-        """
-        Return the event as a string in LHE format.
-
-        Args:
-            rwgt (bool): Include the weights in the 'rwgt' format.
-            weights (bool): Include the weights in the 'weights' format.
-
-        Returns:
-            str: The event as a string in LHE format.
-        """
-        sweights = ""
-        if rwgt and self.weights:
-            sweights = "<rwgt>\n"
-            for k, v in self.weights.items():
-                sweights += f" <wgt id='{k}'>{v:11.4e}</wgt>\n"
-            sweights += "</rwgt>\n"
-        if weights and self.weights:
-            sweights = "<weights>\n"
-            for v in self.weights.values():
-                sweights += f"{v:11.4e}\n"
-            sweights += "</weights>\n"
-
-        return (
-            "<event>\n"
-            + self.eventinfo.tolhe()
-            + "\n"
-            + "\n".join([p.tolhe() for p in self.particles])
-            + "\n"
-            + sweights
-            + "</event>"
-        )
-
-    @property
-    def graph(self) -> graphviz.Digraph:
-        """
-        Get the `graphviz.Digraph` object.
-        The user now has full control ...
-
-        E.g., see the source with my_LHEEvent_instance.graph.source.
-
-        When not in notebooks the graph can easily be visualized with the
-        `graphviz.Digraph.render` or `graphviz.Digraph.view` functions, e.g.:
-        my_LHEEvent_instance.graph.render(filename="test", format="pdf", view=True, cleanup=True)
-        """
-        if self._graph is None:
-            self._build_graph()
-        return self._graph
-
-    def _build_graph(self) -> None:
-        """
-        Navigate the particles in the event and produce a Digraph in the DOT language.
-        """
-
-        def safe_html_name(name: str) -> str:
-            """
-            Get a safe HTML name from the LaTex name.
-            """
-            try:
-                return latex_to_html_name(name)
-            except Exception:
-                return name
-
-        self._graph = graphviz.Digraph()
-        for i, p in enumerate(self.particles):
-            iid = int(p.id)
-            sid = str(iid)
-            try:
-                name = _PDGID2LaTeXNameMap[sid]
-                texlbl = f"${name}$"
-                label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{safe_html_name(name)}</td></tr></table>>'
-            except MatchingIDNotFound:
-                texlbl = sid
-                label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
-            self._graph.node(
-                str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
-            )
-        for i, p in enumerate(self.particles):
-            for mom in p.mothers():
-                self._graph.edge(str(self.particles.index(mom)), str(i))
-
-    def _repr_mimebundle_(
-        self,
-        include: Optional[Iterable[str]] = None,
-        exclude: Optional[Iterable[str]] = None,
-        **kwargs: dict[str, Any],
-    ) -> Any:
-        """
-        IPython display helper.
-        """
-        try:
-            return self.graph._repr_mimebundle_(
-                include=include, exclude=exclude, **kwargs
-            )
-        except AttributeError:
-            return {"image/svg+xml": self.graph._repr_svg_()}  # for graphviz < 0.19
 
 
 @dataclass
@@ -626,21 +511,16 @@ class LHEInit(DictCompatibility):
             setattr(self.initInfo, key, value)
 
     @classmethod
-    def frombuffer(cls, fileobj: Union[TextIO, BinaryIO, gzip.GzipFile]) -> "LHEInit":
-        """Create an instance from a file-like object (buffer)."""
+    def _fromcontext(cls, root: ET.Element, context: Any) -> "LHEInit":
         initInfo = None
         procInfo = []
         weightgroup: dict[str, LHEWeightGroup] = {}
         LHEVersion: str = ""
 
-        for _event, element in ET.iterparse(fileobj, events=["start", "end"]):
-            if element.tag == "init":
-                if element.text is None:
-                    err = "<init> block has no text."
-                    raise ValueError(err)
-                data = element.text.split("\n")[1:-1]
-                initInfo = LHEInitInfo.fromstring(data[0])
-                procInfo = [LHEProcInfo.fromstring(d) for d in data[1:]]
+        if root.tag == "LesHouchesEvents":
+            LHEVersion = root.attrib["version"]
+
+        for event, element in context:
             if element.tag == "initrwgt":
                 weightgroup = {}
                 index = 0
@@ -656,41 +536,216 @@ class LHEInit(DictCompatibility):
                             raise AttributeError(ae)
                         _temp = LHEWeightGroup(attrib=child.attrib, weights={})
                         # Iterate over all weights in this weightgroup
-                        for w in child:
-                            if w.tag != "weight":
+                        for wc in child:
+                            if wc.tag != "weight":
                                 continue
-                            if "id" not in w.attrib:
+                            if "id" not in wc.attrib:
                                 ae = "weight must have attribute 'id'"
                                 raise AttributeError(ae)
-                            wg_id = w.attrib["id"]
+                            wg_id = wc.attrib["id"]
                             _temp.weights[wg_id] = LHEWeightInfo(
-                                attrib=w.attrib,
-                                name=w.text.strip() if w.text else "",
+                                attrib=wc.attrib,
+                                name=wc.text.strip() if wc.text else "",
                                 index=index,
                             )
                             index += 1
 
                         weightgroup[wg_type] = _temp
-            if element.tag == "LesHouchesEvents":
-                LHEVersion = element.attrib["version"]
+            if (
+                element.tag == "init" and event == "end"
+            ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
+                if element.text is None:
+                    err = "<init> block has no text."
+                    raise ValueError(err)
+                data = element.text.split("\n")[1:-1]
+                initInfo = LHEInitInfo.fromstring(data[0])
+                procInfo = [LHEProcInfo.fromstring(d) for d in data[1:]]
+
             if element.tag == "event":
                 break
         if initInfo is None:
             err = "No <init> block found in the LHE file."
             raise ValueError(err)
-        return cls(
+        return LHEInit(
             initInfo=initInfo,
             procInfo=procInfo,
             weightgroup=weightgroup,
             LHEVersion=LHEVersion,
         )
 
+
+@dataclass
+class LHEEvent(DictCompatibility):
+    """
+    Store a single event in the LHE format.
+    """
+
+    eventinfo: LHEEventInfo
+    """Event information"""
+    particles: list[LHEParticle]
+    """List of particles in the event"""
+    weights: dict[str, float] = field(default_factory=dict)
+    """Event weights"""
+    attributes: dict[str, str] = field(default_factory=dict)
+    """Event attributes"""
+    optional: list[str] = field(default_factory=list)
+    """Optional '#' comments stored in the event"""
+    _graph: Optional[graphviz.Digraph] = None
+    """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
+
+    def __post_init__(self) -> None:
+        """Set up a bidirectional relationship between event and particles."""
+        for p in self.particles:
+            p.event = self
+
+    def tolhe(self, rwgt: bool = True, weights: bool = False) -> str:
+        """
+        Return the event as a string in LHE format.
+
+        Args:
+            rwgt (bool): Include the weights in the 'rwgt' format.
+            weights (bool): Include the weights in the 'weights' format.
+
+        Returns:
+            str: The event as a string in LHE format.
+        """
+        sweights = ""
+        if rwgt and self.weights:
+            sweights = "<rwgt>\n"
+            for k, v in self.weights.items():
+                sweights += f" <wgt id='{k}'>{v:11.4e}</wgt>\n"
+            sweights += "</rwgt>\n"
+        if weights and self.weights:
+            sweights = "<weights>\n"
+            for v in self.weights.values():
+                sweights += f"{v:11.4e}\n"
+            sweights += "</weights>\n"
+
+        return (
+            "<event>\n"
+            + self.eventinfo.tolhe()
+            + "\n"
+            + "\n".join([p.tolhe() for p in self.particles])
+            + "\n"
+            + sweights
+            + "</event>"
+        )
+
     @classmethod
-    def fromstring(cls, string: str) -> "LHEInit":
+    def _fromcontext(
+        cls,
+        root: ET.Element,
+        context: Any,
+        lheinit: LHEInit,
+        with_attributes: bool,
+    ) -> Iterator["LHEEvent"]:
+        index_map = _get_index_to_id_map(lheinit) if with_attributes else {}
+        for event, element in context:
+            if event == "end" and element.tag == "event":
+                if element.text is None:
+                    err = "<event> block has no text."
+                    raise ValueError(err)
+
+                data = element.text.strip().split("\n")
+                eventdata_str, particles_str = data[0], data[1:]
+
+                eventinfo = LHEEventInfo.fromstring(eventdata_str)
+                particles = [
+                    LHEParticle.fromstring(p)
+                    for p in particles_str
+                    if not p.strip().startswith("#")
+                ]
+
+                if with_attributes:
+                    weights = {}
+                    attrib = element.attrib
+                    optional = [
+                        p.strip() for p in particles_str if p.strip().startswith("#")
+                    ]
+
+                    for sub in element:
+                        if sub.tag == "weights":
+                            if sub.text is None:
+                                err = "<weights> block has no text."
+                                raise ValueError(err)
+                            for i, w in enumerate(sub.text.split()):
+                                if w and index_map[i] not in weights:
+                                    weights[index_map[i]] = float(w)
+                        elif sub.tag == "rwgt":
+                            for r in sub:
+                                if r.tag == "wgt":
+                                    if r.text is None:
+                                        err = "<wgt> block has no text."
+                                        raise ValueError(err)
+                                    weights[r.attrib["id"]] = float(r.text.strip())
+
+                    yield LHEEvent(
+                        eventinfo=eventinfo,
+                        particles=particles,
+                        weights=weights,
+                        attributes=attrib,
+                        optional=optional,
+                    )
+                else:
+                    yield LHEEvent(eventinfo, particles)
+
+                # Clear memory
+                element.clear()
+                root.clear()
+
+    @property
+    def graph(self) -> graphviz.Digraph:
         """
-        Create an `LHEEventInfo` instance from a string in LHE format.
+        Get the `graphviz.Digraph` object.
+        The user now has full control ...
+
+        E.g., see the source with my_LHEEvent_instance.graph.source.
+
+        When not in notebooks the graph can easily be visualized with the
+        `graphviz.Digraph.render` or `graphviz.Digraph.view` functions, e.g.:
+        my_LHEEvent_instance.graph.render(filename="test", format="pdf", view=True, cleanup=True)
         """
-        return cls.frombuffer(io.StringIO(string))
+        if self._graph is None:
+            self._build_graph()
+        return self._graph
+
+    def _build_graph(self) -> None:
+        """
+        Navigate the particles in the event and produce a Digraph in the DOT language.
+        """
+        self._graph = graphviz.Digraph()
+        for i, p in enumerate(self.particles):
+            iid = int(p.id)
+            sid = str(iid)
+            try:
+                name = _PDGID2LaTeXNameMap[sid]
+                texlbl = f"${name}$"
+                label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{latex_to_html_name(name)}</td></tr></table>>'
+            except MatchingIDNotFound:
+                texlbl = sid
+                label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
+            self._graph.node(
+                str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
+            )
+        for i, p in enumerate(self.particles):
+            for mom in p.mothers():
+                self._graph.edge(str(self.particles.index(mom)), str(i))
+
+    def _repr_mimebundle_(
+        self,
+        include: Optional[Iterable[str]] = None,
+        exclude: Optional[Iterable[str]] = None,
+        **kwargs: dict[str, Any],
+    ) -> Any:
+        """
+        IPython display helper.
+        """
+        try:
+            return self.graph._repr_mimebundle_(
+                include=include, exclude=exclude, **kwargs
+            )
+        except AttributeError:
+            return {"image/svg+xml": self.graph._repr_svg_()}  # for graphviz < 0.19
 
 
 @dataclass
@@ -723,16 +778,122 @@ class LHEFile(DictCompatibility):
         """
         return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
 
+    def tofile(
+        self,
+        filepath: str,
+        gz: bool = False,
+        rwgt: bool = True,
+        weights: bool = False,
+    ) -> None:
+        """
+        Write the LHE file.
+
+        Args:
+            filepath: Path to the output file.
+            gz: Whether to gzip the output file (ignored if filepath suffix is .gz/.gzip).
+            rwgt: Whether to include weights in 'rwgt' format.
+            weights: Whether to include weights in 'weights' format.
+        """
+        # if filepath suffix is gz, write as gz
+        with _open_write_file(filepath, gz=gz) as f:
+            self.write(f, rwgt=rwgt, weights=weights)
+
+    @classmethod
+    def fromstring(
+        cls, string: str, with_attributes: bool = True, generator: bool = True
+    ) -> "LHEFile":
+        """
+        Create an LHEFile instance from a string in LHE format.
+        """
+        return cls.frombuffer(
+            io.StringIO(string), with_attributes=with_attributes, generator=generator
+        )
+
+    @classmethod
+    def fromfile(
+        cls, filepath: PathLike, with_attributes: bool = True, generator: bool = True
+    ) -> "LHEFile":
+        """
+        Read an LHE file and return an LHEFile object.
+        """
+        return cls.frombuffer(
+            _extract_fileobj(filepath),
+            with_attributes=with_attributes,
+            generator=generator,
+        )
+
+    @classmethod
+    def frombuffer(
+        cls,
+        fileobject: Union[
+            io.BufferedReader, gzip.GzipFile, io.StringIO, TextIO, BinaryIO
+        ],
+        with_attributes: bool = True,
+        generator: bool = True,
+    ) -> "LHEFile":
+        """
+        Read an LHE file and return an LHEFile object.
+        """
+
+        def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
+            try:
+                with fileobject as fileobj:
+                    context = ET.iterparse(fileobj, events=["start", "end"])
+                    _, root = next(context)  # Get the root element
+
+                    lheinit = LHEInit._fromcontext(root, context)
+                    lhef.init = lheinit
+                    # First yield allows caller to advance generator to read lheinit before consuming real events
+                    yield LHEEvent(
+                        eventinfo=LHEEventInfo(
+                            nparticles=0,
+                            pid=0,
+                            weight=0.0,
+                            scale=0.0,
+                            aqed=0.0,
+                            aqcd=0.0,
+                        ),
+                        particles=[],
+                    )
+                    yield from LHEEvent._fromcontext(
+                        root, context, lheinit, with_attributes
+                    )
+
+            except ET.ParseError as excep:
+                print("WARNING. Parse Error:", excep)
+                return
+
+        lhef = cls(
+            # dummy init, will be replaced
+            init=LHEInit(
+                initInfo=LHEInitInfo(0, 0, 0.0, 0.0, 0, 0, 0, 0, 0, 0),
+                procInfo=[],
+                weightgroup={},
+                LHEVersion="3.0",
+            ),
+            events=[],
+        )
+        events = _generator(lhef)
+        next(events)  # advance to read lheinit
+
+        lhef.events = events if generator else list(events)
+        return lhef
+
 
 def read_lhe_file(filepath: PathLike, with_attributes: bool = True) -> LHEFile:
     """
     Read an LHE file and return an LHEFile object.
+
+    .. deprecated:: 1.0.0
+        Use `LHEFile.fromfile` instead.
     """
-    lheinit = read_lhe_init(filepath)
-    lheevents = (
-        read_lhe_with_attributes(filepath) if with_attributes else read_lhe(filepath)
+    warnings.warn(
+        "read_lhe_file is deprecated and will be removed in a future version. "
+        "Use `LHEFile.fromfile` instead",
+        DeprecationWarning,
+        stacklevel=2,
     )
-    return LHEFile(init=lheinit, events=lheevents)
+    return LHEFile.fromfile(filepath, with_attributes=with_attributes)
 
 
 def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFile]:
@@ -767,37 +928,33 @@ def read_lhe_init(filepath: PathLike) -> LHEInit:
 
     Returns:
         dict: Dictionary containing the init blocks of the LHE file.
+
+    .. deprecated:: 1.0.0
+        Use `LHEFile.fromfile(...).init` instead.
     """
-    with _extract_fileobj(filepath) as fileobj:
-        return LHEInit.frombuffer(fileobj)
+    warnings.warn(
+        "read_lhe_init is deprecated and will be removed in a future version. "
+        "Use `LHEFile.fromfile(...).init` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return LHEFile.fromfile(filepath).init
 
 
 def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
     """
     Read and yield the events in the LHE file.
+
+    .. deprecated:: 1.0.0
+        Use `LHEFile.fromfile(...).events` instead.
     """
-    try:
-        with _extract_fileobj(filepath) as fileobj:
-            context = ET.iterparse(fileobj, events=["start", "end"])
-            _, root = next(context)  # Get the root element
-            for event, element in context:
-                if event == "end" and element.tag == "event":
-                    if element.text is None:
-                        err = "<event> block has no text."
-                        raise ValueError(err)
-                    data = element.text.strip().split("\n")
-                    eventdata, particles = data[0], data[1:]
-                    eventinfo = LHEEventInfo.fromstring(eventdata)
-                    particles = particles[: int(eventinfo.nparticles)]
-                    particle_objs = [LHEParticle.fromstring(p) for p in particles]
-                    yield LHEEvent(eventinfo, particle_objs)
-                    # Clear the element to free memory
-                    element.clear()
-                    # Root tracks sub-elements -> clear all sub-elements
-                    root.clear()
-    except ET.ParseError as excep:
-        print("WARNING. Parse Error:", excep)
-        return
+    warnings.warn(
+        "read_lhe is deprecated and will be removed in a future version. "
+        "Use `LHEFile.fromfile(...).events` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    yield from LHEFile.fromfile(filepath, with_attributes=False).events
 
 
 def _get_index_to_id_map(init: LHEInit) -> dict[int, str]:
@@ -825,66 +982,17 @@ def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
     """
     Iterate through file, similar to read_lhe but also set
     weights and attributes.
+
+    .. deprecated:: 1.0.0
+        Use `LHEEvent.fromfile` with the `with_attributes` parameter instead.
     """
-    index_map = None
-    try:
-        with _extract_fileobj(filepath) as fileobj:
-            context = ET.iterparse(fileobj, events=["start", "end"])
-            _, root = next(context)  # Get the root element
-            for event, element in context:
-                if event == "end" and element.tag == "event":
-                    eventdict: dict[str, Any] = {}
-                    if element.text is None:
-                        err = "<event> block has no text."
-                        raise ValueError(err)
-                    data = element.text.strip().split("\n")
-                    eventdata, particles = data[0], data[1:]
-                    eventdict["eventinfo"] = LHEEventInfo.fromstring(eventdata)
-                    eventdict["particles"] = []
-                    eventdict["weights"] = {}
-                    eventdict["attrib"] = element.attrib
-                    eventdict["optional"] = []
-                    for p in particles:
-                        if not p.strip().startswith("#"):
-                            eventdict["particles"] += [LHEParticle.fromstring(p)]
-                        else:
-                            eventdict["optional"].append(p.strip())
-                    for sub in element:
-                        if sub.tag == "weights":
-                            if not index_map:
-                                index_map = _get_index_to_id_map(
-                                    read_lhe_init(filepath)
-                                )
-                            if sub.text is None:
-                                err = "<weights> block has no text."
-                                raise ValueError(err)
-                            for i, w in enumerate(sub.text.split()):
-                                if w and index_map[i] not in eventdict["weights"]:
-                                    eventdict["weights"][index_map[i]] = float(w)
-                        if sub.tag == "rwgt":
-                            for r in sub:
-                                if r.tag == "wgt":
-                                    if r.text is None:
-                                        err = "<wgt> block has no text."
-                                        raise ValueError(err)
-                                    eventdict["weights"][r.attrib["id"]] = float(
-                                        r.text.strip()
-                                    )
-                    # yield eventdict
-                    yield LHEEvent(
-                        eventinfo=eventdict["eventinfo"],
-                        particles=eventdict["particles"],
-                        weights=eventdict["weights"],
-                        attributes=eventdict["attrib"],
-                        optional=eventdict["optional"],
-                    )
-                    # Clear processed elements
-                    element.clear()
-                    # Root tracks sub-elements -> clear all sub-elements
-                    root.clear()
-    except ET.ParseError as excep:
-        print("WARNING. Parse Error:", excep)
-        return
+    warnings.warn(
+        "read_lhe_with_attributes is deprecated and will be removed in a future version. "
+        "Use `LHEEvent.fromfile` with the `with_attributes` parameter instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    yield from LHEFile.fromfile(filepath, with_attributes=True).events
 
 
 def read_num_events(filepath: PathLike) -> int:
@@ -914,7 +1022,16 @@ def write_lhe_file_string(
 ) -> str:
     """
     Return the LHE file as a string.
+
+    .. deprecated:: 1.0.0
+         Use `LHEFile.tolhe` instead.
     """
+    warnings.warn(
+        "write_lhe_file_string is deprecated and will be removed in a future version. "
+        "Use `LHEFile.tolhe` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return lhefile.tolhe(rwgt=rwgt, weights=weights)
 
 
@@ -928,17 +1045,15 @@ def write_lhe_string(
     Return the LHE file as a string.
 
     .. deprecated:: 0.9.1
-       Instead of :func:`~pylhe.write_lhe_string` use :func:`~pylhe.write_lhe_file_string`. :func:`~pylhe.write_lhe_string` will be removed in a future version of ``pylhe``.
+       Instead of :func:`~pylhe.write_lhe_string(init,events,rwgt,weights)` use `LHEFile(init,events).tolhe(rwgt,weights)`.
     """
     warnings.warn(
         "`write_lhe_string` is deprecated and will be removed in a future version. "
-        "Use `write_lhe_file_string` instead.",
+        "Use `LHEFile(...).tolhe(...)` instead.",
         DeprecationWarning,
         stacklevel=2,
     )
-    return write_lhe_file_string(
-        LHEFile(init=lheinit, events=lheevents), rwgt=rwgt, weights=weights
-    )
+    return LHEFile(init=lheinit, events=lheevents).tolhe(rwgt=rwgt, weights=weights)
 
 
 def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
@@ -956,10 +1071,17 @@ def write_lhe_file_path(
 ) -> None:
     """
     Write the LHE file.
+
+    .. deprecated:: 1.0.0
+        Use `LHEFile.tofile` instead.
     """
-    # if filepath suffix is gz, write as gz
-    with _open_write_file(filepath, gz=gz) as f:
-        lhefile.write(f, rwgt=rwgt, weights=weights)
+    warnings.warn(
+        "write_lhe_file_path is deprecated and will be removed in a future version. "
+        "Use `LHEFile.tofile` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    lhefile.tofile(filepath, gz=gz, rwgt=rwgt, weights=weights)
 
 
 def write_lhe_file(
@@ -974,16 +1096,15 @@ def write_lhe_file(
     Write the LHE file.
 
     .. deprecated:: 0.9.1
-       Instead of :func:`~pylhe.write_lhe_file` use :func:`~pylhe.write_lhe_file_path`. :func:`~pylhe.write_lhe_file` will be removed in a future version of ``pylhe``.
+       Instead of :func:`~pylhe.write_lhe_file(init,events,filepath,gz,rwgt,weights)` use `LHEFile(init,events).tofile(filepath,gz,rwgt,weights)`.
     """
     warnings.warn(
         "`write_lhe_file` is deprecated and will be removed in a future version. "
-        "Use `write_lhe_file_path` instead.",
+        "Use `LHEFile(...).tofile(...)` instead.",
         DeprecationWarning,
         stacklevel=2,
     )
-    write_lhe_file_path(
-        LHEFile(init=lheinit, events=lheevents),
+    LHEFile(init=lheinit, events=lheevents).tofile(
         filepath,
         gz=gz,
         rwgt=rwgt,

@@ -1,0 +1,8 @@
+name: pylhe
+channels:
+  - conda-forge
+dependencies:
+  - hist>=2
+  - scikit-hep-testdata>=0.5.5
+  - pip:
+    - .

@@ -210,6 +210,16 @@ def test_read_lhe_file(file):
     assert next(lheevents).tolhe() == next(lhefile.events).tolhe()
 
 
+@pytest.mark.parametrize(
+    "file", [TEST_FILE_LHE_INITRWGT_WEIGHTS, TEST_FILE_LHE_RWGT_WGT]
+)
+def test_read_buffer(file):
+    with open(file, "rb") as f:
+        lhef1 = pylhe.LHEFile.frombuffer(f, with_attributes=True)
+        next(lhef1.events)
+    next(lhef1.events)
+
+
 def test_read_lhe_initrwgt_weights():
     """
     Test the weights from initrwgt with a weights list.
@@ -252,7 +262,7 @@ def test_read_lhe_init_raises():
     with pytest.raises(
         AttributeError, match=r"weightgroup must have attribute 'type' or 'name'."
     ):
-        pylhe.LHEInit.fromstring(
+        pylhe.LHEFile.fromstring(
             """<init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66
@@ -273,7 +283,7 @@ def test_read_lhe_init_raises():
         )
 
     with pytest.raises(AttributeError, match=r"weight must have attribute 'id'"):
-        pylhe.LHEInit.fromstring(
+        pylhe.LHEFile.fromstring(
             """<init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66

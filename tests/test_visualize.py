@@ -35,3 +35,11 @@ def test_LHEEvent_graph_render():
 
     event = next(itertools.islice(events, 1, 2))
     event.graph.render(filename="test_event1", format="pdf", cleanup=True)
+
+
+def test_mime():
+    lhe_file = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
+    events = pylhe.read_lhe_with_attributes(lhe_file)
+
+    event = next(itertools.islice(events, 1, 2))
+    assert event._repr_mimebundle_() == event.graph._repr_mimebundle_()

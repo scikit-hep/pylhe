@@ -147,3 +147,8 @@ ignore = [
   "RUF012",   # TODO: mutable class attributes
   "SIM115",   # TODO: use context manager for opening files
 ]
+
+[tool.codespell]
+# https://github.com/codespell-project/codespell/issues/2801
+# Ignore very long base64-like strings
+ignore-regex = '[A-Za-z0-9+/]{100,}'
