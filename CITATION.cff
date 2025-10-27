@@ -18,10 +18,10 @@ authors:
   given-names: "Alexander Puck"
   orcid: "https://orcid.org/0000-0002-2484-1328"
   affiliation: "Institut für Theoretische Physik, Universität Münster"
-title: "pylhe: v0.9.3"
-version: 0.9.3
+title: "pylhe: v1.0.0"
+version: 1.0.0
 doi: 10.5281/zenodo.1217031
-repository-code: "https://github.com/scikit-hep/pylhe/releases/tag/v0.9.3"
+repository-code: "https://github.com/scikit-hep/pylhe/releases/tag/v1.0.0"
 keywords:
   - lhe
   - physics
