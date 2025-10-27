@@ -36,9 +36,14 @@ def to_awkward(event_iterable: Iterable[LHEEvent]) -> ak.Array:
         with builder.record(name="Event"):
             builder.field("eventinfo")
             with builder.record(name="EventInfo"):
-                for fname in event.eventinfo.fieldnames:
-                    builder.field(fname).real(getattr(event.eventinfo, fname))
-            if event.weights != {}:
+                ei = event.eventinfo
+                builder.field("nparticles").integer(ei.nparticles)
+                builder.field("pid").integer(ei.pid)
+                builder.field("weight").real(ei.weight)
+                builder.field("scale").real(ei.scale)
+                builder.field("aqed").real(ei.aqed)
+                builder.field("aqcd").real(ei.aqcd)
+            if event.weights:
                 builder.field("weights")
                 with builder.record(name="Weights"):
                     for label, w in event.weights.items():
@@ -49,11 +54,19 @@ def to_awkward(event_iterable: Iterable[LHEEvent]) -> ak.Array:
                     with builder.record(name="Particle"):
                         builder.field("vector")
                         with builder.record(name="Momentum4D"):
-                            for fname in ["px", "py", "pz", "e"]:
-                                builder.field(fname).real(getattr(particle, fname))
-                        for fname in particle.fieldnames:
-                            if fname not in ["px", "py", "pz", "e"]:
-                                builder.field(fname).real(getattr(particle, fname))
+                            builder.field("px").real(particle.px)
+                            builder.field("py").real(particle.py)
+                            builder.field("pz").real(particle.pz)
+                            builder.field("e").real(particle.e)
+                        builder.field("id").integer(particle.id)
+                        builder.field("status").integer(particle.status)
+                        builder.field("mother1").integer(particle.mother1)
+                        builder.field("mother2").integer(particle.mother2)
+                        builder.field("color1").integer(particle.color1)
+                        builder.field("color2").integer(particle.color2)
+                        builder.field("m").real(particle.m)
+                        builder.field("lifetime").real(particle.lifetime)
+                        builder.field("spin").real(particle.spin)
     return builder.snapshot()  # awkward array
 
 
