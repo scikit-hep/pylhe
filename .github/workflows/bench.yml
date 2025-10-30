@@ -26,6 +26,7 @@ jobs:
         run: |
           git checkout origin/main
           uv pip install --system '.[test]'
+          uv pip install --system pytest-benchmark
 
       # Run benchmarks on main
       - name: Run benchmarks on main
