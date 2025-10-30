@@ -29,7 +29,7 @@ jobs:
       # Run benchmarks on main
       - name: Run benchmarks on main
         run: |
-          pytest benchmarks --benchmark-only --benchmark-save=baseline
+          pytest benchmarks --benchmark-only --benchmark-save=baseline --no-cov --disable-warnings
 
 
       - name: Install PR
@@ -37,17 +37,12 @@ jobs:
           git checkout -
           uv pip install --system '.[test]'
 
-      # Run benchmarks on PR branch
-      - name: Run benchmarks on PR branch
-        run: |
-          pytest benchmarks --benchmark-only --benchmark-save=patches
-
       # Compare results
-      - name: Compare benchmarks
+      - name: Run benchmarks on PR and compare
         id: compare
         run: |
           set +e
-          result=$(pytest benchmarks --benchmark-only --benchmark-compare=baseline --benchmark-compare-fail=min:5% || true)
+          result=$(pytest benchmarks --benchmark-only --benchmark-compare=baseline --benchmark-compare-fail=min:5% --no-cov --disable-warnings || true)
           echo "result<<EOF" >> $GITHUB_OUTPUT
           echo "$result" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
