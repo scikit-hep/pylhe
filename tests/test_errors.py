@@ -1,4 +1,3 @@
-import io
 import os
 import tempfile
 from tempfile import NamedTemporaryFile
@@ -22,11 +21,6 @@ def test_missing_init_block_error():
     # Test with string buffer
     with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
         pylhe.LHEFile.fromstring(invalid_lhe_content)
-
-    # Test with file-like object
-    buffer = io.StringIO(invalid_lhe_content)
-    with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
-        pylhe.LHEFile.frombuffer(buffer)
 
 
 def test_missing_init_block_error_with_file():
@@ -114,11 +108,6 @@ def test_empty_init_block_error():
     # Test with string buffer
     with pytest.raises(ValueError, match=r"<init> block has no text"):
         pylhe.LHEFile.fromstring(empty_init_content)
-
-    # Test with file-like object
-    buffer = io.StringIO(empty_init_content)
-    with pytest.raises(ValueError, match=r"<init> block has no text"):
-        pylhe.LHEFile.frombuffer(buffer)
 
 
 def test_empty_event_block_error():

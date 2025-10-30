@@ -6,7 +6,6 @@ import gzip
 import io
 import os
 import warnings
-import xml.etree.ElementTree as ET
 from abc import ABC
 from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import asdict, dataclass, field, fields
@@ -21,6 +20,7 @@ from typing import (
 )
 
 import graphviz  # type: ignore[import-untyped]
+import lxml.etree as ET  # type: ignore[import-untyped]
 from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 from particle.exceptions import MatchingIDNotFound
@@ -806,7 +806,9 @@ class LHEFile(DictCompatibility):
         Create an LHEFile instance from a string in LHE format.
         """
         return cls.frombuffer(
-            io.StringIO(string), with_attributes=with_attributes, generator=generator
+            io.BytesIO(string.encode("utf-8")),
+            with_attributes=with_attributes,
+            generator=generator,
         )
 
     @classmethod
