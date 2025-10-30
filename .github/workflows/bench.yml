@@ -1,0 +1,60 @@
+name: Benchmark Comparison
+
+on:
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # important to fetch full history for git compare
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+
+      - uses: astral-sh/setup-uv@v7
+
+      - name: Install dependencies
+        run: |
+          uv pip install --system '.[test]'
+          uv pip list
+
+      # Run benchmarks on main
+      - name: Run benchmarks on main
+        run: |
+          git checkout origin/main
+          pytest --benchmark-only --benchmark-save=baseline
+
+      # Run benchmarks on PR branch
+      - name: Run benchmarks on PR branch
+        run: |
+          git checkout -
+          pytest --benchmark-only --benchmark-save=patches
+
+      # Compare results
+      - name: Compare benchmarks
+        id: compare
+        run: |
+          set +e
+          result=$(pytest --benchmark-compare=baseline --benchmark-compare-fail=min:5% || true)
+          echo "$result"
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # Post a comment to the PR with results
+      - name: Comment on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: benchmark
+          message: |
+            ## 🏎️ Benchmark Comparison
+            ${{ steps.compare.outputs.result }}
