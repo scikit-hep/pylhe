@@ -647,7 +647,7 @@ class LHEEvent(DictCompatibility):
                     err = "<event> block has no text."
                     raise ValueError(err)
 
-                data = element.text.splitlines()
+                data = element.text.strip().split("\n")
                 eventdata_str, particles_str = data[0], data[1:]
                 particles_str = [p.strip() for p in particles_str]
 
