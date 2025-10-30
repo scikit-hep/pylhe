@@ -691,8 +691,8 @@ class LHEEvent(DictCompatibility):
 
                 # Clear memory
                 element.clear()
-                # Clear the root every 100 elements
-                if idx % 100 == 0:
+                # Clear the root every 10 elements
+                if idx % 10 == 0:
                     root.clear()
 
     @property
