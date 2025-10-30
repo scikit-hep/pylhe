@@ -50,7 +50,7 @@ jobs:
         run: |
           set +e
           result=$(pytest --benchmark-compare=baseline --benchmark-compare-fail=min:5% || true)
-          echo "$result"
+          result=$(pytest benchmarks --benchmark-only --benchmark-compare=baseline --benchmark-compare-fail=min:5% || true)
           echo "result<<EOF" >> $GITHUB_OUTPUT
           echo "$result" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
