@@ -190,8 +190,8 @@ class LHEEventInfo(DictCompatibility):
         """
         values = string.split()
         return cls(
-            nparticles=int(float(values[0])),
-            pid=int(float(values[1])),
+            nparticles=int(values[0]),
+            pid=int(values[1]),
             weight=float(values[2]),
             scale=float(values[3]),
             aqed=float(values[4]),
@@ -256,12 +256,12 @@ class LHEParticle(DictCompatibility):
         """
         values = string.split()
         return cls(
-            id=int(float(values[0])),
-            status=int(float(values[1])),
-            mother1=int(float(values[2])),
-            mother2=int(float(values[3])),
-            color1=int(float(values[4])),
-            color2=int(float(values[5])),
+            id=int(values[0]),
+            status=int(values[1]),
+            mother1=int(values[2]),
+            mother2=int(values[3]),
+            color1=int(values[4]),
+            color2=int(values[5]),
             px=float(values[6]),
             py=float(values[7]),
             pz=float(values[8]),
@@ -354,16 +354,16 @@ class LHEInitInfo(DictCompatibility):
         """
         values = string.split()
         return cls(
-            beamA=int(float(values[0])),
-            beamB=int(float(values[1])),
+            beamA=int(values[0]),
+            beamB=int(values[1]),
             energyA=float(values[2]),
             energyB=float(values[3]),
-            PDFgroupA=int(float(values[4])),
-            PDFgroupB=int(float(values[5])),
-            PDFsetA=int(float(values[6])),
-            PDFsetB=int(float(values[7])),
-            weightingStrategy=int(float(values[8])),
-            numProcesses=int(float(values[9])),
+            PDFgroupA=int(values[4]),
+            PDFgroupB=int(values[5]),
+            PDFsetA=int(values[6]),
+            PDFsetB=int(values[7]),
+            weightingStrategy=int(values[8]),
+            numProcesses=int(values[9]),
         )
 
 
@@ -399,7 +399,7 @@ class LHEProcInfo(DictCompatibility):
             xSection=float(values[0]),
             error=float(values[1]),
             unitWeight=float(values[2]),
-            procId=int(float(values[3])),
+            procId=int(values[3]),
         )
 
 
