@@ -26,7 +26,7 @@ TEST_FILES_LHE_ALL = [
 ]
 
 
-def test_fromfile_and_to_awkward_benchmark_collective(benchmark):
+def test_fromfile_and_to_awkward(benchmark):
     """Benchmark LHEFile.fromfile and to_awkward conversion across all test files."""
 
     def fromfile_and_to_awkward_all_files(filepaths):
