@@ -640,28 +640,28 @@ class LHEEvent(DictCompatibility):
         with_attributes: bool,
     ) -> Iterator["LHEEvent"]:
         index_map = _get_index_to_id_map(lheinit) if with_attributes else {}
-        for event, element in context:
+
+        for idx, (event, element) in enumerate(context, 1):
             if event == "end" and element.tag == "event":
                 if element.text is None:
                     err = "<event> block has no text."
                     raise ValueError(err)
 
-                data = element.text.strip().split("\n")
+                data = element.text.splitlines()
                 eventdata_str, particles_str = data[0], data[1:]
+                particles_str = [p.strip() for p in particles_str]
 
                 eventinfo = LHEEventInfo.fromstring(eventdata_str)
                 particles = [
                     LHEParticle.fromstring(p)
                     for p in particles_str
-                    if not p.strip().startswith("#")
+                    if not p.startswith("#")
                 ]
 
                 if with_attributes:
                     weights = {}
                     attrib = element.attrib
-                    optional = [
-                        p.strip() for p in particles_str if p.strip().startswith("#")
-                    ]
+                    optional = [p for p in particles_str if p.startswith("#")]
 
                     for sub in element:
                         if sub.tag == "weights":
@@ -691,7 +691,9 @@ class LHEEvent(DictCompatibility):
 
                 # Clear memory
                 element.clear()
-                root.clear()
+                # Clear the root every 100 elements
+                if idx % 100 == 0:
+                    root.clear()
 
     @property
     def graph(self) -> graphviz.Digraph:
