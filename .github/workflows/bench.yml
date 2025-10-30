@@ -22,22 +22,27 @@ jobs:
 
       - uses: astral-sh/setup-uv@v7
 
-      - name: Install dependencies
+      - name: Install main
         run: |
+          git checkout origin/main
           uv pip install --system '.[test]'
-          uv pip list
 
       # Run benchmarks on main
       - name: Run benchmarks on main
         run: |
-          git checkout origin/main
-          pytest --benchmark-only --benchmark-save=baseline
+          pytest benchmarks --benchmark-only --benchmark-save=baseline
+
+
+      - name: Install PR
+        run: |
+          git checkout -
+          uv pip install --system '.[test]'
 
       # Run benchmarks on PR branch
       - name: Run benchmarks on PR branch
         run: |
           git checkout -
-          pytest --benchmark-only --benchmark-save=patches
+          pytest benchmarks --benchmark-only --benchmark-save=patches
 
       # Compare results
       - name: Compare benchmarks
