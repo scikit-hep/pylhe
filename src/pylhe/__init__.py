@@ -640,60 +640,65 @@ class LHEEvent(DictCompatibility):
         with_attributes: bool,
     ) -> Iterator["LHEEvent"]:
         index_map = _get_index_to_id_map(lheinit) if with_attributes else {}
+        idx = 0
 
-        for idx, (event, element) in enumerate(context, 1):
-            if event == "end" and element.tag == "event":
-                if element.text is None:
-                    err = "<event> block has no text."
-                    raise ValueError(err)
+        try:
+            for event, element in context:
+                if event == "end" and element.tag == "event":
+                    idx = idx + 1
+                    if element.text is None:
+                        err = "<event> block has no text."
+                        raise ValueError(err)
 
-                data = element.text.strip().split("\n")
-                eventdata_str, particles_str = data[0], data[1:]
-                particles_str = [p.strip() for p in particles_str]
+                    data = element.text.strip().split("\n")
+                    eventdata_str, particles_str = data[0], data[1:]
+                    particles_str = [p.strip() for p in particles_str]
 
-                eventinfo = LHEEventInfo.fromstring(eventdata_str)
-                particles = [
-                    LHEParticle.fromstring(p)
-                    for p in particles_str
-                    if not p.startswith("#")
-                ]
+                    eventinfo = LHEEventInfo.fromstring(eventdata_str)
+                    particles = [
+                        LHEParticle.fromstring(p)
+                        for p in particles_str
+                        if not p.startswith("#")
+                    ]
 
-                if with_attributes:
-                    weights = {}
-                    attrib = element.attrib
-                    optional = [p for p in particles_str if p.startswith("#")]
+                    if with_attributes:
+                        weights = {}
+                        attrib = element.attrib
+                        optional = [p for p in particles_str if p.startswith("#")]
 
-                    for sub in element:
-                        if sub.tag == "weights":
-                            if sub.text is None:
-                                err = "<weights> block has no text."
-                                raise ValueError(err)
-                            for i, w in enumerate(sub.text.split()):
-                                if w and index_map[i] not in weights:
-                                    weights[index_map[i]] = float(w)
-                        elif sub.tag == "rwgt":
-                            for r in sub:
-                                if r.tag == "wgt":
-                                    if r.text is None:
-                                        err = "<wgt> block has no text."
-                                        raise ValueError(err)
-                                    weights[r.attrib["id"]] = float(r.text.strip())
+                        for sub in element:
+                            if sub.tag == "weights":
+                                if sub.text is None:
+                                    err = "<weights> block has no text."
+                                    raise ValueError(err)
+                                for i, w in enumerate(sub.text.split()):
+                                    if w and index_map[i] not in weights:
+                                        weights[index_map[i]] = float(w)
+                            elif sub.tag == "rwgt":
+                                for r in sub:
+                                    if r.tag == "wgt":
+                                        if r.text is None:
+                                            err = "<wgt> block has no text."
+                                            raise ValueError(err)
+                                        weights[r.attrib["id"]] = float(r.text.strip())
 
-                    yield LHEEvent(
-                        eventinfo=eventinfo,
-                        particles=particles,
-                        weights=weights,
-                        attributes=attrib,
-                        optional=optional,
-                    )
-                else:
-                    yield LHEEvent(eventinfo, particles)
+                        yield LHEEvent(
+                            eventinfo=eventinfo,
+                            particles=particles,
+                            weights=weights,
+                            attributes=attrib,
+                            optional=optional,
+                        )
+                    else:
+                        yield LHEEvent(eventinfo, particles)
 
-                # Clear memory
-                element.clear()
-                # Clear the root every 10 elements
-                if idx % 10 == 0:
-                    root.clear()
+                    # Clear memory
+                    element.clear()
+                    # Clear the root every 100 elements
+                    if idx % 100 == 0:
+                        root.clear()
+        finally:
+            root.clear()
 
     @property
     def graph(self) -> graphviz.Digraph:
