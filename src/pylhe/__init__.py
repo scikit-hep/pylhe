@@ -651,8 +651,8 @@ class LHEEvent(DictCompatibility):
                         raise ValueError(err)
 
                     data = element.text.strip().split("\n")
-                    eventdata_str, particles_str = data[0], data[1:]
-                    particles_str = [p.strip() for p in particles_str]
+                    eventdata_str = data[0]
+                    particles_str = [p.strip() for p in data[1:]]
 
                     eventinfo = LHEEventInfo.fromstring(eventdata_str)
                     particles = [
@@ -671,9 +671,15 @@ class LHEEvent(DictCompatibility):
                                 if sub.text is None:
                                     err = "<weights> block has no text."
                                     raise ValueError(err)
-                                for i, w in enumerate(sub.text.split()):
-                                    if w and index_map[i] not in weights:
-                                        weights[index_map[i]] = float(w)
+                                weights.update(
+                                    {
+                                        index_map[i]: float(w)
+                                        for i, w in enumerate(
+                                            sub.text.split()[::-1]
+                                        )  # reversed order to only keep the first occurrence in case of duplicates
+                                        if w and index_map[i] not in weights
+                                    }
+                                )
                             elif sub.tag == "rwgt":
                                 for r in sub:
                                     if r.tag == "wgt":
