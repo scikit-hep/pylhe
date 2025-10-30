@@ -29,7 +29,7 @@ jobs:
       # Run benchmarks on base
       - name: Run benchmarks on base
         run: |
-          pytest benchmarks --benchmark-only --benchmark-save=base --no-cov --disable-warnings
+          pytest benchmarks --benchmark-only --benchmark-warmup='on' --benchmark-warmup-iterations=1 --benchmark-min-rounds=10 --benchmark-save=base --no-cov --disable-warnings
 
       - name: Install PR
         run: |
@@ -39,7 +39,7 @@ jobs:
       # Run benchmarks on MR
       - name: Run benchmarks on MR
         run: |
-          pytest benchmarks --benchmark-only --benchmark-save=mr --benchmark-compare=0001_base --benchmark-compare-fail=min:10% --no-cov --disable-warnings
+          pytest benchmarks --benchmark-only --benchmark-warmup='on' --benchmark-warmup-iterations=1 --benchmark-min-rounds=10 --benchmark-save=mr --benchmark-compare=0001_base --benchmark-compare-fail=min:10% --no-cov --disable-warnings
 
       # Compare results
       - name: Run benchmarks on PR and compare
