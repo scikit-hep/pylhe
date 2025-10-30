@@ -67,7 +67,7 @@ def to_awkward(event_iterable: Iterable[LHEEvent]) -> ak.Array:
                         builder.field("m").real(particle.m)
                         builder.field("lifetime").real(particle.lifetime)
                         builder.field("spin").real(particle.spin)
-    return builder.snapshot()  # awkward array
+    return builder.snapshot()  # build the final awkward array
 
 
 # Used to register Awkward behaviors
