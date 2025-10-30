@@ -43,7 +43,7 @@ def to_awkward(event_iterable: Iterable[LHEEvent]) -> ak.Array:
                 builder.field("scale").real(ei.scale)
                 builder.field("aqed").real(ei.aqed)
                 builder.field("aqcd").real(ei.aqcd)
-            if event.weights:
+            if event.weights != {}:
                 builder.field("weights")
                 with builder.record(name="Weights"):
                     for label, w in event.weights.items():
