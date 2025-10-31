@@ -244,8 +244,7 @@ def test_count_events_parse_error():
         f.write("<init>\n")
         f.write("invalid xml content without proper closing\n")
         # Missing </init> and </LesHouchesEvents> tags
-        temp_filepath = f.name
 
         f.flush()
 
-        assert pylhe.LHEFile.count_events(temp_filepath) == -1
+        assert pylhe.LHEFile.count_events(f.name) == -1

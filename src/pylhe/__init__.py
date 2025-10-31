@@ -862,7 +862,7 @@ class LHEFile(DictCompatibility):
                     )
 
             except ET.ParseError as excep:
-                print("WARNING. Parse Error:", excep)
+                warnings.warn(f"Parse Error: {excep}", RuntimeWarning, stacklevel=1)
                 return
 
         lhef = cls(
@@ -907,7 +907,7 @@ class LHEFile(DictCompatibility):
                     if event == "end" and element.tag == "LesHouchesEvents":
                         return count
         except ET.ParseError as excep:
-            print("WARNING. Parse Error:", excep)
+            warnings.warn(f"Parse Error: {excep}", RuntimeWarning, stacklevel=1)
         return -1
 
 
