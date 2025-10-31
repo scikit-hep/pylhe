@@ -233,3 +233,19 @@ def test_whitespace_only_wgt_block_error():
             list(pylhe.read_lhe_with_attributes(tmp_file_path))
     finally:
         os.unlink(tmp_file_path)
+
+
+def test_count_events_parse_error():
+    """Test that ParseError is raised when counting events in malformed LHE file."""
+    # Create a temporary file with invalid XML content
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".lhe", delete=True) as f:
+        # Write invalid XML that will cause a parse error
+        f.write('<LesHouchesEvents version="3.0">\n')
+        f.write("<init>\n")
+        f.write("invalid xml content without proper closing\n")
+        # Missing </init> and </LesHouchesEvents> tags
+        temp_filepath = f.name
+
+        f.flush()
+
+        assert pylhe.LHEFile.count_events(temp_filepath) == -1
