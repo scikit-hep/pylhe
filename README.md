@@ -85,7 +85,7 @@ For a full example see [write](examples/03_write_monte_carlo_example.ipynb) or [
 The values in the sketch below are intentionally left empty since they depend on the use-case.
 The data structure of `pylhe` is:
 
-```python
+```
 import pylhe
 
 file=pylhe.LHEFile(
@@ -147,7 +147,6 @@ file=pylhe.LHEFile(
 
 # write to file, compressed if gz/gzip suffix
 write_lhe_file(file.init, file.events, "myevents.lhe.gz", rwgt=True, weights=False)
-
 ```
 
 
@@ -167,6 +166,11 @@ The preferred BibTeX entry for citation of `pylhe` is
 
 `pylhe` has been referenced in:
 
+* [Flow Annealed Importance Sampling Bootstrap meets Differentiable Particle Physics](https://inspirehep.net/literature/2851739) (2024)
+* [Interference effects in resonant di-Higgs production at the LHC in the Higgs singlet extension](https://inspirehep.net/literature/2826958) (2024)
+* [Search for nearly degenerate higgsinos via photon fusion with the semileptonic channel at the LHC](https://inspirehep.net/literature/2788228) (2024)
+* [Strategy to measure tau  via photon fusion in LHC proton collisions](https://inspirehep.net/literature/2767190) (2024)
+* [Probing dark photons from a light scalar at Belle II](https://inspirehep.net/literature/2744442) (2024)
 * [Constraints on the trilinear and quartic Higgs couplings from triple Higgs production at the LHC and beyond](https://inspirehep.net/literature/2734125) (2023)
 * [BSM reach of four-top production at the LHC](https://inspirehep.net/literature/2633019) (2023)
 * [Probing compressed higgsinos with forward protons at the LHC](https://inspirehep.net/literature/2140007) (2023)
