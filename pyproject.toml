@@ -124,7 +124,6 @@ testpaths = ["tests"]
 log_cli_level = "INFO"
 xfail_strict = true
 filterwarnings = ["error"]
-docstyle_convention = "numpy"
 junit_family = "xunit2"
 addopts = [
     "-ra",
