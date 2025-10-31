@@ -26,15 +26,15 @@ TEST_FILES_LHE_ALL = [
 ]
 
 
-def test_read_num_events_benchmark(benchmark):
+def test_count_events_benchmark(benchmark):
     """Benchmark using the count_events function across all test files."""
 
-    def read_num_events_all_files(filepaths):
+    def count_events_all_files(filepaths):
         total_events = 0
         for filepath in filepaths:
             num_events = pylhe.LHEFile.count_events(filepath)
             total_events += num_events
         return total_events
 
-    result = benchmark(read_num_events_all_files, TEST_FILES_LHE_ALL)
+    result = benchmark(count_events_all_files, TEST_FILES_LHE_ALL)
     print(f"Total events across all files: {result}")
