@@ -742,12 +742,7 @@ class LHEEvent(DictCompatibility):
         """
         IPython display helper.
         """
-        try:
-            return self.graph._repr_mimebundle_(
-                include=include, exclude=exclude, **kwargs
-            )
-        except AttributeError:
-            return {"image/svg+xml": self.graph._repr_svg_()}  # for graphviz < 0.19
+        return self.graph._repr_mimebundle_(include=include, exclude=exclude, **kwargs)
 
 
 @dataclass
