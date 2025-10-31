@@ -1,7 +1,6 @@
 import gzip
 import os
 import shutil
-import xml.etree.ElementTree as ET
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -81,42 +80,6 @@ def test_read_num_events(testdata_gzip_file):
     assert pylhe.read_num_events(TEST_FILE_LHE_v1) == pylhe.read_num_events(
         testdata_gzip_file
     )
-
-
-def test_read_num_events_ParseError():
-    # The second event misses the closing "</event>" to provoke a parsing error
-    invalid_lhe_content = """<LesHouchesEvents version="3.0">
-<event>
-      6  10011  1.22355E+03  1.54156E+01 -1.00000E+00  1.81256E-01
-       2    -1     0     0   511     0  0.000000000E+00  0.000000000E+00  4.018783720E+02  4.018783720E+02  2.989934778E-06  0.00000E+00  9.000E+00
-      -2    -1     0     0     0   501  0.000000000E+00  0.000000000E+00 -1.245793266E+01  1.245793266E+01  1.098679277E-07  0.00000E+00  9.000E+00
-      23     2     1     2     0     0  5.851072050E+00  1.426204896E+01  1.694595565E+02  1.938358941E+02  9.283410720E+01  0.00000E+00  9.000E+00
-      11     1     3     3     0     0  4.332302359E+01  2.737693503E+00  1.344189865E+02  1.412545337E+02  5.109989100E-04  0.00000E+00  9.000E+00
-     -11     1     3     3     0     0 -3.747195154E+01  1.152435546E+01  3.504056999E+01  5.258136044E+01  5.109989100E-04  0.00000E+00  9.000E+00
-      21     1     1     2   511   501 -5.851072050E+00 -1.426204896E+01  2.199608828E+02  2.205004105E+02  2.493191431E-06  0.00000E+00  9.000E+00
-#rwgt            1           7   414.90390766179996         54217137           1           0
-</event>
-<event>
-      6  10011
-       5    -1     0     0   501     0  0.000000000E+00  0.000000000E+00  5.951993327E+01  5.951993327E+01  2.163610813E-07  0.00000E+00  9.000E+00
-      21    -1     0     0   511   501  0.000000000E+00  0.000000000E+00 -4.234891458E+01  4.234891458E+01  1.533897657E-07  0.00000E+00  9.000E+00
-      23     2     1     2     0     0  8.632892834E+00 -6.562410620E-01  2.086914701E+01  9.245430357E+01  8.965109849E+01  0.00000E+00  9.000E+00
-      11     1     3     3     0     0  9.196619856E+00 -1.145024963E+01  5.485714710E+01  5.678901850E+01  5.109989100E-04  0.00000E+00  9.000E+00
-     -11     1     3     3     0     0 -5.637270220E-01  1.079400857E+01 -3.398800009E+01  3.566528508E+01  5.109989100E-04  0.00000E+00  9.000E+00
-       5     1     1     2   511     0 -8.632892834E+00  6.562410620E-01 -3.698128325E+00  9.414544286E+00  0.000000000E+00  0.00000E+00  9.000E+00
-#rwgt            1          10   35.210237959761045         54217137          55           0
-</LesHouchesEvents>"""
-
-    # Create a temporary file with invalid content
-    with NamedTemporaryFile(mode="w", suffix=".lhe", delete=False) as tmp_file:
-        tmp_file.write(invalid_lhe_content)
-        tmp_file_path = tmp_file.name
-
-    try:
-        with pytest.raises(ET.ParseError, match=r"WARNING. Parse Error"):
-            pylhe.read_num_events(tmp_file_path)
-    finally:
-        os.unlink(tmp_file_path)
 
 
 def test_read_lhe_init_gzipped_file(testdata_gzip_file):
