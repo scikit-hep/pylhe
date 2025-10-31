@@ -692,6 +692,8 @@ class LHEEvent(DictCompatibility):
                 # Clear memory
                 element.clear()
                 root.clear()
+            if element.tag == "LesHouchesEvents" and event == "end":
+                return
 
     @property
     def graph(self) -> graphviz.Digraph:
