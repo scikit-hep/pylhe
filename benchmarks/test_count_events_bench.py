@@ -1,5 +1,5 @@
 """
-Benchmark tests for pylhe awkward array conversion performance.
+Benchmark tests for pylhe event counting performance.
 """
 
 import skhep_testdata
@@ -26,29 +26,16 @@ TEST_FILES_LHE_ALL = [
 ]
 
 
-def test_fromfile_and_to_awkward(benchmark):
-    """Benchmark LHEFile.fromfile and to_awkward conversion across all test files."""
+def test_read_num_events_benchmark(benchmark):
+    """Benchmark using the existing read_num_events function across all test files."""
 
-    def fromfile_and_to_awkward_all_files(filepaths):
+    def read_num_events_all_files(filepaths):
+        total_events = 0
         for filepath in filepaths:
-            # Load LHE file using fromfile
-            lhe_file = pylhe.LHEFile.fromfile(filepath)
+            # Use the existing read_num_events function
+            num_events = pylhe.LHEFIle.count_events(filepath)
+            total_events += num_events
+        return total_events
 
-            # Convert events to awkward array
-            pylhe.to_awkward(lhe_file.events)
-
-    benchmark(fromfile_and_to_awkward_all_files, TEST_FILES_LHE_ALL)
-
-
-def test_fromfile_and_to_awkward_list(benchmark):
-    """Benchmark LHEFile.fromfile and to_awkward conversion across all test files."""
-
-    def fromfile_and_to_awkward_all_files(filepaths):
-        for filepath in filepaths:
-            # Load LHE file using fromfile
-            lhe_file = pylhe.LHEFile.fromfile(filepath, generator=False)
-
-            # Convert events to awkward array
-            pylhe.to_awkward(lhe_file.events)
-
-    benchmark(fromfile_and_to_awkward_all_files, TEST_FILES_LHE_ALL)
+    result = benchmark(read_num_events_all_files, TEST_FILES_LHE_ALL)
+    print(f"Total events across all files: {result}")

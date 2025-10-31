@@ -879,6 +879,35 @@ class LHEFile(DictCompatibility):
         lhef.events = events if generator else list(events)
         return lhef
 
+    @staticmethod
+    def count_events(filepath: PathLike) -> int:
+        """
+        Efficiently count the number of events in an LHE file without loading them into memory.
+
+        Args:
+            filepath: Path to the LHE file.
+
+        Returns:
+            Number of events in the file, or -1 if parsing fails.
+        """
+        try:
+            with _extract_fileobj(filepath) as fileobj:
+                context = ET.iterparse(fileobj, events=["start", "end"])
+                _, root = next(context)  # Get the root element
+                count = 0
+                for event, element in context:
+                    if event == "end" and element.tag == "event":
+                        count += 1
+                        # Clear the element to free memory
+                        element.clear()
+                        # Root tracks sub-elements -> clear all sub-elements
+                        root.clear()
+                    if event == "end" and element.tag == "LesHouchesEvents":
+                        return count
+        except ET.ParseError as excep:
+            print("WARNING. Parse Error:", excep)
+        return -1
+
 
 def read_lhe_file(filepath: PathLike, with_attributes: bool = True) -> LHEFile:
     """
@@ -998,23 +1027,17 @@ def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
 def read_num_events(filepath: PathLike) -> int:
     """
     Moderately efficient way to get the number of events stored in a file.
+
+    .. deprecated:: 1.0.0
+        Use `LHEFile.count_events` instead.
     """
-    try:
-        with _extract_fileobj(filepath) as fileobj:
-            context = ET.iterparse(fileobj, events=["start", "end"])
-            _, root = next(context)  # Get the root element
-            count = 0
-            for event, element in context:
-                if event == "end" and element.tag == "event":
-                    count += 1
-                    # Clear the element to free memory
-                    element.clear()
-                    # Root tracks sub-elements -> clear all sub-elements
-                    root.clear()
-            return count
-    except ET.ParseError as excep:
-        print("WARNING. Parse Error:", excep)
-        return -1
+    warnings.warn(
+        "read_num_events is deprecated and will be removed in a future version. "
+        "Use `LHEFile.count_events` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return LHEFile.count_events(filepath)
 
 
 def write_lhe_file_string(
