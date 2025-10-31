@@ -61,8 +61,8 @@ from skhep_testdata import data_path
 import pylhe
 
 lhe_file = data_path("pylhe-testlhef3.lhe")
-events = pylhe.read_lhe_with_attributes(lhe_file)
-print(f"Number of events: {pylhe.read_num_events(lhe_file)}")
+events = pylhe.LHEFile.fromfile(lhe_file).events
+print(f"Number of events: {pylhe.LHEFile.count_events(lhe_file)}")
 
 # Get event 1
 event = next(itertools.islice(events, 1, 2))
