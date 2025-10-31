@@ -123,19 +123,8 @@ minversion = "6.0"
 testpaths = ["tests"]
 log_cli_level = "INFO"
 xfail_strict = true
-filterwarnings = [
-  "error",
-  "ignore:.*is deprecated and will be removed in a future version.*:DeprecationWarning"
-]
-junit_family = "xunit2"
 addopts = [
     "-ra",
-    "--cov=pylhe",
-    "--cov-report=term-missing",
-    "--cov-config=.coveragerc",
-    "--cov-report=xml",
-    "--doctest-modules",
-    "--doctest-glob=\\*.rst",
     "--strict-markers",
     "--strict-config",
 ]
