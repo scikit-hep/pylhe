@@ -66,7 +66,7 @@ class Writeable(Protocol):
     A protocol for writeable objects.
     """
 
-    def write(self, s: str) -> Any:
+    def write(self, s: str) -> Any:  # pragma: no cover
         """Write a string to the object."""
         ...
 
@@ -1019,7 +1019,7 @@ def read_num_events(filepath: PathLike) -> int:
 
 def write_lhe_file_string(
     lhefile: LHEFile, rwgt: bool = True, weights: bool = False
-) -> str:
+) -> str:  # pragma: no cover
     """
     Return the LHE file as a string.
 
