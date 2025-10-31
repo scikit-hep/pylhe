@@ -44,6 +44,11 @@ TEST_FILES_LHE_GENERATORS = [
     *TEST_FILES_LHE_SHERPA,
     *TEST_FILES_LHE_WHIZARD,
 ]
+TEST_FILES_LHE_ALL = [
+    TEST_FILE_LHE_v1,
+    TEST_FILE_LHE_v3,
+    *TEST_FILES_LHE_GENERATORS,
+]
 
 
 @pytest.fixture(scope="session")
@@ -79,6 +84,13 @@ def test_read_num_events(testdata_gzip_file):
     assert pylhe.read_num_events(TEST_FILE_LHE_v1) == 791
     assert pylhe.read_num_events(TEST_FILE_LHE_v1) == pylhe.read_num_events(
         testdata_gzip_file
+    )
+
+
+@pytest.mark.parametrize("file", TEST_FILES_LHE_ALL)
+def test_count_events(file):
+    assert pylhe.LHEFile.count_events(file) == sum(
+        1 for _ in pylhe.LHEFile.fromfile(file).events
     )
 
 

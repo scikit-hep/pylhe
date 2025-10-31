@@ -233,3 +233,43 @@ def test_whitespace_only_wgt_block_error():
             list(pylhe.read_lhe_with_attributes(tmp_file_path))
     finally:
         os.unlink(tmp_file_path)
+
+
+def test_count_events_parse_error():
+    """Test that ParseError warning is issued and -1 returned when counting events in malformed LHE file."""
+    # Create a temporary file with invalid XML content
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".lhe", delete=True) as f:
+        # Write invalid XML that will cause a parse error
+        f.write('<LesHouchesEvents version="3.0">\n')
+        f.write("<init>\n")
+        f.write("invalid xml content without proper closing\n")
+        # Missing </init> and </LesHouchesEvents> tags
+
+        f.flush()
+
+        # Test that a RuntimeWarning is issued and -1 is returned
+        with pytest.warns(RuntimeWarning, match=r"Parse Error:"):
+            assert pylhe.LHEFile.count_events(f.name) == -1
+
+
+def test_fromfile_parse_error():
+    """Test that ParseError warning is issued when loading malformed LHE file with fromfile."""
+    # Create a temporary file with invalid XML content
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".lhe", delete=True) as f:
+        # Write invalid XML that will cause a parse error
+        f.write('<LesHouchesEvents version="3.0">\n')
+        f.write("<init>\n")
+        f.write("invalid xml content without proper closing\n")
+        # Missing </init> and </LesHouchesEvents> tags
+
+        f.flush()
+
+        # Test that a RuntimeWarning is issued when trying to load the malformed file
+        # and potentially a ValueError if the generator stops without yielding
+        with (
+            pytest.warns(RuntimeWarning, match=r"Parse Error:"),
+            pytest.raises(
+                ValueError, match=r"No or faulty <init> block found in the LHE file"
+            ),
+        ):
+            pylhe.LHEFile.fromfile(f.name)
