@@ -33,7 +33,7 @@ def test_read_num_events_benchmark(benchmark):
         total_events = 0
         for filepath in filepaths:
             # Use the existing read_num_events function
-            num_events = pylhe.LHEFIle.count_events(filepath)
+            num_events = pylhe.LHEFile.count_events(filepath)
             total_events += num_events
         return total_events
 

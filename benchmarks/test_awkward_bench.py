@@ -38,17 +38,3 @@ def test_fromfile_and_to_awkward(benchmark):
             pylhe.to_awkward(lhe_file.events)
 
     benchmark(fromfile_and_to_awkward_all_files, TEST_FILES_LHE_ALL)
-
-
-def test_fromfile_and_to_awkward_list(benchmark):
-    """Benchmark LHEFile.fromfile and to_awkward conversion across all test files."""
-
-    def fromfile_and_to_awkward_all_files(filepaths):
-        for filepath in filepaths:
-            # Load LHE file using fromfile
-            lhe_file = pylhe.LHEFile.fromfile(filepath, generator=False)
-
-            # Convert events to awkward array
-            pylhe.to_awkward(lhe_file.events)
-
-    benchmark(fromfile_and_to_awkward_all_files, TEST_FILES_LHE_ALL)
