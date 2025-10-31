@@ -19,7 +19,7 @@
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/scikit-hep/pylhe/main.svg)](https://results.pre-commit.ci/latest/github/scikit-hep/pylhe/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scikit-hep/pylhe/main?urlpath=lab/tree/docs/source/examples/00_version_1.0.0.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scikit-hep/pylhe/main?urlpath=lab/tree/docs/source/examples/00_version_1.0.1.ipynb)
 
 Small and thin Python interface to read [Les Houches Event (LHE)](https://inspirehep.net/literature/725284) files
 
@@ -157,8 +157,8 @@ The preferred BibTeX entry for citation of `pylhe` is
 ```
 @software{pylhe,
   author = {Lukas Heinrich and Matthew Feickert and Eduardo Rodrigues and Alexander Puck Neuwirth},
-  title = "{pylhe: v1.0.0}",
-  version = {v1.0.0},
+  title = "{pylhe: v1.0.1}",
+  version = {v1.0.1},
   doi = {10.5281/zenodo.1217031},
   url = {https://github.com/scikit-hep/pylhe},
 }
