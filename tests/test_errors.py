@@ -236,7 +236,7 @@ def test_whitespace_only_wgt_block_error():
 
 
 def test_count_events_parse_error():
-    """Test that ParseError is raised when counting events in malformed LHE file."""
+    """Test that ParseError warning is issued and -1 returned when counting events in malformed LHE file."""
     # Create a temporary file with invalid XML content
     with tempfile.NamedTemporaryFile(mode="w", suffix=".lhe", delete=True) as f:
         # Write invalid XML that will cause a parse error
@@ -247,4 +247,6 @@ def test_count_events_parse_error():
 
         f.flush()
 
-        assert pylhe.LHEFile.count_events(f.name) == -1
+        # Test that a RuntimeWarning is issued and -1 is returned
+        with pytest.warns(RuntimeWarning, match=r"Parse Error:"):
+            assert pylhe.LHEFile.count_events(f.name) == -1
