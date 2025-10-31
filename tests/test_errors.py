@@ -265,5 +265,11 @@ def test_fromfile_parse_error():
         f.flush()
 
         # Test that a RuntimeWarning is issued when trying to load the malformed file
-        with pytest.warns(RuntimeWarning, match=r"Parse Error:"):
+        # and potentially a ValueError if the generator stops without yielding
+        with (
+            pytest.warns(RuntimeWarning, match=r"Parse Error:"),
+            pytest.raises(
+                ValueError, match=r"No or faulty <init> block found in the LHE file"
+            ),
+        ):
             pylhe.LHEFile.fromfile(f.name)

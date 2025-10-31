@@ -876,7 +876,12 @@ class LHEFile(DictCompatibility):
             events=[],
         )
         events = _generator(lhef)
-        next(events)  # advance to read lheinit
+        try:
+            next(events)  # advance to read lheinit
+        except StopIteration:
+            # If generator stops without yielding, it means no init was read
+            err = "No or faulty <init> block found in the LHE file."
+            raise ValueError(err) from None
 
         lhef.events = events if generator else list(events)
         return lhef
