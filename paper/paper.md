@@ -32,12 +32,15 @@ affiliations:
     index: 4
   - name: INFN Milan Bicocca
     index: 5
-date: 6 November 2025 <!-- TODO: update date -->
+date: 6 November 2025 # APN TODO: update date
 bibliography: paper.bib
 ---
 
 # Summary
+<!-- APN TODO: check that all references in paper.bib are cited in the text -->
+Some history/introduction history of different formats. HEPEVT -> LHEF -> HepMC -> HDF5? (since its binary maybe in the future? Unlike hepmc/lhe no need to gzip!)
 
+The format is used by major Monte Carlo event generators such as MadGraph, POWHEG, Sherpa, HERWIG, Pythia ... <!-- APN TODO add references here-->
 ...
 
 # Statement of need
