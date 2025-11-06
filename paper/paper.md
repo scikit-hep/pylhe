@@ -43,6 +43,11 @@ Some history/introduction history of different formats. HEPEVT -> LHEF -> HepMC 
 The format is used by major Monte Carlo event generators such as MadGraph, POWHEG, Sherpa, HERWIG, Pythia ... <!-- APN TODO add references here-->
 ...
 
+Format is XML-like where the free text is designed to be easily parsed in fortran <!-- APN TODO: copy example form jupyter notebook 00_*.ipynb -->
+
+```xml
+```
+
 # Statement of need
 
 ...
