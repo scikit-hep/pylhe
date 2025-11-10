@@ -1,7 +1,8 @@
 ---
 title: "pylhe: A Lightweight Python interface to read Les Houches Event files"
 tags:
-  - python
+  - Python
+  - physics
   - high energy physics
 authors:
   - name: Alexander Puck Neuwirth^[Corresponding author.]
