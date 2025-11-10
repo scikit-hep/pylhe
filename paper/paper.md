@@ -4,35 +4,32 @@ tags:
   - python
   - high energy physics
 authors:
+  - name: Alexander Puck Neuwirth^[Corresponding author.]
+    orcid: 0000-0002-2484-1328
+    affiliation: "1, 2"
   - name: Matthew Feickert
     orcid: 0000-0003-4124-7862
-    equal-contrib: true
-    affiliation: 1
+    affiliation: 3
   - name: Lukas Heinrich
     orcid: 0000-0002-4048-7584
-    equal-contrib: true
-    affiliation: 2
+    affiliation: 4
   - name: Eduardo Rodrigues
     orcid: 0000-0003-2846-7625
-    equal-contrib: true
-    affiliation: 3
-  - name: Alexander Puck Neuwirth
-    orcid: 0000-0002-2484-1328
-    equal-contrib: true
-    affiliation: "4, 5"
+    affiliation: 5
 
 affiliations:
-  - name: University of Wisconsin-Madison
-    index: 1
-  - name: Technical University of Munich
-    index: 2
-  - name: University of Liverpool
-    index: 3
   - name: University of Milan Bicocca
-    index: 4
+    index: 1
   - name: INFN Milan Bicocca
+    index: 2
+  - name: University of Wisconsin-Madison
+    index: 3
+  - name: Technical University of Munich
+    index: 4
+  - name: University of Liverpool
     index: 5
-date: 6 November 2025 # APN TODO: update date
+
+date: 10 November 2025 # APN TODO: update date
 bibliography: paper.bib
 ---
 
