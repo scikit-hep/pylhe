@@ -67,7 +67,6 @@ id status mother1 mother2 color1 color2 px py pz e m lifetime spin
 ...
 </LesHouchesEvents>
 ```
-
 The table below summarizes the main parameters found in LHE files grouped by their `dataclass` representation in `pylhe`.
 
 | Parameter | Type | Description | Unit |
