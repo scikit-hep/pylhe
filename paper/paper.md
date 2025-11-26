@@ -67,6 +67,8 @@ id status mother1 mother2 color1 color2 px py pz E m lifetime spin
 </LesHouchesEvents>
 ```
 
+<!-- APN TODO: check that we use the same name as in pylhe here!!! -->
+
 Below we give a table summarizing the main parameters found in LHE files.
 
 | Parameter | Type | Description | Unit |
