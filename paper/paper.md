@@ -44,23 +44,70 @@ The format is used by major Monte Carlo event generators such as MadGraph, POWHE
 Format is XML-like where the free text is designed to be easily parsed in Fortran <!-- APN TODO: copy example form jupyter notebook 00_*.ipynb -->
 
 ```xml
-<LesHouchesEvents version="1.0">
+<LesHouchesEvents version="3.0">
 <header></header>
 <init>
 beam1id beam2id beam1energy beam2energy pdfg1 pdfg2 pdfs1 pdfs2 idweight nproc
 crosssection crosssectionerror crosssectionmaximum pid
-...
 </init>
 <event>
 nparticles pid weight scale aqed aqcd
 id status mother1 mother2 color1 color2 px py pz E m lifetime spin
 ...
 </event>
+<event>
+...
+</event>
 ...
 </LesHouchesEvents>
 ```
 
+Below we give a table summarizing the main parameters found in LHE files.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| **Init block** | | |
+| beam1id | int | PDG ID of first beam particle |
+| beam2id | int | PDG ID of second beam particle |
+| beam1energy | float | Energy of first beam particle (GeV) |
+| beam2energy | float | Energy of second beam particle (GeV) |
+| pdfg1 | int | PDF group ID for first beam |
+| pdfg2 | int | PDF group ID for second beam |
+| pdfs1 | int | PDF set ID for first beam |
+| pdfs2 | int | PDF set ID for second beam |
+| idweight | int | Weight ID |
+| nproc | int | Number of processes |
+| crosssection | float | Cross section (pb) |
+| crosssectionerror | float | Cross section uncertainty (pb) |
+| crosssectionmaximum | float | Maximum cross section (pb) |
+| pid | int | Process ID |
+| **Event block** | | |
+| nparticles | int | Number of particles in event |
+| pid | int | Process ID for this event |
+| weight | float | Event weight |
+| scale | float | Factorization/renormalization scale (GeV) |
+| aqed | float | QED coupling constant |
+| aqcd | float | QCD coupling constant |
+| **Particle entries** | | |
+| id | int | PDG particle ID |
+| status | int | Particle status code |
+| mother1 | int | Index of first mother particle |
+| mother2 | int | Index of second mother particle |
+| color1 | int | First color index |
+| color2 | int | Second color index |
+| px | float | x-component of momentum (GeV) |
+| py | float | y-component of momentum (GeV) |
+| pz | float | z-component of momentum (GeV) |
+| E | float | Energy (GeV) |
+| m | float | Mass (GeV) |
+| lifetime | float | Proper lifetime (mm/c) |
+| spin | float | Spin information |
+
+<!-- APN TODO: different version of lhe files 1.0 vs 3.0 -->
+
 # Statement of need
+
+<!-- APN TODO: quick validation , machine learning -->
 
 ...
 
