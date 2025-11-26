@@ -47,7 +47,7 @@ In the future a binary format such as HDF5 [@hdf5] could be considered for event
 
 The LHE format uses an XML-like structure, but the content within the `<init>` and `<event>` blocks consists of whitespace-separated values designed for straightforward parsing in Fortran.
 The `<header>` block can contain arbitrary XML content, usually metadata or comments explaining how the events were generated.
-In below skeleton example we illustrate the overall structure of an LHE file using the `pylhe` naming of the attributes
+The following skeleton example illustrates the overall structure of an LHE file using the `pylhe` naming of the attributes
 
 ```xml
 <LesHouchesEvents version="1.0">
@@ -68,7 +68,7 @@ id status mother1 mother2 color1 color2 px py pz e m lifetime spin
 </LesHouchesEvents>
 ```
 
-Below we give a table summarizing the main parameters found in LHE files grouped by their `dataclass` representation in `pylhe`.
+The table below summarizes the main parameters found in LHE files grouped by their `dataclass` representation in `pylhe`.
 
 | Parameter | Type | Description | Unit |
 |-----------|------|-------------|------|
@@ -110,9 +110,9 @@ Below we give a table summarizing the main parameters found in LHE files grouped
 | lifetime | float | Proper lifetime | mm |
 | spin | float | Spin information. 9.0 for unpolarized. | - |
 
-Further details can be found in the original definition of the Les Houches Event file standard in [@Alwall:2006yp].
+Further details can be found in the original definition of the Les Houches Event file standard.
 Besides the original publication there were two extensions to the LHE format, version 2.0 in 2009 [@Butterworth:2010ym] and version 3.0 in 2012 [@Andersen:2014efa].
-However, `pylhe` currently only implements the only widely adopted extension from version 1.0, that is the addition of multiple weights via `<initrwgt>`, `<rwgt>`, `<weight>`,`<weights>`, `<wgt>`, and `<weightgroup>`.
+However, `pylhe` currently only implements the widely adopted extension from version 1.0, that is the addition of multiple weights via `<initrwgt>`, `<rwgt>`, `<weight>`,`<weights>`, `<wgt>`, and `<weightgroup>`.
 If in the future there is a demand for `<scales>`, `<generator>`, `<pdfinfo>`, or `<clustering>` support these can be added as well.
 
 # Statement of need
@@ -122,10 +122,10 @@ They produce hard scattering events in the LHE format which are then passed to p
 While interfaces for C/C++/Fortran exist in the respective generators, a lightweight and easy-to-use Python interface was missing until the inception of `pylhe` in 2015.
 
 `pylhe` allows for easy reading and writing of `.lhe` and `.lhe.gz` files in Python, enabling seamless integration into modern pythonic data analysis workflows in high-energy physics.
-The pythonic yielding generator approach allows for memory-efficient processing of very large LHE files by streaming events one at a time rather than loading entire files into memory.
+The generator-based approach allows for memory-efficient processing of arbitrarily large LHE files by streaming events one at a time rather than loading entire files into memory.
 The library facilitates quick validation of event files through programmatic access to event structure and particle properties, making it straightforward to perform sanity checks on generated events.
 This can be done for example via the integration with Awkward Array [@Pivarski_Awkward_Array_2018] through the `to_awkward()` function, which converts LHE events into columnar data structures optimized for vectorized operations and efficient analysis of large datasets.
-Additionally, `pylhe` serves as a crucial interface for emerging machine learning applications in particle physics, allowing researchers to efficiently extract and preprocess event data for training neural networks and other ML models used in event classification, anomaly detection, and physics analysis.
+Additionally, `pylhe` can serve as a crucial interface for emerging machine learning applications in particle physics, allowing researchers to efficiently extract event data for training neural networks and other ML models used in event classification, anomaly detection, and physics analysis.
 
 ## Impact
 
