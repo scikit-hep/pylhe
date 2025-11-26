@@ -52,11 +52,11 @@ The LHE Format is XML-like where the free text in the `<init>` and `<event>` blo
 The `<header>` block can contain arbitrary XML content, usually metadata or comments explaining how the events were generated.
 
 ```xml
-<LesHouchesEvents version="3.0">
+<LesHouchesEvents version="1.0">
 <header></header>
 <init>
-beam1id beam2id beam1energy beam2energy pdfg1 pdfg2 pdfs1 pdfs2 idweight nproc
-crosssection crosssectionerror crosssectionmaximum pid
+beamA beamB energyA energyB PDFgroupA PDFgroupB PDFsetA PDFsetB weightingStrategy numProcesses
+xSection error crosssectionmaximum procId
 </init>
 <event>
 nparticles pid weight scale aqed aqcd
@@ -72,20 +72,20 @@ Below we give a table summarizing the main parameters found in LHE files.
 | Parameter | Type | Description | Unit |
 |-----------|------|-------------|------|
 | **Init block** | | | |
-| beam1id | int | PDG ID of first beam particle | - |
-| beam2id | int | PDG ID of second beam particle | - |
-| beam1energy | float | Energy of first beam particle | GeV |
-| beam2energy | float | Energy of second beam particle | GeV |
-| pdfg1 | int | PDF group ID for first beam | - |
-| pdfg2 | int | PDF group ID for second beam | - |
-| pdfs1 | int | PDF set ID for first beam | - |
-| pdfs2 | int | PDF set ID for second beam | - |
-| idweight | int | Weight ID | - |
-| nproc | int | Number of processes | - |
-| crosssection | float | Cross section | pb |
-| crosssectionerror | float | Cross section uncertainty | pb |
+| beamA | int | PDG ID of first beam particle | - |
+| beamB | int | PDG ID of second beam particle | - |
+| energyA | float | Energy of first beam particle | GeV |
+| energyB | float | Energy of second beam particle | GeV |
+| PDFgroupA | int | PDF group ID for first beam | - |
+| PDFgroupB | int | PDF group ID for second beam | - |
+| PDFsetA | int | PDF set ID for first beam | - |
+| PDFsetB | int | PDF set ID for second beam | - |
+| weightingStrategy | int | Weighting strategy | - |
+| numProcesses | int | Number of processes | - |
+| xSection | float | Cross section | pb |
+| error | float | Cross section uncertainty | pb |
 | crosssectionmaximum | float | Maximum cross section | pb |
-| pid | int | Process ID | - |
+| procId | int | Process ID | - |
 | **Event block** | | | |
 | nparticles | int | Number of particles in event | - |
 | pid | int | Process ID for this event | - |
@@ -110,7 +110,9 @@ Below we give a table summarizing the main parameters found in LHE files.
 
 Further details can be found in the original definition of the Les Houches Event File standard in [@Alwall:2006yp].
 
-<!-- APN TODO: different version of lhe files 1.0 vs 3.0 -->
+Besides the original publication there were two extensions to the LHE format, version 2.0 in 2009 [@Butterworth:2010ym] and version 3.0 in 2012 [@Andersen:2014efa].
+
+<!-- APN TODO: mention what different version of lhe files 1.0 vs 3.0 -->
 
 # Statement of need
 
