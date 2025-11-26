@@ -110,7 +110,11 @@ Further details can be found in the original definition of the Les Houches Event
 
 
 The format is used by all major Monte Carlo event generators such as MadGraph [@Alwall:2014hca], POWHEG-BOX [@Nason:2004rx;@Frixione:2007vw;@Alioli:2010xd], Sherpa [@Gleisberg:2008ta;@Sherpa:2019gpd], HERWIG [@Corcella:2000bw;@Bahr:2008pv;@Bellm:2015jjp;@Bellm:2019zci;@Bewick:2023tfi], Pythia [@Sjostrand:2006za;@Sjostrand:2007gs;@Sjostrand:2014zea;Bierlich:2022pfr], Whizard [Kilian:2007gr,Moretti:2001zz].
-<!-- APN TODO: quick validation , machine learning -->
+They produce hard scattering events in the LHE format which are then passed to parton shower and hadronization programs or directly to analysis frameworks.
+
+`pylhe` allows for easy reading and writing of LHE files in Python, enabling seamless integration into modern pythonic data analysis workflows in high-energy physics.
+The library facilitates quick validation of event files through programmatic access to event structure and particle properties, making it straightforward to perform sanity checks on generated events.
+Additionally, `pylhe` serves as a crucial interface for uprising machine learning applications in particle physics, allowing researchers to efficiently extract and preprocess event data for training neural networks and other ML models used in event classification, anomaly detection, and physics analysis.
 
 ...
 
