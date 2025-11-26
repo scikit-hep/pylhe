@@ -39,7 +39,7 @@ bibliography: paper.bib
 The Les Houches Event File is a standard defined in [@Alwall:2006yp].
 It allows for a simple exchange of generated events between different generators and analysis programs.
 <!-- APN TODO: check that all references in paper.bib are cited in the text -->
-Some history/introduction history of different formats. HEPEVT -> LHEF -> HepMC -> HDF5? (since its binary maybe in the future? Unlike hepmc/lhe no need to gzip!)
+Some history/introduction history of different formats. HEPEVT -> LHEF -> HepMC [@Dobbs:2001ck;@Verbytskyi:2020sus] -> HDF5? (since its binary maybe in the future? Unlike hepmc/lhe no need to gzip!)
 
 ...
 
@@ -92,8 +92,8 @@ Below we give a table summarizing the main parameters found in LHE files.
 | status | int | Particle status code | - |
 | mother1 | int | Index of first mother particle | - |
 | mother2 | int | Index of second mother particle | - |
-| color1 | int | First color index | - |
-| color2 | int | Second color index | - |
+| color1 | int | First color line index | - |
+| color2 | int | Second color line index | - |
 | px | float | x-component of momentum | GeV |
 | py | float | y-component of momentum | GeV |
 | pz | float | z-component of momentum | GeV |
@@ -102,12 +102,14 @@ Below we give a table summarizing the main parameters found in LHE files.
 | lifetime | float | Proper lifetime | mm/c |
 | spin | float | Spin information | - |
 
+Further details can be found in the original definition of the Les Houches Event File standard in [@Alwall:2006yp].
+
 <!-- APN TODO: different version of lhe files 1.0 vs 3.0 -->
 
 # Statement of need
 
 
-The format is used by major Monte Carlo event generators such as MadGraph, POWHEG, Sherpa, HERWIG, Pythia ... <!-- APN TODO add references here-->
+The format is used by all major Monte Carlo event generators such as MadGraph [@Alwall:2014hca], POWHEG-BOX [@Nason:2004rx;@Frixione:2007vw;@Alioli:2010xd], Sherpa [@Gleisberg:2008ta;@Sherpa:2019gpd], HERWIG [@Corcella:2000bw;@Bahr:2008pv;@Bellm:2015jjp;@Bellm:2019zci;@Bewick:2023tfi], Pythia [@Sjostrand:2006za;@Sjostrand:2007gs;@Sjostrand:2014zea;Bierlich:2022pfr], Whizard [Kilian:2007gr,Moretti:2001zz].
 <!-- APN TODO: quick validation , machine learning -->
 
 ...

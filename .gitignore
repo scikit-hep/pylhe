@@ -37,3 +37,4 @@ docs/source/examples/*.lhe.gz
 docs/source/examples/*.parquet
 
 paper/paper.pdf
+paper/jats
