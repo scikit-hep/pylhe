@@ -36,8 +36,6 @@ bibliography: paper.bib
 
 # Summary
 
-It allows for a simple exchange of generated events between different generators and analysis programs.
-
 Historically, one of the first standards for event representation in high-energy physics was the HEPEVT common block [@Boos:2001cv], which provided a Fortran-based structure for storing event information.
 As the complexity of simulations increased, the need for a more flexible and extensible format led to the development of the Les Houches Event File (LHEF) format [@Alwall:2006yp].
 LHEF introduced an XML-like structure that allowed for better organization of event data and facilitated interoperability between different Monte Carlo event generators.
@@ -57,11 +55,13 @@ The `<header>` block can contain arbitrary XML content, usually metadata or comm
 <init>
 beamA beamB energyA energyB PDFgroupA PDFgroupB PDFsetA PDFsetB weightingStrategy numProcesses
 xSection error crosssectionmaximum procId
+# additional hash commented information can go here
 </init>
 <event>
 nparticles pid weight scale aqed aqcd
 id status mother1 mother2 color1 color2 px py pz E m lifetime spin
 ...
+# additional hash commented information can go here
 </event>
 ...
 </LesHouchesEvents>
@@ -113,8 +113,8 @@ Below we give a table summarizing the main parameters found in LHE files.
 Further details can be found in the original definition of the Les Houches Event File standard in [@Alwall:2006yp].
 
 Besides the original publication there were two extensions to the LHE format, version 2.0 in 2009 [@Butterworth:2010ym] and version 3.0 in 2012 [@Andersen:2014efa].
-
-<!-- APN TODO: mention what different version of lhe files 1.0 vs 3.0 -->
+However, `pylhe` currently only implements the only widely adopted extension from version 1.0, that is the addition of multiple weights via `<initrwgt>`, `<rwgt>`, `<weight>`,`<weights>`, `<wgt>`, and `<weightgroup>`.
+If in the future there is a demand for `<scales>`, `<generator>`, `<pdfinfo>`, or `<clustering>` support these can be added as well.
 
 # Statement of need
 
