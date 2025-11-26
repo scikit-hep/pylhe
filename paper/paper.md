@@ -1,5 +1,5 @@
 ---
-title: "pylhe: A Lightweight Python interface to read Les Houches Event files"
+title: "pylhe: A Lightweight Python interface to Les Houches Event files"
 tags:
   - Python
   - physics
@@ -30,7 +30,7 @@ affiliations:
   - name: University of Liverpool
     index: 5
 
-date: 10 November 2025 # APN TODO: update date
+date: 26 November 2025 # APN TODO: update date
 bibliography: paper.bib
 ---
 
@@ -41,9 +41,23 @@ Some history/introduction history of different formats. HEPEVT -> LHEF -> HepMC 
 The format is used by major Monte Carlo event generators such as MadGraph, POWHEG, Sherpa, HERWIG, Pythia ... <!-- APN TODO add references here-->
 ...
 
-Format is XML-like where the free text is designed to be easily parsed in fortran <!-- APN TODO: copy example form jupyter notebook 00_*.ipynb -->
+Format is XML-like where the free text is designed to be easily parsed in Fortran <!-- APN TODO: copy example form jupyter notebook 00_*.ipynb -->
 
 ```xml
+<LesHouchesEvents version="1.0">
+<header></header>
+<init>
+beam1id beam2id beam1energy beam2energy pdfg1 pdfg2 pdfs1 pdfs2 idweight nproc
+crosssection crosssectionerror crosssectionmaximum pid
+...
+</init>
+<event>
+nparticles pid weight scale aqed aqcd
+id status mother1 mother2 color1 color2 px py pz E m lifetime spin
+...
+</event>
+...
+</LesHouchesEvents>
 ```
 
 # Statement of need
@@ -58,4 +72,4 @@ Format is XML-like where the free text is designed to be easily parsed in fortra
 
 We would additionally like to thank the contributors of pylhe and the Scikit-HEP community for their support.
 
-# Reference
+# References
