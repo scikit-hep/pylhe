@@ -35,10 +35,12 @@ bibliography: paper.bib
 ---
 
 # Summary
+
+The Les Houches Event File is a standard defined in [@Alwall:2006yp].
+It allows for a simple exchange of generated events between different generators and analysis programs.
 <!-- APN TODO: check that all references in paper.bib are cited in the text -->
 Some history/introduction history of different formats. HEPEVT -> LHEF -> HepMC -> HDF5? (since its binary maybe in the future? Unlike hepmc/lhe no need to gzip!)
 
-The format is used by major Monte Carlo event generators such as MadGraph, POWHEG, Sherpa, HERWIG, Pythia ... <!-- APN TODO add references here-->
 ...
 
 Format is XML-like where the free text is designed to be easily parsed in Fortran <!-- APN TODO: copy example form jupyter notebook 00_*.ipynb -->
@@ -53,9 +55,6 @@ crosssection crosssectionerror crosssectionmaximum pid
 <event>
 nparticles pid weight scale aqed aqcd
 id status mother1 mother2 color1 color2 px py pz E m lifetime spin
-...
-</event>
-<event>
 ...
 </event>
 ...
@@ -107,6 +106,8 @@ Below we give a table summarizing the main parameters found in LHE files.
 
 # Statement of need
 
+
+The format is used by major Monte Carlo event generators such as MadGraph, POWHEG, Sherpa, HERWIG, Pythia ... <!-- APN TODO add references here-->
 <!-- APN TODO: quick validation , machine learning -->
 
 ...
@@ -114,6 +115,9 @@ Below we give a table summarizing the main parameters found in LHE files.
 ## Impact
 
 <!-- APN TODO: reference usages in past, reverse cite ;) -->
+
+`pylhe` has already been used in various research projects and publications within the high-energy physics.
+It has been cited in Higgs studies [@Brehmer:2019gmn;@Stylianou:2023tgg;@Feuerstake:2024uxs], SUSY / BSM / dark matter searches [@Beresford:2018pbt;@Kling:2020iar;@Anisha:2023xmh;@Zhou:2022jgj;@Zhou:2024fjf;@Cheung:2024oxh;@Beresford:2024dsc], forward physics [@Kling:2022ykt;@Kelly:2021mcd;@Kling:2020mch], but also in methodological studies involving machine learning techniques for event generation and analysis [@Brehmer:2019xox;@Kofler:2024efb].
 
 ...
 
