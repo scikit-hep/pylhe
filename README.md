@@ -35,6 +35,7 @@ Small and thin Python interface to read [Les Houches Event (LHE)](https://inspir
 | [Whizard](https://whizard.hepforge.org/)       | 3.1.4                 |
 
 Note: test files are provided via the [scikit-hep-testdata](https://github.com/scikit-hep/scikit-hep-testdata) package. Please open an issue of create directly a PR for the inclusion of new files for testing.
+
 ## Install
 
 To install `pylhe` from PyPI you can just do
@@ -49,6 +50,7 @@ The visualization capabilities require the external dependency of [Graphviz](htt
 
 The example below provides a simple overview.
 Full functionality can be inspected from the functions provided in the `pylhe` module.
+For more information about the LHE format, see the [LHE format documentation](https://pylhe.readthedocs.io/en/latest/lhe.html).
 
 ### Reading
 
