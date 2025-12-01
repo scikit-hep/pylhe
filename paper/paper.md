@@ -48,7 +48,7 @@ In the future a binary format such as HDF5 [@hdf5] could be considered for event
 The LHE format uses an XML-like structure, but the content within the `<init>` and multiple `<event>` blocks consists of whitespace-separated values designed for straightforward parsing in Fortran.
 The `<header>` block can contain arbitrary XML content, usually metadata or comments explaining how the events were generated.
 Further details can be found in the original definition of the Les Houches Event file standard [@Alwall:2006yp].
-Besides the original publication there were two extensions to the LHE format, version 2.0 in 2009 [@Butterworth:2010ym] and version 3.0 in 2012 [@Andersen:2014efa].
+Besides the original publication there were two extensions to the LHE format, version 2.0 in 2009 [@Butterworth:2010ym] and version 3.0 in 2013 [@Andersen:2014efa].
 However, `pylhe` currently only implements the widely adopted extension on top of version 1.0, that is the addition of multiple weights via `<initrwgt>`, `<rwgt>`, `<weight>`, `<weights>`, `<wgt>`, and `<weightgroup>`.
 If in the future there is a demand for `<scales>`, `<generator>`, `<pdfinfo>`, or `<clustering>` support these can be added as well.
 

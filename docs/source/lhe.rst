@@ -106,6 +106,6 @@ The table below summarizes the main parameters found in LHE files grouped by the
 +-------------------+-------+--------------------------------------+------+
 
 Further details can be found in the original definition of the Les Houches Event file standard.
-Besides the original publication there were two extensions to the LHE format, version 2.0 in 2009 :cite:`Butterworth:2010ym` and version 3.0 in 2012 :cite:`Andersen:2014efa`.
+Besides the original publication there were two extensions to the LHE format, version 2.0 in 2009 :cite:`Butterworth:2010ym` and version 3.0 in 2013 :cite:`Andersen:2014efa`.
 However, ``pylhe`` currently only implements the widely adopted extension from version 1.0, that is the addition of multiple weights via ``<initrwgt>``, ``<rwgt>``, ``<weight>``, ``<weights>``, ``<wgt>``, and ``<weightgroup>``.
 If in the future there is a demand for ``<scales>``, ``<generator>``, ``<pdfinfo>``, or ``<clustering>`` support these can be added as well.
