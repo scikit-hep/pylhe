@@ -30,7 +30,7 @@ The table below summarizes the main parameters found in LHE files grouped by the
 +-------------------+-------+--------------------------------------+------+
 | Parameter         | Type  | Description                          | Unit |
 +===================+=======+======================================+======+
-| **LHEInitInfo**                                                         |
+| :py:class:`pylhe.LHEInitInfo`                                           |
 +-------------------+-------+--------------------------------------+------+
 | beamA             | int   | PDG ID of first beam particle        | -    |
 +-------------------+-------+--------------------------------------+------+
@@ -52,7 +52,7 @@ The table below summarizes the main parameters found in LHE files grouped by the
 +-------------------+-------+--------------------------------------+------+
 | numProcesses      | int   | Number of processes                  | -    |
 +-------------------+-------+--------------------------------------+------+
-| **LHEProcInfo**                                                         |
+| :py:class:`pylhe.LHEProcInfo`                                           |
 +-------------------+-------+--------------------------------------+------+
 | xSection          | float | Cross section                        | pb   |
 +-------------------+-------+--------------------------------------+------+
@@ -62,7 +62,7 @@ The table below summarizes the main parameters found in LHE files grouped by the
 +-------------------+-------+--------------------------------------+------+
 | procId            | int   | Process ID                           | -    |
 +-------------------+-------+--------------------------------------+------+
-| **LHEEventInfo**                                                        |
+| :py:class:`pylhe.LHEEventInfo`                                          |
 +-------------------+-------+--------------------------------------+------+
 | nparticles        | int   | Number of particles in event         | -    |
 +-------------------+-------+--------------------------------------+------+
@@ -76,7 +76,7 @@ The table below summarizes the main parameters found in LHE files grouped by the
 +-------------------+-------+--------------------------------------+------+
 | aqcd              | float | QCD coupling constant                | -    |
 +-------------------+-------+--------------------------------------+------+
-| **LHEParticle**                                                         |
+| :py:class:`pylhe.LHEParticle`                                           |
 +-------------------+-------+--------------------------------------+------+
 | id                | int   | PDG particle ID                      | -    |
 +-------------------+-------+--------------------------------------+------+
