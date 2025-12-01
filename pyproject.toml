@@ -75,6 +75,7 @@ docs = [
     "pandoc",
     "myst-nb",
     "myst-parser",
+    "sphinxcontrib-bibtex",
     "toml",
 ]
 

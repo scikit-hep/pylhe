@@ -45,7 +45,7 @@ Both files are plain text-based formats, making them human-readable but potentia
 Hence, compression using gzip is common practice for both formats.
 In the future a binary format such as HDF5 [@hdf5] could be considered for event storage to improve read/write performance and reduce file sizes further.
 
-The LHE format uses an XML-like structure, but the content within the `<init>` and `<event>` blocks consists of whitespace-separated values designed for straightforward parsing in Fortran.
+The LHE format uses an XML-like structure, but the content within the `<init>` and multiple `<event>` blocks consists of whitespace-separated values designed for straightforward parsing in Fortran.
 The `<header>` block can contain arbitrary XML content, usually metadata or comments explaining how the events were generated.
 Further details can be found in the original definition of the Les Houches Event file standard [@Alwall:2006yp].
 Besides the original publication there were two extensions to the LHE format, version 2.0 in 2009 [@Butterworth:2010ym] and version 3.0 in 2012 [@Andersen:2014efa].
@@ -54,12 +54,12 @@ If in the future there is a demand for `<scales>`, `<generator>`, `<pdfinfo>`, o
 
 # Statement of need
 
-The format is used by all major Monte Carlo event generators such as MadGraph [@Alwall:2014hca], POWHEG-BOX [@Nason:2004rx;@Frixione:2007vw;@Alioli:2010xd], Sherpa [@Gleisberg:2008ta;@Sherpa:2019gpd], HERWIG [@Corcella:2000bw;@Bahr:2008pv;@Bellm:2015jjp;@Bellm:2019zci;@Bewick:2023tfi], Pythia [@Sjostrand:2006za;@Sjostrand:2007gs;@Sjostrand:2014zea;@Bierlich:2022pfr], Whizard [@Kilian:2007gr;@Moretti:2001zz].
-They produce hard scattering events in the LHE format which are then passed to parton shower and hadronization programs or directly to analysis frameworks.
+The LHE format is used by all major Monte Carlo event generators such as MadGraph [@Alwall:2014hca], POWHEG-BOX [@Nason:2004rx;@Frixione:2007vw;@Alioli:2010xd], Sherpa [@Gleisberg:2008ta;@Sherpa:2019gpd], HERWIG [@Corcella:2000bw;@Bahr:2008pv;@Bellm:2015jjp;@Bellm:2019zci;@Bewick:2023tfi], Pythia [@Sjostrand:2006za;@Sjostrand:2007gs;@Sjostrand:2014zea;@Bierlich:2022pfr], Whizard [@Kilian:2007gr;@Moretti:2001zz].
+These generators produce hard scattering events in the LHE format which are then passed to parton shower and hadronization programs or directly to analysis frameworks.
 While interfaces for C/C++/Fortran exist in the respective generators, a lightweight and easy-to-use Python interface was missing until the inception of `pylhe` in 2015.
 
 `pylhe` allows for easy reading and writing of `.lhe` and `.lhe.gz` files in Python, enabling seamless integration into modern pythonic data analysis workflows in high-energy physics.
-The generator-based approach allows for memory-efficient processing of arbitrarily large LHE files by streaming events one at a time rather than loading entire files into memory.
+The pythonic yielding approach allows for memory-efficient processing of arbitrarily large LHE files by streaming events one at a time rather than loading entire files into memory.
 The library facilitates quick validation of event files through programmatic access to event structure and particle properties, making it straightforward to perform sanity checks on generated events.
 This can be done for example via the integration with Awkward Array [@Pivarski_Awkward_Array_2018] through the `to_awkward()` function, which converts LHE events into columnar data structures optimized for vectorized operations and efficient analysis of large datasets.
 Additionally, `pylhe` can serve as a crucial interface for emerging machine learning applications in particle physics, allowing researchers to efficiently extract event data for training neural networks and other ML models used in event classification, anomaly detection, and physics analysis.
