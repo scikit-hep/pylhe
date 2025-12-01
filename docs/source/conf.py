@@ -46,6 +46,10 @@ nb_execution_mode = "off"
 templates_path = ["_templates"]
 exclude_patterns = []
 bibtex_bibfiles = ["references.bib"]
+bibtex_default_style = "unsrt"
+# Configure bibtex to ignore missing fields
+bibtex_reference_style = "label"
+
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

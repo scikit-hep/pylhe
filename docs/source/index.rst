@@ -16,6 +16,7 @@
    :caption: Format Reference:
 
    lhe.rst
+   bibliography.rst
 
 .. autosummary::
    :toctree: _autosummary
