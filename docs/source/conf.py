@@ -40,10 +40,12 @@ extensions = [
     "sphinx_math_dollar",
     "sphinx.ext.autosummary",
     "sphinx.ext.coverage",
+    "sphinxcontrib.bibtex",
 ]
 nb_execution_mode = "off"
 templates_path = ["_templates"]
 exclude_patterns = []
+bibtex_bibfiles = ["references.bib"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

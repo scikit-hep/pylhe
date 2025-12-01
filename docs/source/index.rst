@@ -10,6 +10,13 @@
    :parser: myst_parser.sphinx_
 
 
+.. toctree::
+   :glob:
+   :maxdepth: 3
+   :caption: Format Reference:
+
+   lhe.rst
+
 .. autosummary::
    :toctree: _autosummary
    :template: custom-module-template.rst
