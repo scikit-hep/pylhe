@@ -104,6 +104,9 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pylhe"]
+artifacts = [
+    "src/pylhe/py.typed",
+]
 
 [tool.mypy]
 warn_unused_configs = true
