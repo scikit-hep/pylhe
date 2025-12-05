@@ -1,4 +1,4 @@
-# pylhe: Python LHE interface
+# pylhe: A Lightweight Python interface to Les Houches Event files
 
 <img src="https://raw.githubusercontent.com/scikit-hep/pylhe/main/docs/source/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
 
