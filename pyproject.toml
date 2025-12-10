@@ -75,6 +75,7 @@ docs = [
     "pandoc",
     "myst-nb",
     "myst-parser",
+    "sphinxcontrib-bibtex",
     "toml",
 ]
 
@@ -165,3 +166,4 @@ ignore = [
 # https://github.com/codespell-project/codespell/issues/2801
 # Ignore very long base64-like strings
 ignore-regex = '[A-Za-z0-9+/]{100,}'
+skip = "*.bib"
