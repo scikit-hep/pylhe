@@ -1,7 +1,7 @@
 name: Benchmark Comparison
 
 permissions:
-  pull-requests: write
+  pull-requests: write # Forks need this to post comments
 
 on:
   pull_request:
