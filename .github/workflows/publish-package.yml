@@ -84,7 +84,7 @@ jobs:
         subject-path: "dist/pylhe-*"
 
     - name: Upload distribution artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: dist-artifact
         path: dist
@@ -104,7 +104,7 @@ jobs:
 
     steps:
     - name: Download distribution artifact
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: dist-artifact
         path: dist
