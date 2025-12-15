@@ -87,64 +87,62 @@ For a full example see [write](examples/03_write_monte_carlo_example.ipynb) or [
 The values in the sketch below are intentionally left empty since they depend on the use-case.
 The data structure of `pylhe` is:
 
-```
+```python
 import pylhe
 
-file=pylhe.LHEFile(
+file = pylhe.LHEFile(
     init=pylhe.LHEInit(
         initInfo=pylhe.LHEInitInfo(
-            beamA=,
-            beamB=,
-            energyA=,
-            energyB=,
-            PDFgroupA=,
-            PDFgroupB=,
-            PDFsetA=,
-            PDFsetB=,
-            weightinStrategy=,
-            numProcesses=,
+            beamA=...,
+            beamB=...,
+            energyA=...,
+            energyB=...,
+            PDFgroupA=...,
+            PDFgroupB=...,
+            PDFsetA=...,
+            PDFsetB=...,
+            weightinStrategy=...,
+            numProcesses=...,
         ),
         procInfo=pylhe.LHEProcInfo(
-            xSection=,
-            error=,
-            unitWeight=,
-            procId=,
+            xSection=...,
+            error=...,
+            unitWeight=...,
+            procId=...,
         ),
     ),
     events=[
         pylhe.LHEEvent(
             eventinfo=pylhe.LHEEventInfo(
-                nparticles=,
-                pid=,
-                weight=,
-                scale=,
-                aqed=,
-                aqcd=,
+                nparticles=...,
+                pid=...,
+                weight=...,
+                scale=...,
+                aqed=...,
+                aqcd=...,
             ),
             particles=[
                 pylhe.LHEParticle(
-                    id=,
-                    status=,
-                    mother1=,
-                    mother2=,
-                    color1=,
-                    color2=,
-                    px=,
-                    py=,
-                    pz=,
-                    e=,
-                    m=,
-                    lifetime=,
-                    spin=,
+                    id=...,
+                    status=...,
+                    mother1=...,
+                    mother2=...,
+                    color1=...,
+                    color2=...,
+                    px=...,
+                    py=...,
+                    pz=...,
+                    e=...,
+                    m=...,
+                    lifetime=...,
+                    spin=...,
                 ),
-                ...
             ],
             weights=None,
             attributes=None,
             optional=None,
         ),
-        ...
-    ]
+    ],
 )
 
 # write to file, compressed if gz/gzip suffix
@@ -156,7 +154,7 @@ write_lhe_file(file.init, file.events, "myevents.lhe.gz", rwgt=True, weights=Fal
 
 The preferred BibTeX entry for citation of `pylhe` is
 
-```
+```bibtex
 @software{pylhe,
   author = {Lukas Heinrich and Matthew Feickert and Eduardo Rodrigues and Alexander Puck Neuwirth},
   title = "{pylhe: v1.0.1}",
