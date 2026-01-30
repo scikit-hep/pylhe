@@ -610,7 +610,7 @@ class LHEEvent(DictCompatibility):
             str: The event as a string in LHE format.
         """
         if rwgt and weights:
-            err = "only <rwgt> OR <weights> allowed. Change one to False."
+            err = "Cannot specify both rwgt and weights formats simultaneously."
             raise ValueError(err)
         sweights = ""
         if rwgt and self.weights:
