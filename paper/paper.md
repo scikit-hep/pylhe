@@ -56,16 +56,30 @@ In the future, if there is a demand for `<scales>`, `<generator>`, `<pdfinfo>`, 
 The LHE format is used by all major Monte Carlo event generators such as MadGraph [@Alwall:2014hca], POWHEG-BOX [@Nason:2004rx;@Frixione:2007vw;@Alioli:2010xd], Sherpa [@Gleisberg:2008ta;@Sherpa:2019gpd], HERWIG [@Corcella:2000bw;@Bahr:2008pv;@Bellm:2015jjp;@Bellm:2019zci;@Bewick:2023tfi], Pythia [@Sjostrand:2006za;@Sjostrand:2007gs;@Sjostrand:2014zea;@Bierlich:2022pfr], Whizard [@Kilian:2007gr;@Moretti:2001zz].
 While interfaces for C/C++/Fortran exist in the respective generators, a lightweight and easy-to-use Python interface was missing until the inception of `pylhe` in 2015.
 
+# State of the field
+
+Several tools exist to handle LHE files...
+
+# Software design
+
 `pylhe` allows for easy reading and writing of `.lhe` and `.lhe.gz` files in Python, enabling seamless integration into modern data analysis workflows in high-energy physics.
 The pythonic event yielding approach allows for memory-efficient processing of arbitrarily large LHE files by streaming events one at a time rather than loading all of them at once into memory.
 The library facilitates quick validation of event files through programmatic access to event structure and particle properties, making it straightforward to perform sanity checks on generated events.
 This can be done for example via the integration with Awkward Array [@Pivarski_Awkward_Array_2018] through the `to_awkward()` function, which converts LHE events into columnar data structures optimized for vectorized operations and efficient analysis of large datasets.
 Additionally, `pylhe` can serve as a crucial interface for emerging machine learning applications in particle physics, allowing researchers to efficiently extract event data for training neural networks and other ML models used in event classification, anomaly detection, and physics analysis.
 
-## Impact
+# Research impact statement
 
 `pylhe` has already been used in various research projects and publications within high-energy physics.
 It has been cited in Higgs studies [@Brehmer:2019gmn;@Stylianou:2023tgg;@Feuerstake:2024uxs], SUSY / BSM / dark matter searches [@Beresford:2018pbt;@Kling:2020iar;@Anisha:2023xmh;@Zhou:2022jgj;@Zhou:2024fjf;@Cheung:2024oxh;@Beresford:2024dsc], forward physics [@Kling:2022ykt;@Kelly:2021mcd;@Kling:2020mch], but also in methodological studies involving machine learning techniques for event generation and analysis [@Brehmer:2019xox;@Kofler:2024efb].
+
+# AI usage disclosure
+
+Generative AI tools have been used in the development of this software and writing of the manuscript:
+
+- Github's copilot has been used in reviewing pull requests.
+- VScode's copilot has been used as an advanced autocomplete.
+- ChatGPT has been used to tidy Python code.
 
 # Acknowledgements
 
