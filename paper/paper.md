@@ -36,18 +36,8 @@ bibliography: paper.bib
 
 # Summary
 
-`pylhe` is a lightweight Python library that provides a simple interface for reading and writing Les Houches Event (LHE) files, a standard format used by Monte Carlo event generators in high-energy physics.
+`pylhe` is a lightweight Python library that provides a simple and efficient interface for reading and writing Les Houches Event (LHE) files, a standard format used by Monte Carlo event generators in high-energy physics.
 The library enables memory-efficient streaming of events from `.lhe` and `.lhe.gz` files through a pythonic iterator interface, allowing researchers to process arbitrarily large event files without loading all events into memory simultaneously.
-`pylhe` supports widely-adopted LHE format extensions including multiple weights via `<rwgt>` and `<weights>` tags, building upon the original LHE standard [@Alwall:2006yp] and its subsequent extensions [@Butterworth:2010ym;@Andersen:2014efa].
-The library fills a crucial gap in the Python ecosystem by providing the first lightweight, dedicated interface for LHE files, complementing existing interfaces embedded within Monte Carlo generators.
-
-# Statement of need
-
-The LHE format is used by all major Monte Carlo event generators such as MadGraph [@Alwall:2014hca], POWHEG-BOX [@Nason:2004rx;@Frixione:2007vw;@Alioli:2010xd], Sherpa [@Gleisberg:2008ta;@Sherpa:2019gpd], HERWIG [@Corcella:2000bw;@Bahr:2008pv;@Bellm:2015jjp;@Bellm:2019zci;@Bewick:2023tfi], Pythia [@Sjostrand:2006za;@Sjostrand:2007gs;@Sjostrand:2014zea;@Bierlich:2022pfr], Whizard [@Kilian:2007gr;@Moretti:2001zz].
-While interfaces for C/C++/Fortran exist in the respective generators, a lightweight and easy-to-use Python interface was missing until the inception of `pylhe` in 2015.
-Additionally, `pylhe` can serve as a crucial interface for emerging machine learning applications in particle physics, allowing researchers to efficiently extract event data for training neural networks and other machine learning models used in event classification, anomaly detection, and physics analysis.
-
-# State of the field
 
 Historically, the first standards for event representation in high-energy physics were the HEPEVT and HEPRUP common blocks [@Boos:2001cv], which provided a Fortran-based structure for storing event information.
 As the complexity of Monte Carlo event generators increased, the need for a more flexible and extensible format led to the development of the LHE file format [@Alwall:2006yp].
@@ -64,10 +54,24 @@ Following the original publication there were two extensions to the LHE format, 
 However, `pylhe` currently only implements the widely adopted extension on top of version 1.0, that is the addition of multiple weights via `<initrwgt>`, `<rwgt>`, `<weight>`, `<weights>`, `<wgt>`, and `<weightgroup>`.
 In the future, if there is a demand for `<scales>`, `<generator>`, `<pdfinfo>`, or `<clustering>`, support for these can be added as well.
 
+# Statement of need
+
+The LHE format is used by all major Monte Carlo event generators such as MadGraph [@Alwall:2014hca], POWHEG-BOX [@Nason:2004rx;@Frixione:2007vw;@Alioli:2010xd], Sherpa [@Gleisberg:2008ta;@Sherpa:2019gpd], HERWIG [@Corcella:2000bw;@Bahr:2008pv;@Bellm:2015jjp;@Bellm:2019zci;@Bewick:2023tfi], Pythia [@Sjostrand:2006za;@Sjostrand:2007gs;@Sjostrand:2014zea;@Bierlich:2022pfr], Whizard [@Kilian:2007gr;@Moretti:2001zz].
+While interfaces for C/C++/Fortran exist in the respective generators, a lightweight and easy-to-use Python interface was missing until the inception of `pylhe` in 2015.
+Additionally, `pylhe` can serve as a crucial interface for emerging machine learning applications in particle physics, allowing researchers to efficiently extract event data for training neural networks and other machine learning models used in event classification, anomaly detection, and physics analysis.
+
+# State of the field
+
+Unlike the existing C/C++/Fortran interfaces provided by the Monte Carlo event generators, `pylhe` offers a pure Python interface that is more accessible and easier to use.
+When `pylhe` was first developed, there were no other Python libraries available for reading and writing LHE files.
+Nowadays, there are a few other smaller Python libraries with less adoption than `pylhe` that provide only read functionality, such as `lhereader`.
+At this point it should also be mentioned that several LHE libraries exist in other programming languages, such as Go (`go-hep` [@Binet2017]), Rust (`lhe`, `lhef`, `event_file_reader`), Julia (`LHEF.jl`) and Haskell (`lhe.hs`) with varying degree of completeness.
+
 # Software design
 
 `pylhe` allows for easy reading and writing of `.lhe` and `.lhe.gz` files in Python, enabling seamless integration into modern data analysis workflows in high-energy physics.
 The pythonic event yielding approach allows for memory-efficient processing of arbitrarily large LHE files by streaming events one at a time rather than loading all of them at once into memory.
+Internally, `pylhe` uses `xml.etree.ElementTree` to parse the XML structure, since using the `lxml` library did not provide a significant speed up.
 The library facilitates quick validation of event files through programmatic access to event structure and particle properties, making it straightforward to perform sanity checks on generated events.
 This can be done for example via the integration with Awkward Array [@Pivarski_Awkward_Array_2018] through the `to_awkward()` function, which converts LHE events into columnar data structures optimized for vectorized operations and efficient analysis of large datasets.
 
