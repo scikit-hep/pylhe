@@ -37,7 +37,7 @@ bibliography: paper.bib
 # Summary
 
 `pylhe` is a lightweight Python library that provides a simple and efficient interface for reading and writing Les Houches Event (LHE) files, a standard format used by Monte Carlo event generators in high-energy physics.
-The library enables memory-efficient streaming of events from `.lhe` and `.lhe.gz` files through a pythonic iterator interface, allowing researchers to process arbitrarily large event files without loading all events into memory simultaneously.
+The library enables memory-efficient streaming of events from `.lhe` and compressed `.lhe.gz` files through a pythonic iterator interface, allowing researchers to process arbitrarily large event files without loading all events into memory simultaneously.
 
 Historically, the first standards for event representation in high-energy physics were the HEPEVT and HEPRUP common blocks [@Boos:2001cv], which provided a Fortran-based structure for storing event information.
 As the complexity of Monte Carlo event generators increased, the need for a more flexible and extensible format led to the development of the LHE file format [@Alwall:2006yp].
@@ -64,21 +64,22 @@ Additionally, `pylhe` can serve as a crucial interface for emerging machine lear
 
 Unlike the existing C/C++/Fortran interfaces provided by the Monte Carlo event generators, `pylhe` offers a pure Python interface that is more accessible and easier to use.
 When `pylhe` was first developed, there were no other Python libraries available for reading and writing LHE files.
-Nowadays, there are a few other smaller Python libraries with less adoption than `pylhe` that provide only read functionality, such as `lhereader`.
-At this point it should also be mentioned that several LHE libraries exist in other programming languages, such as Go (`go-hep` [@Binet2017]), Rust (`lhe`, `lhef`, `event_file_reader`), Julia (`LHEF.jl`) and Haskell (`lhe.hs`) with varying degree of completeness.
+Nowadays, there are a few other smaller Python libraries with less adoption than `pylhe`, which provide only read functionality, such as `lhereader`.
+For completeness, it should be mentioned that several LHE libraries exist in other programming languages, such as Go (`go-hep` [@Binet2017]), Rust (`lhe`, `lhef`, `event_file_reader`), Julia (`LHEF.jl`) and Haskell (`lhe.hs`). These provide varying degrees of completeness.
 
 # Software design
 
 `pylhe` allows for easy reading and writing of `.lhe` and `.lhe.gz` files in Python, enabling seamless integration into modern data analysis workflows in high-energy physics.
 The pythonic event yielding approach allows for memory-efficient processing of arbitrarily large LHE files by streaming events one at a time rather than loading all of them at once into memory.
 Internally, `pylhe` uses `xml.etree.ElementTree` to parse the XML structure, since using the `lxml` library did not provide a significant speed up.
+
 The library facilitates quick validation of event files through programmatic access to event structure and particle properties, making it straightforward to perform sanity checks on generated events.
 This can be done for example via the integration with Awkward Array [@Pivarski_Awkward_Array_2018] through the `to_awkward()` function, which converts LHE events into columnar data structures optimized for vectorized operations and efficient analysis of large datasets.
 
 # Research impact statement
 
-`pylhe` has already been used in various research projects and publications within high-energy physics.
-It has been cited in Higgs studies [@Brehmer:2019gmn;@Stylianou:2023tgg;@Feuerstake:2024uxs], SUSY / BSM / dark matter searches [@Beresford:2018pbt;@Kling:2020iar;@Anisha:2023xmh;@Zhou:2022jgj;@Zhou:2024fjf;@Cheung:2024oxh;@Beresford:2024dsc], forward physics [@Kling:2022ykt;@Kelly:2021mcd;@Kling:2020mch], but also in methodological studies involving machine learning techniques for event generation and analysis [@Brehmer:2019xox;@Kofler:2024efb].
+`pylhe` is regularly used in various research projects and publications within high-energy physics.
+Notably, it has been cited in Higgs studies [@Brehmer:2019gmn;@Stylianou:2023tgg;@Feuerstake:2024uxs], in Supersymmetry (SUSY), Beyond the Standard Model (BSM) and dark matter searches [@Beresford:2018pbt;@Kling:2020iar;@Anisha:2023xmh;@Zhou:2022jgj;@Zhou:2024fjf;@Cheung:2024oxh;@Beresford:2024dsc], and in forward physics studies [@Kling:2022ykt;@Kelly:2021mcd;@Kling:2020mch]. It is also employed in methodological studies involving machine learning techniques for event generation and analysis [@Brehmer:2019xox;@Kofler:2024efb].
 
 # AI usage disclosure
 
