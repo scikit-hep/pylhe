@@ -27,10 +27,10 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Lint with flake8
+    - name: Lint with ruff
       run: |
-        pipx run flake8 .
+        pipx run ruff check --diff --verbose .
 
-    - name: Lint with Black
+    - name: Format with ruff
       run: |
-        pipx run black --check --diff --verbose .
+        pipx run ruff format --check --diff --verbose .
