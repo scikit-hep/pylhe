@@ -64,8 +64,8 @@ Additionally, `pylhe` can serve as a crucial interface for emerging machine lear
 
 Unlike the existing C/C++/Fortran interfaces provided by the Monte Carlo event generators, `pylhe` offers a pure Python interface that is more accessible and easier to use.
 When `pylhe` was first developed, there were no other Python libraries available for reading and writing LHE files.
-Nowadays, there are a few other smaller Python libraries with less adoption than `pylhe`, which provide only read functionality, such as `lhereader`.
-For completeness, it should be mentioned that several LHE libraries exist in other programming languages, such as Go (`go-hep` [@Binet2017]), Rust (`lhe`, `lhef`, `event_file_reader`), Julia (`LHEF.jl`) and Haskell (`lhe.hs`).
+Nowadays, there are a few other smaller Python libraries with less adoption than `pylhe`, which provide only read functionality and are no longer actively maintained, such as `lhereader` [@lhereader1;@lhereader2].
+For completeness, it should be mentioned that several LHE libraries exist in other programming languages, such as Go (`go-hep` [@Binet2017]), Rust (`lhe` [@lhe-rs], `lhef` [@lhef;@lhef-rs], `event_file_reader` [@event_file_reader]), Julia (`LHEF.jl` [@LHEF_jl]) and Haskell (`lhe.hs` [@lhehs]).
 These provide varying degrees of completeness.
 
 # Software design
