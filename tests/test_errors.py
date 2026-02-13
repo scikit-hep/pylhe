@@ -273,3 +273,54 @@ def test_fromfile_parse_error():
             ),
         ):
             pylhe.LHEFile.fromfile(f.name)
+
+
+def test_event_tolhe_both_formats_error():
+    """Test that ValueError is raised when both rwgt and weights formats are specified simultaneously."""
+    # Create a simple LHEEvent instance for testing
+    eventinfo = pylhe.LHEEventInfo(
+        nparticles=2, pid=1, weight=1.0, scale=100.0, aqed=0.007, aqcd=0.1
+    )
+
+    particles = [
+        pylhe.LHEParticle(
+            id=21,
+            status=-1,
+            mother1=0,
+            mother2=0,
+            color1=501,
+            color2=502,
+            px=0.0,
+            py=0.0,
+            pz=456.3,
+            e=456.3,
+            m=0.0,
+            lifetime=0.0,
+            spin=9.0,
+        ),
+        pylhe.LHEParticle(
+            id=21,
+            status=-1,
+            mother1=0,
+            mother2=0,
+            color1=502,
+            color2=501,
+            px=0.0,
+            py=0.0,
+            pz=-224.0,
+            e=224.0,
+            m=0.0,
+            lifetime=0.0,
+            spin=9.0,
+        ),
+    ]
+
+    event = pylhe.LHEEvent(
+        eventinfo=eventinfo, particles=particles, weights={"1001": 1.5, "1002": 0.8}
+    )
+
+    # Test that specifying both rwgt=True and weights=True raises ValueError
+    with pytest.raises(
+        ValueError, match=r"Cannot specify both rwgt and weights formats simultaneously"
+    ):
+        event.tolhe(rwgt=True, weights=True)

@@ -274,8 +274,7 @@ def test_read_lhe_init_raises():
     with pytest.raises(
         AttributeError, match=r"weightgroup must have attribute 'type' or 'name'."
     ):
-        pylhe.LHEFile.fromstring(
-            """<init>
+        pylhe.LHEFile.fromstring("""<init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66
 <initrwgt>
@@ -291,12 +290,10 @@ def test_read_lhe_init_raises():
     <weight id="1009">muR=0.50000E+00 muF=0.50000E+00</weight>
   </weightgroup>
 </initrwgt>
-</init>"""
-        )
+</init>""")
 
     with pytest.raises(AttributeError, match=r"weight must have attribute 'id'"):
-        pylhe.LHEFile.fromstring(
-            """<init>
+        pylhe.LHEFile.fromstring("""<init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66
 <initrwgt>
@@ -313,8 +310,7 @@ def test_read_lhe_init_raises():
     <weight>muR=0.50000E+00 muF=0.50000E+00</weight>
   </weightgroup>
 </initrwgt>
-</init>"""
-        )
+</init>""")
 
 
 def test_event_at_position_5():
