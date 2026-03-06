@@ -56,7 +56,7 @@ test = [
     "pytest>=6.0",
     "pytest-benchmark",
     "pytest-cov>=2.5.1",
-    "scikit-hep-testdata>=0.5.9",
+    "scikit-hep-testdata>=0.5.5",
 ]
 develop = [
     "pylhe[lint,test]",
