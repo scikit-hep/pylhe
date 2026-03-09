@@ -24,7 +24,7 @@ keywords = [
     "physics",
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
@@ -40,10 +40,10 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
 ]
 dependencies = [
-    "awkward>=1.2.0",
+    "awkward>=2.7",
     "graphviz>=0.19",
-    "particle>=0.16",
-    "vector>=0.8.1",
+    "particle>=0.25",
+    "vector>=1.5.2",
 ]
 
 [project.optional-dependencies]
