@@ -53,9 +53,9 @@ lint = [
 ]
 test = [
     "pydocstyle",
-    "pytest>=6.0",
+    "pytest>=7.0",
     "pytest-benchmark",
-    "pytest-cov>=2.5.1",
+    "pytest-cov>=6.0",
     "scikit-hep-testdata>=0.5.5",
 ]
 develop = [
