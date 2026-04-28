@@ -426,6 +426,18 @@ class LHEWeightGroup(DictCompatibility):
 
 
 @dataclass
+class LHEGenerator(DictCompatibility):
+    """Information about a generator."""
+
+    name: str
+    """Name of the generator"""
+    version: str
+    """Version of the generator"""
+    description: str
+    """Description of the generator"""
+
+
+@dataclass
 class LHEInit(DictCompatibility):
     """Store the <init> block as a dataclass."""
 
@@ -433,6 +445,8 @@ class LHEInit(DictCompatibility):
     """Init information"""
     procInfo: list[LHEProcInfo]
     """Process information"""
+    generators: list[LHEGenerator]
+    """Generator information"""
     weightgroup: dict[str, LHEWeightGroup]
     """Weight group information"""
     LHEVersion: str
@@ -463,6 +477,12 @@ class LHEInit(DictCompatibility):
             + "\n"
             + "\n".join([p.tolhe() for p in self.procInfo])
             + "\n"
+            + "\n".join(
+                [
+                    f"<generator name='{g.name}' version='{g.version}'>{g.description}</generator>"
+                    for g in self.generators
+                ]
+            )
             + f"{sweightgroups}"
             + "</init>"
         )
@@ -514,6 +534,7 @@ class LHEInit(DictCompatibility):
     def _fromcontext(cls, root: ET.Element, context: Any) -> "LHEInit":
         initInfo = None
         procInfo = []
+        generators = []
         weightgroup: dict[str, LHEWeightGroup] = {}
         LHEVersion: str = ""
 
@@ -521,6 +542,14 @@ class LHEInit(DictCompatibility):
             LHEVersion = root.attrib["version"]
 
         for event, element in context:
+            if element.tag == "generator":
+                generator = LHEGenerator(
+                    name=element.attrib["name"],
+                    version=element.attrib["version"],
+                    description="" if element.text is None else element.text.strip(),
+                )
+                generators.append(generator)
+
             if element.tag == "initrwgt":
                 weightgroup = {}
                 index = 0
@@ -571,6 +600,7 @@ class LHEInit(DictCompatibility):
             procInfo=procInfo,
             weightgroup=weightgroup,
             LHEVersion=LHEVersion,
+            generators=generators,
         )
 
 
@@ -868,6 +898,7 @@ class LHEFile(DictCompatibility):
             init=LHEInit(
                 initInfo=LHEInitInfo(0, 0, 0.0, 0.0, 0, 0, 0, 0, 0, 0),
                 procInfo=[],
+                generators=[],
                 weightgroup={},
                 LHEVersion="3.0",
             ),
