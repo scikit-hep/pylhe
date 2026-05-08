@@ -253,7 +253,7 @@ def test_lhe_init_getitem_deprecation_warning():
     )
 
     lhe_init = pylhe.LHEInit(
-        initInfo=init_info, procInfo=[], weightgroup={}, LHEVersion="1.0"
+        initInfo=init_info, procInfo=[], weightgroup={}, LHEVersion="1.0", generators=[]
     )
 
     with pytest.warns(
@@ -278,7 +278,7 @@ def test_lhe_init_setitem_deprecation_warning():
     )
 
     lhe_init = pylhe.LHEInit(
-        initInfo=init_info, procInfo=[], weightgroup={}, LHEVersion="1.0"
+        initInfo=init_info, procInfo=[], weightgroup={}, LHEVersion="1.0", generators=[]
     )
 
     with pytest.warns(
@@ -305,7 +305,11 @@ def test_write_lhe_string_deprecation_warning():
     proc_info = pylhe.LHEProcInfo(xSection=1.0, error=0.1, unitWeight=1.0, procId=1)
 
     lhe_init = pylhe.LHEInit(
-        initInfo=init_info, procInfo=[proc_info], weightgroup={}, LHEVersion="1.0"
+        initInfo=init_info,
+        procInfo=[proc_info],
+        weightgroup={},
+        LHEVersion="1.0",
+        generators=[],
     )
 
     event_info = pylhe.LHEEventInfo(
@@ -372,7 +376,11 @@ def test_write_lhe_file_deprecation_warning():
     proc_info = pylhe.LHEProcInfo(xSection=1.0, error=0.1, unitWeight=1.0, procId=1)
 
     lhe_init = pylhe.LHEInit(
-        initInfo=init_info, procInfo=[proc_info], weightgroup={}, LHEVersion="1.0"
+        initInfo=init_info,
+        procInfo=[proc_info],
+        weightgroup={},
+        LHEVersion="1.0",
+        generators=[],
     )
 
     event_info = pylhe.LHEEventInfo(
