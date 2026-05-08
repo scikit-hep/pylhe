@@ -475,6 +475,7 @@ class LHEHeader(DictCompatibility):
     """Attributes of the header element"""
 
     def tolhe(self) -> str:
+        """Return the header block as a string in LHE format."""
         opening_tag = _open_xml_tag("header", self.attributes)
         return f"{opening_tag}\n{self.initrwgt.tolhe()}</header>"
 
@@ -1118,6 +1119,7 @@ class LesHouchesEvents:
         return -1
 
 
+# Backwards compatibility
 LHEFile = LesHouchesEvents
 
 
