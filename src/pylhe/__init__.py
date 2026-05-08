@@ -616,6 +616,8 @@ class LHEEvent(DictCompatibility):
     """List of particles in the event"""
     weights: dict[str, float] = field(default_factory=dict)
     """Event weights"""
+    scales: dict[str, float] = field(default_factory=dict)
+    """Event scales"""
     attributes: dict[str, str] = field(default_factory=dict)
     """Event attributes"""
     optional: list[str] = field(default_factory=list)
@@ -654,6 +656,14 @@ class LHEEvent(DictCompatibility):
                 sweights += f"{v:11.4e}\n"
             sweights += "</weights>\n"
 
+        sscales = ""
+        if self.scales:
+            sscales = (
+                "<scales "
+                + " ".join(f"{k}='{v}'" for k, v in self.scales.items())
+                + "/>\n"
+            )
+
         return (
             "<event>\n"
             + self.eventinfo.tolhe()
@@ -661,6 +671,7 @@ class LHEEvent(DictCompatibility):
             + "\n".join([p.tolhe() for p in self.particles])
             + "\n"
             + sweights
+            + sscales
             + "</event>"
         )
 
@@ -691,6 +702,7 @@ class LHEEvent(DictCompatibility):
 
                 if with_attributes:
                     weights = {}
+                    scales = {}
                     attrib = element.attrib
                     optional = [
                         p.strip() for p in particles_str if p.strip().startswith("#")
@@ -711,11 +723,15 @@ class LHEEvent(DictCompatibility):
                                         err = "<wgt> block has no text."
                                         raise ValueError(err)
                                     weights[r.attrib["id"]] = float(r.text.strip())
+                        elif sub.tag == "scales":
+                            for k, v in sub.attrib.items():
+                                scales[k] = float(v)
 
                     yield LHEEvent(
                         eventinfo=eventinfo,
                         particles=particles,
                         weights=weights,
+                        scales=scales,
                         attributes=attrib,
                         optional=optional,
                     )
