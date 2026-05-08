@@ -542,14 +542,25 @@ class LHEInit(DictCompatibility):
             LHEVersion = root.attrib["version"]
 
         for event, element in context:
-            if element.tag == "generator":
-                generator = LHEGenerator(
-                    name=element.attrib["name"],
-                    version=element.attrib["version"],
-                    description="" if element.text is None else element.text.strip(),
-                )
-                generators.append(generator)
-
+            if element.tag == "generator" and "version" in element.attrib:
+                if "name" in element.attrib:
+                    # lhe-v3 has name and version
+                    generator = LHEGenerator(
+                        name=element.attrib["name"],
+                        version=element.attrib["version"],
+                        description=""
+                        if element.text is None
+                        else element.text.strip(),
+                    )
+                    generators.append(generator)
+                else:
+                    # lhe-v2 has version and name is in the text
+                    generator = LHEGenerator(
+                        name=element.text,
+                        version=element.attrib["version"],
+                        description="",
+                    )
+                    generators.append(generator)
             if element.tag == "initrwgt":
                 weightgroup = {}
                 index = 0
