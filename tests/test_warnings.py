@@ -1,6 +1,3 @@
-import os
-from tempfile import NamedTemporaryFile
-
 import pytest
 
 import pylhe
@@ -252,9 +249,7 @@ def test_lhe_init_getitem_deprecation_warning():
         numProcesses=1,
     )
 
-    lhe_init = pylhe.LHEInit(
-        initInfo=init_info, procInfo=[], weightgroup={}, LHEVersion="1.0", generators=[]
-    )
+    lhe_init = pylhe.LHEInit(initInfo=init_info, procInfo=[], generators=[])
 
     with pytest.warns(
         DeprecationWarning, match=r"Access by `lheinit\[\"initInfo\"\]` is deprecated"
@@ -277,144 +272,9 @@ def test_lhe_init_setitem_deprecation_warning():
         numProcesses=1,
     )
 
-    lhe_init = pylhe.LHEInit(
-        initInfo=init_info, procInfo=[], weightgroup={}, LHEVersion="1.0", generators=[]
-    )
+    lhe_init = pylhe.LHEInit(initInfo=init_info, procInfo=[], generators=[])
 
     with pytest.warns(
         DeprecationWarning, match=r"Access by `lheinit\[\"LHEVersion\"\]` is deprecated"
     ):
         lhe_init["LHEVersion"] = "2.0"
-
-
-def test_write_lhe_string_deprecation_warning():
-    """Test that DeprecationWarning is raised when using write_lhe_string function."""
-    init_info = pylhe.LHEInitInfo(
-        beamA=2212,
-        beamB=2212,
-        energyA=6500.0,
-        energyB=6500.0,
-        PDFgroupA=10800,
-        PDFgroupB=10800,
-        PDFsetA=0,
-        PDFsetB=0,
-        weightingStrategy=3,
-        numProcesses=1,
-    )
-
-    proc_info = pylhe.LHEProcInfo(xSection=1.0, error=0.1, unitWeight=1.0, procId=1)
-
-    lhe_init = pylhe.LHEInit(
-        initInfo=init_info,
-        procInfo=[proc_info],
-        weightgroup={},
-        LHEVersion="1.0",
-        generators=[],
-    )
-
-    event_info = pylhe.LHEEventInfo(
-        nparticles=2, pid=0, weight=1.0, scale=91.188, aqed=-1.0, aqcd=-1.0
-    )
-
-    particles = [
-        pylhe.LHEParticle(
-            id=21,
-            status=-1,
-            mother1=0,
-            mother2=0,
-            color1=501,
-            color2=502,
-            px=0.0,
-            py=0.0,
-            pz=456.3,
-            e=456.3,
-            m=0.0,
-            lifetime=0.0,
-            spin=9.0,
-        ),
-        pylhe.LHEParticle(
-            id=21,
-            status=-1,
-            mother1=0,
-            mother2=0,
-            color1=502,
-            color2=501,
-            px=0.0,
-            py=0.0,
-            pz=-224.0,
-            e=224.0,
-            m=0.0,
-            lifetime=0.0,
-            spin=9.0,
-        ),
-    ]
-
-    events = [pylhe.LHEEvent(eventinfo=event_info, particles=particles)]
-
-    with pytest.warns(
-        DeprecationWarning,
-        match=r"`write_lhe_string` is deprecated and will be removed in a future version",
-    ):
-        pylhe.write_lhe_string(lhe_init, events)
-
-
-def test_write_lhe_file_deprecation_warning():
-    """Test that DeprecationWarning is raised when using write_lhe_file function."""
-    init_info = pylhe.LHEInitInfo(
-        beamA=2212,
-        beamB=2212,
-        energyA=6500.0,
-        energyB=6500.0,
-        PDFgroupA=10800,
-        PDFgroupB=10800,
-        PDFsetA=0,
-        PDFsetB=0,
-        weightingStrategy=3,
-        numProcesses=1,
-    )
-
-    proc_info = pylhe.LHEProcInfo(xSection=1.0, error=0.1, unitWeight=1.0, procId=1)
-
-    lhe_init = pylhe.LHEInit(
-        initInfo=init_info,
-        procInfo=[proc_info],
-        weightgroup={},
-        LHEVersion="1.0",
-        generators=[],
-    )
-
-    event_info = pylhe.LHEEventInfo(
-        nparticles=2, pid=0, weight=1.0, scale=91.188, aqed=-1.0, aqcd=-1.0
-    )
-
-    particles = [
-        pylhe.LHEParticle(
-            id=21,
-            status=-1,
-            mother1=0,
-            mother2=0,
-            color1=501,
-            color2=502,
-            px=0.0,
-            py=0.0,
-            pz=456.3,
-            e=456.3,
-            m=0.0,
-            lifetime=0.0,
-            spin=9.0,
-        )
-    ]
-
-    events = [pylhe.LHEEvent(eventinfo=event_info, particles=particles)]
-
-    with NamedTemporaryFile(mode="w", suffix=".lhe", delete=False) as tmp_file:
-        tmp_file_path = tmp_file.name
-
-    try:
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"`write_lhe_file` is deprecated and will be removed in a future version",
-        ):
-            pylhe.write_lhe_file(lhe_init, events, tmp_file_path)
-    finally:
-        os.unlink(tmp_file_path)

@@ -6,6 +6,7 @@ def test_top_level_api():
         "LHEEvent",
         "LHEEventInfo",
         "LHEFile",
+        "LHEHeader",
         "LHEInit",
         "LHEInitInfo",
         "LHEParticle",

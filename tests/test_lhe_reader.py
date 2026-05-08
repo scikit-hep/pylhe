@@ -104,9 +104,7 @@ def test_read_lhe_init_v1():
     """
     Test method read_lhe_init() on a LesHouchesEvents version="1.0" file.
     """
-    init_data = pylhe.read_lhe_init(TEST_FILE_LHE_v1)
-
-    assert init_data["LHEVersion"] == "1.0"
+    init_data = pylhe.LesHouchesEvents.fromfile(TEST_FILE_LHE_v1).init
 
     init_info = init_data["initInfo"]
     assert init_info["beamA"] == pytest.approx(1.0)
@@ -127,10 +125,10 @@ def test_read_lhe_init_v3():
     """
     Test method read_lhe_init() on a LesHouchesEvents version="3.0" file.
     """
-    init_data = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
+    header = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True).header
 
-    assert len(init_data["weightgroup"]) == 1
-    assert len(init_data["weightgroup"]["scale_variation"]["weights"]) == 9
+    assert len(header.initrwgt["weightgroup"]) == 1
+    assert len(header.initrwgt["weightgroup"]["scale_variation"]["weights"]) == 9
 
 
 def test_read_lhe_v1():
@@ -148,7 +146,7 @@ def test_read_lhe_v3():
     """
     Test method read_lhe() on a LesHouchesEvents version="3.0" file.
     """
-    events = pylhe.read_lhe(TEST_FILE_LHE_v3)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=False).events
 
     assert events
     for e in events:
@@ -159,7 +157,7 @@ def test_read_lhe_with_attributes_v1():
     """
     Test method read_lhe_with_attributes() on a LesHouchesEvents version="1.0" file.
     """
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v1)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v1, with_attributes=True).events
 
     assert events
     for e in events:
@@ -170,7 +168,7 @@ def test_read_lhe_with_attributes_v3():
     """
     Test method read_lhe_with_attributes() on a LesHouchesEvents version="3.0" file.
     """
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True).events
 
     assert events
     for e in events:
@@ -182,7 +180,7 @@ def test_read_lhe_generator(file):
     """
     Test method read_lhe() on several types of LesHouchesEvents generator files.
     """
-    events = pylhe.read_lhe(file)
+    events = pylhe.LHEFile.fromfile(file, with_attributes=False).events
 
     assert events
     for e in events:
@@ -194,7 +192,7 @@ def test_read_lhe_with_attributes_generator(file):
     """
     Test method read_lhe_with_attributes() on several types of LesHouchesEvents generator files.
     """
-    events = pylhe.read_lhe_with_attributes(file)
+    events = pylhe.LHEFile.fromfile(file, with_attributes=True).events
 
     assert events
     for e in events:
@@ -274,7 +272,9 @@ def test_read_lhe_init_raises():
     with pytest.raises(
         AttributeError, match=r"weightgroup must have attribute 'type' or 'name'."
     ):
-        pylhe.LHEFile.fromstring("""<init>
+        pylhe.LHEFile.fromstring("""
+<LesHouchesEvents>
+<header>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66
 <initrwgt>
@@ -290,12 +290,12 @@ def test_read_lhe_init_raises():
     <weight id="1009">muR=0.50000E+00 muF=0.50000E+00</weight>
   </weightgroup>
 </initrwgt>
-</init>""")
+</header>
+<LesHouchesEvents>""")
 
     with pytest.raises(AttributeError, match=r"weight must have attribute 'id'"):
-        pylhe.LHEFile.fromstring("""<init>
-   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
- 5.0109086e+01  8.9185414e-02  5.0109093e+01    66
+        pylhe.LHEFile.fromstring("""<LesHouchesEvents>
+<header>
 <initrwgt>
   <weightgroup name="a fake name" combine="envelope">
     <spam>muR=0.10000E+01 muF=0.10000E+01</spam>
@@ -310,7 +310,8 @@ def test_read_lhe_init_raises():
     <weight>muR=0.50000E+00 muF=0.50000E+00</weight>
   </weightgroup>
 </initrwgt>
-</init>""")
+</header>
+<LesHouchesEvents>""")
 
 
 def test_event_at_position_5():
@@ -328,7 +329,7 @@ def test_event_at_position_5():
     # 5    34  1.5543917618E-03   3.6288856778E+01  0.0000000000E+00  0.0000000000E+00  3.6288856778E+01   1.9388062018E+01  2.3242767182E+00  2.1256769904E+00  1.9130504008E+01   9.0374892691E-01 -1.4114
     </event>
     """
-    events = pylhe.read_lhe(TEST_FILE_LHE_v1)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v1, with_attributes=False).events
 
     # Get the event at position 5 (0-indexed)
     target_event = None
