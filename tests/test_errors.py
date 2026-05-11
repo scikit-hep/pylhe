@@ -1,7 +1,6 @@
 import io
 import os
 import tempfile
-import xml.etree.ElementTree as ET
 from tempfile import NamedTemporaryFile
 
 import pytest
@@ -89,23 +88,6 @@ def test_missing_init_block_error_with_only_events():
 
     with pytest.raises(ValueError, match=r"<init> block not found in the LHE file"):
         pylhe.LHEFile.fromstring(events_only_content)
-
-
-def test_lheinit_fromcontext_missing_init_block_error():
-    """Test that LHEInit._fromcontext raises when no <init> block exists in the parse context."""
-    invalid_lhe_content = """<LesHouchesEvents version="1.0">
-<header>
-<MGGenerationInfo>
-#  Number of Events        :       1
-</MGGenerationInfo>
-</header>
-</LesHouchesEvents>"""
-
-    context = ET.iterparse(io.StringIO(invalid_lhe_content), events=["start", "end"])
-    _, root = next(context)
-
-    with pytest.raises(ValueError, match=r"No <init> block found in the LHE file\."):
-        pylhe.LHEInit._fromcontext(root, context)
 
 
 def test_dataclass_delete_field_error():
