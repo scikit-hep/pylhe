@@ -197,6 +197,6 @@ def test_lhe_init_setitem_deprecation_warning():
     lhe_init = pylhe.LHEInit(initInfo=init_info, procInfo=[], generators=[])
 
     with pytest.warns(
-        DeprecationWarning, match=r"Access by `lheinit\[\"LHEVersion\"\]` is deprecated"
+        DeprecationWarning, match=r"Access by `lheinit\[\"InitInfo\"\]` is deprecated"
     ):
         lhe_init["InitInfo"] = init_info
