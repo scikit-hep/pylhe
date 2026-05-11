@@ -6,10 +6,13 @@ import skhep_testdata
 from pylhe import (
     LHEEventInfo,
     LHEFile,
+    LHEGenerator,
     LHEInit,
     LHEInitInfo,
     LHEParticle,
     LHEProcInfo,
+    LHEWeight,
+    LHEWeightGroup,
     read_lhe,
 )
 
@@ -244,6 +247,45 @@ def test_LHEProcInfo_backwards_compatibility():
     assert proc_info.error == pytest.approx(0.1)
     assert proc_info.unitWeight == pytest.approx(60.0)
     assert proc_info.procId == pytest.approx(67.0)
+
+
+def test_LHEWeight_init_with_id_argument():
+    weight = LHEWeight(name="muR = 2.0", attrib={}, id="1001")
+
+    assert weight.id == "1001"
+    assert weight.attributes["id"] == "1001"
+    assert weight.name == "muR = 2.0"
+
+
+def test_LHEWeightGroup_init_with_name_and_combine_arguments():
+    weight = LHEWeight(name="muR = 2.0", attrib={}, id="1001")
+    weight_group = LHEWeightGroup(
+        attrib={},
+        weights=[weight],
+        name="scale variation",
+        combine="envelope",
+    )
+
+    assert weight_group.name == "scale variation"
+    assert weight_group.combine == "envelope"
+    assert weight_group.attributes["name"] == "scale variation"
+    assert weight_group.attributes["combine"] == "envelope"
+    assert weight_group.weights == [weight]
+
+
+def test_LHEGenerator_init_with_name_and_version_arguments():
+    generator = LHEGenerator(
+        description="some additional comments",
+        attributes={},
+        name="SomeGen",
+        version="1.2.3",
+    )
+
+    assert generator.name == "SomeGen"
+    assert generator.version == "1.2.3"
+    assert generator.attributes["name"] == "SomeGen"
+    assert generator.attributes["version"] == "1.2.3"
+    assert generator.description == "some additional comments"
 
 
 def test_LHEInitInfo_backwards_compatibility():

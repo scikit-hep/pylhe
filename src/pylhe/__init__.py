@@ -439,19 +439,19 @@ class LHEWeight:
         self,
         name: str,
         attrib: dict[str, str],
-        id: Union[str, None] = None,
+        id: Optional[str] = None,
     ) -> None:
-        self.attrib = attrib
+        self.attributes = attrib
         self.name = name
 
         if id is not None:
             self.id = id
 
-        if "id" not in self.attrib:
+        if "id" not in self.attributes:
             ae = "weight must have attribute 'id'"
             raise AttributeError(ae)
 
-    attrib: dict[str, str]
+    attributes: dict[str, str]
     """Weight XML attributes"""
     name: str
     """Weight description text"""
@@ -459,12 +459,12 @@ class LHEWeight:
     @property
     def id(self) -> str:
         """ID of the weight, retrieved from the attributes."""
-        return self.attrib.get("id", "")
+        return self.attributes.get("id", "")
 
     @id.setter
     def id(self, value: str) -> None:
         """Set the ID of the weight in the attributes."""
-        self.attrib["id"] = value
+        self.attributes["id"] = value
 
 
 class LHEWeightGroup:
@@ -475,19 +475,23 @@ class LHEWeightGroup:
         attrib: dict[str, str],
         weights: list[LHEWeight],
         name: Optional[str] = None,
+        combine: Optional[str] = None,
     ) -> None:
-        self.attrib = attrib
+        self.attributes = attrib
         self.weights = weights
 
         if name is not None:
             self.name = name
 
+        if combine is not None:
+            self.combine = combine
+
         # old Madgraph used 'type' instead of 'name' for the weightgroup name, so we allow both for backward compatibility
-        if not ("type" in self.attrib or "name" in self.attrib):
+        if not ("type" in self.attributes or "name" in self.attributes):
             ae = "weightgroup must have attribute 'type' or 'name'."
             raise AttributeError(ae)
 
-    attrib: dict[str, str]
+    attributes: dict[str, str]
     """Weight group XML attributes"""
     weights: list[LHEWeight]
     """List of weight information"""
@@ -495,22 +499,22 @@ class LHEWeightGroup:
     @property
     def name(self) -> str:
         """Name of the weight group, retrieved from the attributes."""
-        return self.attrib.get("name", "")
+        return self.attributes.get("name", "")
 
     @name.setter
     def name(self, value: str) -> None:
         """Set the name of the weight group in the attributes."""
-        self.attrib["name"] = value
+        self.attributes["name"] = value
 
     @property
     def combine(self) -> str:
         """Combination method of the weight group, retrieved from the attributes."""
-        return self.attrib.get("combine", "")
+        return self.attributes.get("combine", "")
 
     @combine.setter
     def combine(self, value: str) -> None:
         """Set the combination method of the weight group in the attributes."""
-        self.attrib["combine"] = value
+        self.attributes["combine"] = value
 
 
 InitRWGTEntry = Union[LHEWeight, LHEWeightGroup]
@@ -548,14 +552,16 @@ class LHEInitRWGT(DictCompatibility):
         root = ET.Element("initrwgt")
         for e in self.entries:
             if isinstance(e, LHEWeightGroup):
-                weightgroup_elem = ET.SubElement(root, "weightgroup", attrib=e.attrib)
+                weightgroup_elem = ET.SubElement(
+                    root, "weightgroup", attrib=e.attributes
+                )
                 for value in e.weights:
                     weight_elem = ET.SubElement(
-                        weightgroup_elem, "weight", attrib=value.attrib
+                        weightgroup_elem, "weight", attrib=value.attributes
                     )
                     weight_elem.text = value.name
             else:
-                weight_elem = ET.SubElement(root, "weight", attrib=e.attrib)
+                weight_elem = ET.SubElement(root, "weight", attrib=e.attributes)
                 weight_elem.text = e.name
         _indent(root)
         return ET.tostring(root, encoding="unicode", method="xml")
@@ -664,9 +670,9 @@ class LHEGenerator:
         self.description = description
         self.attributes = attributes or {}
         if name is not None:
-            self.attributes["name"] = name
+            self.name = name
         if version is not None:
-            self.attributes["version"] = version
+            self.version = version
 
     @property
     def name(self) -> str:
@@ -1038,7 +1044,7 @@ class LesHouchesEvents:
         header: Optional[LHEHeader] = None,
         comment: Optional[str] = None,
         attributes: Optional[dict[str, str]] = None,
-        version: Union[str, None] = None,
+        version: Optional[str] = None,
     ) -> None:
         self.init = init
         self.events = events
