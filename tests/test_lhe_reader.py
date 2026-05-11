@@ -137,6 +137,45 @@ def test_read_lhe_init_v3():
     assert len(header.initrwgt.entries[0].weights) == 9
 
 
+def test_read_lhe_header_additional_xml_elements():
+    """
+    Test that non-initrwgt XML elements inside the header are preserved.
+    """
+    lhefile = pylhe.LHEFile.fromstring(
+        """<LesHouchesEvents version="3.0">
+<header>
+<MGGenerationInfo>
+#  Number of Events        :       1000
+#  Integrated weight (pb)  :       699670670.0
+</MGGenerationInfo>
+<initrwgt>
+  <weight id="1">central</weight>
+</initrwgt>
+<RunSettings generator="MadGraph">LO</RunSettings>
+</header>
+<init>
+  2212   2212  6.5000000e+03  6.5000000e+03    -1    -1  260000  260000     3     1
+  1.0000000e+00  0.0000000e+00  1.0000000e+00     1
+</init>
+</LesHouchesEvents>""",
+        with_attributes=True,
+    )
+
+    assert lhefile.header is not None
+    assert [element.tag for element in lhefile.header.extra_elements] == [
+        "MGGenerationInfo",
+        "RunSettings",
+    ]
+    assert "Number of Events" in (lhefile.header.extra_elements[0].text or "")
+    assert "Integrated weight (pb)" in (lhefile.header.extra_elements[0].text or "")
+    assert lhefile.header.extra_elements[1].attrib["generator"] == "MadGraph"
+    assert (lhefile.header.extra_elements[1].text or "").strip() == "LO"
+
+    header_xml = lhefile.header.tolhe()
+    assert header_xml.index("<MGGenerationInfo>") < header_xml.index("<initrwgt>")
+    assert header_xml.index("<RunSettings") < header_xml.index("<initrwgt>")
+
+
 def test_read_lhe_powheg_xml_comment_is_nonempty():
     """
     Test that the top-level XML comment in a POWHEG LHE file is captured.

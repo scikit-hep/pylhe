@@ -9,6 +9,7 @@ import warnings
 import xml.etree.ElementTree as ET
 from abc import ABC
 from collections.abc import Iterable, Iterator, MutableMapping
+from copy import deepcopy
 from dataclasses import asdict, dataclass, field, fields
 from typing import (
     Any,
@@ -162,6 +163,13 @@ def _open_xml_tag(tag: str, attributes: dict[str, str]) -> str:
     for k, v in attributes.items():
         attrs += f' {k}="{v}"'
     return f"<{tag}{attrs}>"
+
+
+def _copy_xml_element(element: ET.Element) -> ET.Element:
+    """Return a detached copy of an XML element."""
+    copied = deepcopy(element)
+    copied.tail = None
+    return copied
 
 
 @dataclass
@@ -561,56 +569,79 @@ class LHEHeader(DictCompatibility):
 
     initrwgt: LHEInitRWGT
     """<initrwgt> block information"""
+    extra_elements: list[ET.Element] = field(default_factory=list)
+    """Other XML elements stored directly inside the header block"""
     attributes: dict[str, str] = field(default_factory=dict)
     """Attributes of the header element"""
 
     def tolhe(self) -> str:
         """Return the header block as a string in LHE format."""
-        opening_tag = _open_xml_tag("header", self.attributes)
-        return f"{opening_tag}\n{self.initrwgt.tolhe()}</header>"
+        root = ET.Element("header", attrib=self.attributes)
+        for element in self.extra_elements:
+            root.append(_copy_xml_element(element))
+        if self.initrwgt.entries:
+            root.append(ET.fromstring(self.initrwgt.tolhe()))
+
+        _indent(root)
+        return ET.tostring(root, encoding="unicode", method="xml")
 
     @classmethod
     def _fromcontext(cls, _root: ET.Element, context: Any) -> Union["LHEHeader", None]:
         initrwgtentries: list[InitRWGTEntry] = []
+        extra_elements: list[ET.Element] = []
         attributes: dict[str, str] = {}
 
         for event, element in context:
-            if element.tag == "initrwgt" and event == "end":
-                for child in element:
-                    if child.tag == "weight" and child.attrib != {}:
-                        initrwgtentries.append(
-                            LHEWeight(
-                                attrib=child.attrib,
-                                name=child.text.strip() if child.text else "",
-                            )
-                        )
-                    # Find all weightgroups
-                    if child.tag == "weightgroup" and child.attrib != {}:
-                        _temp = LHEWeightGroup(attrib=child.attrib, weights=[])
-                        # Iterate over all weights in this weightgroup
-                        for wc in child:
-                            if wc.tag != "weight":
-                                continue
-                            _temp.weights.append(
-                                LHEWeight(
-                                    attrib=wc.attrib,
-                                    name=wc.text.strip() if wc.text else "",
-                                )
-                            )
-                        initrwgtentries.append(_temp)
             if (
                 element.tag == "header" and event == "end"
             ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
-                attributes = element.attrib
+                attributes = element.attrib.copy()
+                for child in element:
+                    if child.tag == "initrwgt":
+                        for weight_child in child:
+                            if (
+                                weight_child.tag == "weight"
+                                and weight_child.attrib != {}
+                            ):
+                                initrwgtentries.append(
+                                    LHEWeight(
+                                        attrib=weight_child.attrib,
+                                        name=weight_child.text.strip()
+                                        if weight_child.text
+                                        else "",
+                                    )
+                                )
+                            # Find all weightgroups
+                            if (
+                                weight_child.tag == "weightgroup"
+                                and weight_child.attrib != {}
+                            ):
+                                temp_group = LHEWeightGroup(
+                                    attrib=weight_child.attrib, weights=[]
+                                )
+                                # Iterate over all weights in this weightgroup
+                                for wc in weight_child:
+                                    if wc.tag != "weight":
+                                        continue
+                                    temp_group.weights.append(
+                                        LHEWeight(
+                                            attrib=wc.attrib,
+                                            name=wc.text.strip() if wc.text else "",
+                                        )
+                                    )
+                                initrwgtentries.append(temp_group)
+                    else:
+                        extra_elements.append(_copy_xml_element(child))
                 break
             if element.tag == "init":
-                if not initrwgtentries and not attributes:
+                if not initrwgtentries and not attributes and not extra_elements:
                     # If we reach the end of the header block without finding an initrwgt block, we can stop looking for it
                     return None
                 break  # header must come before init, so we can stop looking for it after init starts
 
         return LHEHeader(
             initrwgt=LHEInitRWGT(entries=initrwgtentries),
+            extra_elements=extra_elements,
             attributes=attributes,
         )
 

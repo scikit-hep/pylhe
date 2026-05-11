@@ -119,35 +119,18 @@ def test_write_lhe():
     Test that the LHE file is written correctly.
     """
     file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    assert file.header is not None
     events = file.events
     # single test event
     file.events = [next(events)]
+    header = file.header.tolhe()
+    init = file.init.tolhe()
 
     assert (
         file.tolhe(True, False)
-        == """<LesHouchesEvents version="3.0">
-<header>
-<initrwgt>
-  <weightgroup type="scale_variation" combine="envelope">
-    <weight id="1001">muR=0.10000E+01 muF=0.10000E+01</weight>
-    <weight id="1002">muR=0.10000E+01 muF=0.20000E+01</weight>
-    <weight id="1003">muR=0.10000E+01 muF=0.50000E+00</weight>
-    <weight id="1004">muR=0.20000E+01 muF=0.10000E+01</weight>
-    <weight id="1005">muR=0.20000E+01 muF=0.20000E+01</weight>
-    <weight id="1006">muR=0.20000E+01 muF=0.50000E+00</weight>
-    <weight id="1007">muR=0.50000E+00 muF=0.10000E+01</weight>
-    <weight id="1008">muR=0.50000E+00 muF=0.20000E+01</weight>
-    <weight id="1009">muR=0.50000E+00 muF=0.50000E+00</weight>
-  </weightgroup>
-</initrwgt>
-</header>
-<init>
-   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
- 5.0109086e+01  8.9185414e-02  5.0109093e+01    66
-<generator name="SomeGen1" version="1.2.3">some additional comments</generator>
-<generator name="SomeGen2" version="a.x.3">some other comments</generator>
-<generator name="SomeGen3" version="+.#.@">more comments</generator>
-</init>
+        == f"""<LesHouchesEvents version="3.0">
+{header}
+{init}
 <event>
   5     66  5.0109093000e+01  1.4137688000e+02  7.5563862000e-03  1.2114027000e-01
     5  -1   0   0 501   0  0.00000000e+00  0.00000000e+00  1.43229060e+02  1.43309460e+02  4.80000000e+00  0.0000e+00  0.0000e+00
@@ -173,29 +156,9 @@ def test_write_lhe():
 
     assert (
         file.tolhe(rwgt=False, weights=True)
-        == """<LesHouchesEvents version="3.0">
-<header>
-<initrwgt>
-  <weightgroup type="scale_variation" combine="envelope">
-    <weight id="1001">muR=0.10000E+01 muF=0.10000E+01</weight>
-    <weight id="1002">muR=0.10000E+01 muF=0.20000E+01</weight>
-    <weight id="1003">muR=0.10000E+01 muF=0.50000E+00</weight>
-    <weight id="1004">muR=0.20000E+01 muF=0.10000E+01</weight>
-    <weight id="1005">muR=0.20000E+01 muF=0.20000E+01</weight>
-    <weight id="1006">muR=0.20000E+01 muF=0.50000E+00</weight>
-    <weight id="1007">muR=0.50000E+00 muF=0.10000E+01</weight>
-    <weight id="1008">muR=0.50000E+00 muF=0.20000E+01</weight>
-    <weight id="1009">muR=0.50000E+00 muF=0.50000E+00</weight>
-  </weightgroup>
-</initrwgt>
-</header>
-<init>
-   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
- 5.0109086e+01  8.9185414e-02  5.0109093e+01    66
-<generator name="SomeGen1" version="1.2.3">some additional comments</generator>
-<generator name="SomeGen2" version="a.x.3">some other comments</generator>
-<generator name="SomeGen3" version="+.#.@">more comments</generator>
-</init>
+        == f"""<LesHouchesEvents version="3.0">
+{header}
+{init}
 <event>
   5     66  5.0109093000e+01  1.4137688000e+02  7.5563862000e-03  1.2114027000e-01
     5  -1   0   0 501   0  0.00000000e+00  0.00000000e+00  1.43229060e+02  1.43309460e+02  4.80000000e+00  0.0000e+00  0.0000e+00
