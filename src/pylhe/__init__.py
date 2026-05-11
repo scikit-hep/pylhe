@@ -723,49 +723,6 @@ class LHEInit(DictCompatibility):
             + "</init>"
         )
 
-    def __getitem__(self, key: str) -> Any:
-        """
-        Get a dict fieldname.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Access by `lheinit["key"]` is deprecated and will be removed in a future version.
-        """
-        warnings.warn(
-            f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
-            f"Use `lheinit.{key}` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        # Map field names to dataclass attributes
-        if key in self.fieldnames:
-            return getattr(self, key)
-        # Try to get from initInfo for backward compatibility
-        return getattr(self.initInfo, key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """
-        Set a dict fieldname.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Access by `lheinit["key"]` is deprecated and will be removed in a future version.
-        """
-        warnings.warn(
-            f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
-            f"Use `lheinit.{key}` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        # Map field names to dataclass attributes
-        if key in self.fieldnames:
-            setattr(self, key, value)
-        else:
-            # Try to set on initInfo for backward compatibility
-            setattr(self.initInfo, key, value)
-
     @classmethod
     def _fromcontext(cls, _root: ET.Element, context: Any) -> "LHEInit":
         initInfo = None
