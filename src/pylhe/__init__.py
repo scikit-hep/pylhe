@@ -995,6 +995,8 @@ class LesHouchesEvents:
     """Event block"""
     header: Optional[LHEHeader] = None
     """Header block"""
+    comment: Optional[str] = None
+    """Comment block"""
     attributes: dict[str, str] = field(default_factory=dict)
     """Attributes of the root LesHouchesEvents element"""
 
@@ -1003,12 +1005,14 @@ class LesHouchesEvents:
         init: LHEInit,
         events: Iterable[LHEEvent] = (),
         header: Optional[LHEHeader] = None,
+        comment: Optional[str] = None,
         attributes: Optional[dict[str, str]] = None,
         version: Union[str, None] = None,
     ) -> None:
         self.init = init
         self.events = events
         self.header = header
+        self.comment = comment
         self.attributes = attributes if attributes is not None else {}
         if version is not None:
             self.attributes["version"] = version
@@ -1030,6 +1034,8 @@ class LesHouchesEvents:
         Write the LHE file to an output stream.
         """
         output_stream.write(_open_xml_tag("LesHouchesEvents", self.attributes) + "\n")
+        if self.comment is not None:
+            output_stream.write(f"<!-- {self.comment} -->\n")
         if self.header is not None:
             output_stream.write(self.header.tolhe() + "\n")
         output_stream.write(self.init.tolhe() + "\n")
@@ -1102,9 +1108,10 @@ class LesHouchesEvents:
         """
 
         def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
+
             try:
                 with fileobject as fileobj:
-                    context = ET.iterparse(fileobj, events=["start", "end"])
+                    context = ET.iterparse(fileobj, events=["start", "end", "comment"])
                     _, root = next(context)  # Get the root element
 
                     if root.tag != "LesHouchesEvents":
@@ -1116,6 +1123,12 @@ class LesHouchesEvents:
                     # We do not allow other xml tags before <header> or <init>
                     event, element = next(context)  # Get the first element in the file
                     # look for optional header first
+                    if event == "comment":
+                        # Here we extract e.g. the POWHEG run card stored in first <!-- ... --> comment block before the header
+                        lhef.comment = element.text.strip() if element.text else None
+                        event, element = next(
+                            context
+                        )  # Get the next element in the file after the comment
                     if element.tag == "header" and event == "start":
                         lhef.header = LHEHeader._fromcontext(root, context)
                         event, element = next(
@@ -1160,6 +1173,7 @@ class LesHouchesEvents:
             ),
             header=None,
             events=[],
+            comment=None,
         )
         events = _generator(lhef)
         try:

@@ -12,6 +12,9 @@ from pylhe import LHEEvent
 
 TEST_FILE_LHE_v1 = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 TEST_FILE_LHE_v3 = skhep_testdata.data_path("pylhe-testlhef3.lhe")
+TEST_FILE_LHE_POWHEG_TRIJET = skhep_testdata.data_path(
+    "pylhe-testfile-powheg-box-v2-trijet.lhe"
+)
 TEST_FILE_LHE_INITRWGT_WEIGHTS = skhep_testdata.data_path(
     "pylhe-testfile-powheg-box-v2-hvq.lhe"
 )
@@ -132,6 +135,17 @@ def test_read_lhe_init_v3():
     assert isinstance(header.initrwgt.entries[0], pylhe.LHEWeightGroup)
     assert header.initrwgt.entries[0].attrib["type"] == "scale_variation"
     assert len(header.initrwgt.entries[0].weights) == 9
+
+
+def test_read_lhe_powheg_xml_comment_is_nonempty():
+    """
+    Test that the top-level XML comment in a POWHEG LHE file is captured.
+    """
+    lhefile = pylhe.LHEFile.fromfile(TEST_FILE_LHE_POWHEG_TRIJET)
+
+    assert lhefile.comment is not None
+    assert lhefile.comment.strip() != ""
+    assert "POWHEG-BOX-V2" in lhefile.comment
 
 
 def test_read_lhe_init_v3_mixed_initrwgt_entries():

@@ -9,6 +9,7 @@ The following skeleton example illustrates the overall structure of an LHE file 
 .. code-block:: xml
 
    <LesHouchesEvents version="1.0">
+   <!-- optional non XML content goes here -->
    <header></header>
    <init>
    beamA beamB energyA energyB PDFgroupA PDFgroupB PDFsetA PDFsetB weightingStrategy numProcesses
