@@ -1343,5 +1343,27 @@ def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
     return open(filepath, "w")
 
 
+def write_lhe_file_path(
+    lhefile: LHEFile,
+    filepath: str,
+    gz: bool = False,
+    rwgt: bool = True,
+    weights: bool = False,
+) -> None:
+    """
+    Write the LHE file.
+
+    .. deprecated:: 1.0.0
+        Use `LHEFile.tofile` instead.
+    """
+    warnings.warn(
+        "write_lhe_file_path is deprecated and will be removed in a future version. "
+        "Use `LHEFile.tofile` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    lhefile.tofile(filepath, gz=gz, rwgt=rwgt, weights=weights)
+
+
 # we import this later to avoid circular imports
 from .awkward import to_awkward  # noqa: E402
