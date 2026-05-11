@@ -620,7 +620,7 @@ class LHEGenerator:
 
     description: str
     """Description of the generator"""
-    attributes: dict[str, str] = field(default_factory=dict)
+    attributes: dict[str, str] = {}
     """Generator XML attributes, e.g. name and version"""
 
     def __init__(
@@ -997,7 +997,7 @@ class LesHouchesEvents:
     """Header block"""
     comment: Optional[str] = None
     """Comment block"""
-    attributes: dict[str, str] = field(default_factory=dict)
+    attributes: dict[str, str] = {}
     """Attributes of the root LesHouchesEvents element"""
 
     def __init__(
