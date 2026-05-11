@@ -574,7 +574,7 @@ class LHEHeader(DictCompatibility):
         attributes: dict[str, str] = {}
 
         for event, element in context:
-            if element.tag == "initrwgt":
+            if element.tag == "initrwgt" and event == "end":
                 for child in element:
                     if child.tag == "weight" and child.attrib != {}:
                         initrwgtentries.append(

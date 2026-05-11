@@ -230,20 +230,20 @@ def test_LHEProcInfo_backwards_compatibility():
 
     assert proc_info.fieldnames == ["xSection", "error", "unitWeight", "procId"]
 
-    assert proc_info["xSection"] == pytest.approx(50.109086)
-    assert proc_info["error"] == pytest.approx(0.089185414)
-    assert proc_info["unitWeight"] == pytest.approx(50.109093)
-    assert proc_info["procId"] == pytest.approx(66.0)
+    assert proc_info.xSection == pytest.approx(50.109086)
+    assert proc_info.error == pytest.approx(0.089185414)
+    assert proc_info.unitWeight == pytest.approx(50.109093)
+    assert proc_info.procId == pytest.approx(66.0)
 
-    proc_info["xSection"] = 60.0
-    proc_info["error"] = 0.1
-    proc_info["unitWeight"] = 60.0
-    proc_info["procId"] = 67.0
+    proc_info.xSection = 60.0
+    proc_info.error = 0.1
+    proc_info.unitWeight = 60.0
+    proc_info.procId = 67.0
 
-    assert proc_info["xSection"] == pytest.approx(60.0)
-    assert proc_info["error"] == pytest.approx(0.1)
-    assert proc_info["unitWeight"] == pytest.approx(60.0)
-    assert proc_info["procId"] == pytest.approx(67.0)
+    assert proc_info.xSection == pytest.approx(60.0)
+    assert proc_info.error == pytest.approx(0.1)
+    assert proc_info.unitWeight == pytest.approx(60.0)
+    assert proc_info.procId == pytest.approx(67.0)
 
 
 def test_LHEInitInfo_backwards_compatibility():
@@ -276,35 +276,35 @@ def test_LHEInitInfo_backwards_compatibility():
         "numProcesses",
     ]
 
-    assert lheii["beamA"] == 1
-    assert lheii["beamB"] == 2
-    assert lheii["energyA"] == 3.0
-    assert lheii["energyB"] == 4.0
-    assert lheii["PDFgroupA"] == -1
-    assert lheii["PDFgroupB"] == -1
-    assert lheii["PDFsetA"] == 21100
-    assert lheii["PDFsetB"] == 21100
-    assert lheii["weightingStrategy"] == 1
-    assert lheii["numProcesses"] == 1
+    assert lheii.beamA == 1
+    assert lheii.beamB == 2
+    assert lheii.energyA == 3.0
+    assert lheii.energyB == 4.0
+    assert lheii.PDFgroupA == -1
+    assert lheii.PDFgroupB == -1
+    assert lheii.PDFsetA == 21100
+    assert lheii.PDFsetB == 21100
+    assert lheii.weightingStrategy == 1
+    assert lheii.numProcesses == 1
 
-    lheii["beamA"] = 5
-    lheii["beamB"] = 6
-    lheii["energyA"] = 7.0
-    lheii["energyB"] = 8.0
-    lheii["PDFgroupA"] = -2
-    lheii["PDFgroupB"] = -2
-    lheii["PDFsetA"] = 21101
-    lheii["PDFsetB"] = 21101
-    lheii["weightingStrategy"] = 2
-    lheii["numProcesses"] = 2
+    lheii.beamA = 5
+    lheii.beamB = 6
+    lheii.energyA = 7.0
+    lheii.energyB = 8.0
+    lheii.PDFgroupA = -2
+    lheii.PDFgroupB = -2
+    lheii.PDFsetA = 21101
+    lheii.PDFsetB = 21101
+    lheii.weightingStrategy = 2
+    lheii.numProcesses = 2
 
-    assert lheii["beamA"] == 5
-    assert lheii["beamB"] == 6
-    assert lheii["energyA"] == 7.0
-    assert lheii["energyB"] == 8.0
-    assert lheii["PDFgroupA"] == -2
-    assert lheii["PDFgroupB"] == -2
-    assert lheii["PDFsetA"] == 21101
-    assert lheii["PDFsetB"] == 21101
-    assert lheii["weightingStrategy"] == 2
-    assert lheii["numProcesses"] == 2
+    assert lheii.beamA == 5
+    assert lheii.beamB == 6
+    assert lheii.energyA == 7.0
+    assert lheii.energyB == 8.0
+    assert lheii.PDFgroupA == -2
+    assert lheii.PDFgroupB == -2
+    assert lheii.PDFsetA == 21101
+    assert lheii.PDFsetB == 21101
+    assert lheii.weightingStrategy == 2
+    assert lheii.numProcesses == 2

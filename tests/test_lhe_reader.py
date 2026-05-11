@@ -106,19 +106,19 @@ def test_read_lhe_init_v1():
     """
     init_data = pylhe.LesHouchesEvents.fromfile(TEST_FILE_LHE_v1).init
 
-    init_info = init_data["initInfo"]
-    assert init_info["beamA"] == pytest.approx(1.0)
-    assert init_info["beamB"] == pytest.approx(2.0)
-    assert init_info["energyA"] == pytest.approx(1.234567)
-    assert init_info["energyB"] == pytest.approx(2.345678)
-    assert init_info["PDFgroupA"] == pytest.approx(3.0)
-    assert init_info["PDFgroupB"] == pytest.approx(4.0)
-    assert init_info["PDFsetA"] == pytest.approx(5.0)
-    assert init_info["PDFsetB"] == pytest.approx(6.0)
-    assert init_info["weightingStrategy"] == pytest.approx(7.0)
-    assert init_info["numProcesses"] == pytest.approx(8.0)
+    init_info = init_data.initInfo
+    assert init_info.beamA == pytest.approx(1.0)
+    assert init_info.beamB == pytest.approx(2.0)
+    assert init_info.energyA == pytest.approx(1.234567)
+    assert init_info.energyB == pytest.approx(2.345678)
+    assert init_info.PDFgroupA == pytest.approx(3.0)
+    assert init_info.PDFgroupB == pytest.approx(4.0)
+    assert init_info.PDFsetA == pytest.approx(5.0)
+    assert init_info.PDFsetB == pytest.approx(6.0)
+    assert init_info.weightingStrategy == pytest.approx(7.0)
+    assert init_info.numProcesses == pytest.approx(8.0)
 
-    assert init_data["procInfo"] == []
+    assert init_data.procInfo == []
 
 
 def test_read_lhe_init_v3():
@@ -127,8 +127,86 @@ def test_read_lhe_init_v3():
     """
     header = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True).header
 
-    assert len(header.initrwgt["weightgroup"]) == 1
-    assert len(header.initrwgt["weightgroup"]["scale_variation"]["weights"]) == 9
+    assert header is not None
+    assert len(header.initrwgt.entries) == 1
+    assert isinstance(header.initrwgt.entries[0], pylhe.LHEWeightGroup)
+    assert header.initrwgt.entries[0].name == "scale_variation"
+    assert len(header.initrwgt.entries[0].weights) == 9
+
+
+def test_read_lhe_init_v3_mixed_initrwgt_entries():
+    """
+    Test that mixed top-level weights and weightgroups are read in order.
+    """
+    lhefile = pylhe.LHEFile.fromstring(
+        """<LesHouchesEvents version="3.0">
+<header>
+<initrwgt>
+  <weight id="1">This is the original event weight</weight>
+  <weightgroup name="scale variation" combine="envelope">
+    <weight id="2">muR = 2.0</weight>
+    <weight id="3">muR = 0.5</weight>
+  </weightgroup>
+  <weightgroup name="MRST2008 PDF uncertainty" combine="hessian">
+    <weight id="4">set 01</weight>
+    <weight id="5">set 02</weight>
+  </weightgroup>
+  <weightgroup name="Qmatch variation" combine="envelope">
+    <weight id="44">Qmatch=20</weight>
+    <weight id="my_own_id">Qmatch=40</weight>
+  </weightgroup>
+  <weight id="46">BSM benchmark point number 42B</weight>
+</initrwgt>
+</header>
+<init>
+  2212   2212  6.5000000e+03  6.5000000e+03    -1    -1  260000  260000     3     1
+  1.0000000e+00  0.0000000e+00  1.0000000e+00     1
+</init>
+</LesHouchesEvents>""",
+        with_attributes=True,
+    )
+
+    assert lhefile.header is not None
+
+    entries = lhefile.header.initrwgt.entries
+    assert len(entries) == 5
+
+    assert isinstance(entries[0], pylhe.LHEWeight)
+    assert entries[0].id == "1"
+    assert entries[0].name == "This is the original event weight"
+
+    assert isinstance(entries[1], pylhe.LHEWeightGroup)
+    assert entries[1].name == "scale variation"
+    assert entries[1].combine == "envelope"
+    assert [weight.id for weight in entries[1].weights] == ["2", "3"]
+    assert [weight.name for weight in entries[1].weights] == ["muR = 2.0", "muR = 0.5"]
+
+    assert isinstance(entries[2], pylhe.LHEWeightGroup)
+    assert entries[2].name == "MRST2008 PDF uncertainty"
+    assert entries[2].combine == "hessian"
+    assert [weight.id for weight in entries[2].weights] == ["4", "5"]
+
+    assert isinstance(entries[3], pylhe.LHEWeightGroup)
+    assert entries[3].name == "Qmatch variation"
+    assert entries[3].combine == "envelope"
+    assert [weight.id for weight in entries[3].weights] == ["44", "my_own_id"]
+    assert [weight.name for weight in entries[3].weights] == ["Qmatch=20", "Qmatch=40"]
+
+    assert isinstance(entries[4], pylhe.LHEWeight)
+    assert entries[4].id == "46"
+    assert entries[4].name == "BSM benchmark point number 42B"
+
+    assert lhefile.header.initrwgt.index_to_id() == {
+        0: "1",
+        1: "2",
+        2: "3",
+        3: "4",
+        4: "5",
+        5: "44",
+        6: "my_own_id",
+        7: "46",
+    }
+    assert lhefile.header.initrwgt.weights_by_id()["my_own_id"].name == "Qmatch=40"
 
 
 def test_read_lhe_v1():

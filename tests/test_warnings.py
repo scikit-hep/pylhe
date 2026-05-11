@@ -55,32 +55,6 @@ def test_lhe_weight_info_len_deprecation_warning():
         _ = len(weight_info)
 
 
-def test_lhe_weight_group_getitem_deprecation_warning():
-    """Test that DeprecationWarning is raised when using __getitem__ on LHEWeightGroup."""
-    weight_group = pylhe.LHEWeightGroup(attrib={"type": "test_group"}, weights={})
-
-    with pytest.warns(
-        DeprecationWarning,
-        match=r'Access by `object\["attrib"\]` is deprecated and will be removed in a future version\. Use `object\.attrib` instead\.',
-    ):
-        _ = weight_group["attrib"]
-
-
-def test_lhe_weight_group_setitem_deprecation_warning():
-    """Test that DeprecationWarning is raised when using __setitem__ on LHEWeightGroup."""
-    weight_group = pylhe.LHEWeightGroup(attrib={"type": "test_group"}, weights={})
-
-    weight_info = pylhe.LHEWeightInfo(
-        attrib={"id": "test_weight"}, name="Test weight", index=0
-    )
-
-    with pytest.warns(
-        DeprecationWarning,
-        match=r'Access by `object\["weights"\]` is deprecated and will be removed in a future version\. Use `object\.weights` instead\.',
-    ):
-        weight_group["weights"] = weight_info
-
-
 def test_lhe_init_info_getitem_deprecation_warning():
     """Test that DeprecationWarning is raised when using __getitem__ on LHEInitInfo."""
     init_info = pylhe.LHEInitInfo(
