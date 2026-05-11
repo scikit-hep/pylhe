@@ -474,8 +474,9 @@ class LHEWeightGroup:
         if name is not None:
             self.name = name
 
-        if "name" not in self.attrib:
-            ae = "weightgroup must have attribute 'name'."
+        # old Madgraph used 'type' instead of 'name' for the weightgroup name, so we allow both for backward compatibility
+        if not ("type" in self.attrib or "name" in self.attrib):
+            ae = "weightgroup must have attribute 'type' or 'name'."
             raise AttributeError(ae)
 
     attrib: dict[str, str]
@@ -544,7 +545,7 @@ class LHEInitRWGT(DictCompatibility):
                     weight_elem = ET.SubElement(
                         weightgroup_elem, "weight", attrib=value.attrib
                     )
-                weight_elem.text = value.name
+                    weight_elem.text = value.name
             else:
                 weight_elem = ET.SubElement(root, "weight", attrib=e.attrib)
                 weight_elem.text = e.name
@@ -585,17 +586,7 @@ class LHEHeader(DictCompatibility):
                         )
                     # Find all weightgroups
                     if child.tag == "weightgroup" and child.attrib != {}:
-                        # using type for the name is an old magraph behaviour
-                        if "type" in child.attrib:
-                            wg_type = child.attrib["type"]
-                        elif "name" in child.attrib:
-                            wg_type = child.attrib["name"]
-                        else:
-                            ae = "weightgroup must have attribute 'type' or 'name'."
-                            raise AttributeError(ae)
-                        _temp = LHEWeightGroup(
-                            name=wg_type, attrib=child.attrib, weights=[]
-                        )
+                        _temp = LHEWeightGroup(attrib=child.attrib, weights=[])
                         # Iterate over all weights in this weightgroup
                         for wc in child:
                             if wc.tag != "weight":
@@ -606,7 +597,6 @@ class LHEHeader(DictCompatibility):
                                     name=wc.text.strip() if wc.text else "",
                                 )
                             )
-
                         initrwgtentries.append(_temp)
             if (
                 element.tag == "header" and event == "end"
