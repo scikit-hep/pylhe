@@ -20,6 +20,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from xml.sax.saxutils import quoteattr
 
 import graphviz  # type: ignore[import-untyped]
 from particle import latex_to_html_name
@@ -161,7 +162,7 @@ def _open_xml_tag(tag: str, attributes: dict[str, str]) -> str:
     """Helper function to open an XML tag with attributes."""
     attrs = ""
     for k, v in attributes.items():
-        attrs += f' {k}="{v}"'
+        attrs += f" {k}={quoteattr(v)}"
     return f"<{tag}{attrs}>"
 
 

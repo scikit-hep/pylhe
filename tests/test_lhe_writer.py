@@ -117,6 +117,20 @@ def test_write_lhe_init():
     )
 
 
+def test_write_lhe_generator_escapes_attributes():
+    generator = pylhe.LHEGenerator(
+        description="some additional comments",
+        attributes={},
+        name='Some "Gen" & Co',
+        version="1'2&3",
+    )
+
+    assert (
+        generator.tolhe()
+        == """<generator name='Some "Gen" &amp; Co' version="1'2&amp;3">some additional comments</generator>"""
+    )
+
+
 def test_write_lhe():
     """
     Test that the LHE file is written correctly.
