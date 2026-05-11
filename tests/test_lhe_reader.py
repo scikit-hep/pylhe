@@ -130,7 +130,7 @@ def test_read_lhe_init_v3():
     assert header is not None
     assert len(header.initrwgt.entries) == 1
     assert isinstance(header.initrwgt.entries[0], pylhe.LHEWeightGroup)
-    assert header.initrwgt.entries[0].name == "scale_variation"
+    assert header.initrwgt.entries[0].attrib["type"] == "scale_variation"
     assert len(header.initrwgt.entries[0].weights) == 9
 
 
