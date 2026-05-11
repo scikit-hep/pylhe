@@ -424,14 +424,87 @@ class LHEWeightInfo(DictCompatibility):
     """Sequential index for ordering"""
 
 
-@dataclass
-class LHEWeightGroup(DictCompatibility):
+class LHEWeight:
+    """Information about a single weight outside of a weight group."""
+
+    def __init__(
+        self,
+        name: str,
+        attrib: dict[str, str],
+        id: Union[str, None] = None,
+    ) -> None:
+        self.attrib = attrib
+        self.name = name
+
+        if id is not None:
+            self.id = id
+
+        if "id" not in self.attrib:
+            ae = "weight must have attribute 'id'"
+            raise AttributeError(ae)
+
+    attrib: dict[str, str]
+    """Weight XML attributes"""
+    name: str
+    """Weight description text"""
+
+    @property
+    def id(self) -> str:
+        """ID of the weight, retrieved from the attributes."""
+        return self.attrib.get("id", "")
+
+    @id.setter
+    def id(self, value: str) -> None:
+        """Set the ID of the weight in the attributes."""
+        self.attrib["id"] = value
+
+
+class LHEWeightGroup:
     """Information about a weight group."""
+
+    def __init__(
+        self,
+        attrib: dict[str, str],
+        weights: list[LHEWeight],
+        name: Optional[str] = None,
+    ) -> None:
+        self.attrib = attrib
+        self.weights = weights
+
+        if name is not None:
+            self.name = name
+
+        if "name" not in self.attrib:
+            ae = "weightgroup must have attribute 'name'."
+            raise AttributeError(ae)
 
     attrib: dict[str, str]
     """Weight group XML attributes"""
-    weights: dict[str, LHEWeightInfo]
-    """Dictionary of weight ID to weight information"""
+    weights: list[LHEWeight]
+    """List of weight information"""
+
+    @property
+    def name(self) -> str:
+        """Name of the weight group, retrieved from the attributes."""
+        return self.attrib.get("name", "")
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """Set the name of the weight group in the attributes."""
+        self.attrib["name"] = value
+
+    @property
+    def combine(self) -> str:
+        """Combination method of the weight group, retrieved from the attributes."""
+        return self.attrib.get("combine", "")
+
+    @combine.setter
+    def combine(self, value: str) -> None:
+        """Set the combination method of the weight group in the attributes."""
+        self.attrib["combine"] = value
+
+
+InitRWGTEntry = Union[LHEWeight, LHEWeightGroup]
 
 
 @dataclass
@@ -440,8 +513,20 @@ class LHEInitRWGT(DictCompatibility):
     Represents the <initrwgt> block of an LHE file as a dataclass.
     """
 
-    weightgroup: dict[str, LHEWeightGroup]
-    """Weight group information"""
+    entries: list[InitRWGTEntry] = field(default_factory=list)
+
+    def iter_weights(self) -> Iterator[LHEWeight]:
+        for entry in self.entries:
+            if isinstance(entry, LHEWeight):
+                yield entry
+            else:
+                yield from entry.weights
+
+    def weights_by_id(self) -> dict[str, LHEWeight]:
+        return {w.id: w for w in self.iter_weights()}
+
+    def index_to_id(self) -> dict[int, str]:
+        return {i: w.id for i, w in enumerate(self.iter_weights())}
 
     def tolhe(self) -> str:
         """
@@ -452,13 +537,17 @@ class LHEInitRWGT(DictCompatibility):
         """
         # weightgroups to xml
         root = ET.Element("initrwgt")
-        for _k, v in self.weightgroup.items():
-            weightgroup_elem = ET.SubElement(root, "weightgroup", attrib=v.attrib)
-            for _key, value in v.weights.items():
-                weight_elem = ET.SubElement(
-                    weightgroup_elem, "weight", attrib=value.attrib
-                )
+        for e in self.entries:
+            if isinstance(e, LHEWeightGroup):
+                weightgroup_elem = ET.SubElement(root, "weightgroup", attrib=e.attrib)
+                for value in e.weights:
+                    weight_elem = ET.SubElement(
+                        weightgroup_elem, "weight", attrib=value.attrib
+                    )
                 weight_elem.text = value.name
+            else:
+                weight_elem = ET.SubElement(root, "weight", attrib=e.attrib)
+                weight_elem.text = e.name
         _indent(root)
         return ET.tostring(root, encoding="unicode", method="xml")
 
@@ -481,16 +570,22 @@ class LHEHeader(DictCompatibility):
 
     @classmethod
     def _fromcontext(cls, _root: ET.Element, context: Any) -> Union["LHEHeader", None]:
-        weightgroup: dict[str, LHEWeightGroup] = {}
+        initrwgtentries: list[InitRWGTEntry] = []
         attributes: dict[str, str] = {}
 
         for event, element in context:
             if element.tag == "initrwgt":
-                weightgroup = {}
-                index = 0
                 for child in element:
+                    if child.tag == "weight" and child.attrib != {}:
+                        initrwgtentries.append(
+                            LHEWeight(
+                                attrib=child.attrib,
+                                name=child.text.strip() if child.text else "",
+                            )
+                        )
                     # Find all weightgroups
                     if child.tag == "weightgroup" and child.attrib != {}:
+                        # using type for the name is an old magraph behaviour
                         if "type" in child.attrib:
                             wg_type = child.attrib["type"]
                         elif "name" in child.attrib:
@@ -498,36 +593,34 @@ class LHEHeader(DictCompatibility):
                         else:
                             ae = "weightgroup must have attribute 'type' or 'name'."
                             raise AttributeError(ae)
-                        _temp = LHEWeightGroup(attrib=child.attrib, weights={})
+                        _temp = LHEWeightGroup(
+                            name=wg_type, attrib=child.attrib, weights=[]
+                        )
                         # Iterate over all weights in this weightgroup
                         for wc in child:
                             if wc.tag != "weight":
                                 continue
-                            if "id" not in wc.attrib:
-                                ae = "weight must have attribute 'id'"
-                                raise AttributeError(ae)
-                            wg_id = wc.attrib["id"]
-                            _temp.weights[wg_id] = LHEWeightInfo(
-                                attrib=wc.attrib,
-                                name=wc.text.strip() if wc.text else "",
-                                index=index,
+                            _temp.weights.append(
+                                LHEWeight(
+                                    attrib=wc.attrib,
+                                    name=wc.text.strip() if wc.text else "",
+                                )
                             )
-                            index += 1
 
-                        weightgroup[wg_type] = _temp
+                        initrwgtentries.append(_temp)
             if (
                 element.tag == "header" and event == "end"
             ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
                 attributes = element.attrib
                 break
             if element.tag == "init":
-                if not weightgroup and not attributes:
+                if not initrwgtentries and not attributes:
                     # If we reach the end of the header block without finding an initrwgt block, we can stop looking for it
                     return None
                 break  # header must come before init, so we can stop looking for it after init starts
 
         return LHEHeader(
-            initrwgt=LHEInitRWGT(weightgroup=weightgroup),
+            initrwgt=LHEInitRWGT(entries=initrwgtentries),
             attributes=attributes,
         )
 
@@ -786,7 +879,7 @@ class LHEEvent(DictCompatibility):
         with_attributes: bool = True,
     ) -> Iterator["LHEEvent"]:
         index_map = (
-            _get_index_to_id_map(lheheader) if with_attributes and lheheader else {}
+            lheheader.initrwgt.index_to_id() if with_attributes and lheheader else {}
         )
         for event, element in context:
             if event == "end" and element.tag == "event":
@@ -1198,27 +1291,6 @@ def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
         stacklevel=2,
     )
     yield from LHEFile.fromfile(filepath, with_attributes=False).events
-
-
-def _get_index_to_id_map(header: LHEHeader) -> dict[int, str]:
-    """
-    Produce a dictionary to map weight indices to the id of the weight.
-
-    It is used for LHE files where there is only a list of weights per event.
-    This dictionary is then used to map the list of weights to their weight id.
-    Ideally, this needs to be done only once and the dictionary can be reused.
-
-    Args:
-        init (LHEInit): init block as returned by read_lhe_init
-
-    Returns:
-        dict: {weight index: weight id}
-    """
-    ret = {}
-    for wg in header.initrwgt.weightgroup.values():
-        for id, w in wg.weights.items():
-            ret[w.index] = id
-    return ret
 
 
 def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
