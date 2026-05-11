@@ -3,58 +3,6 @@ import pytest
 import pylhe
 
 
-def test_lhe_weight_info_getitem_deprecation_warning():
-    """Test that DeprecationWarning is raised when using __getitem__ on LHEWeightInfo."""
-    weight_info = pylhe.LHEWeightInfo(
-        attrib={"id": "test_weight"}, name="Test weight", index=0
-    )
-
-    with pytest.warns(
-        DeprecationWarning,
-        match=r'Access by `object\["attrib"\]` is deprecated and will be removed in a future version\. Use `object\.attrib` instead\.',
-    ):
-        _ = weight_info["attrib"]
-
-
-def test_lhe_weight_info_setitem_deprecation_warning():
-    """Test that DeprecationWarning is raised when using __setitem__ on LHEWeightInfo."""
-    weight_info = pylhe.LHEWeightInfo(
-        attrib={"id": "test_weight"}, name="Test weight", index=0
-    )
-
-    with pytest.warns(
-        DeprecationWarning,
-        match=r'Access by `object\["name"\]` is deprecated and will be removed in a future version\. Use `object\.name` instead\.',
-    ):
-        weight_info["name"] = "New test weight"
-
-
-def test_lhe_weight_info_iter_deprecation_warning():
-    """Test that DeprecationWarning is raised when using __iter__ on LHEWeightInfo."""
-    weight_info = pylhe.LHEWeightInfo(
-        attrib={"id": "test_weight"}, name="Test weight", index=0
-    )
-
-    with pytest.warns(
-        DeprecationWarning,
-        match=r"Dict-like iteration is deprecated and will be removed in a future version\. Use `asdict\(object\)` instead\.",
-    ):
-        _ = list(weight_info)
-
-
-def test_lhe_weight_info_len_deprecation_warning():
-    """Test that DeprecationWarning is raised when using __len__ on LHEWeightInfo."""
-    weight_info = pylhe.LHEWeightInfo(
-        attrib={"id": "test_weight"}, name="Test weight", index=0
-    )
-
-    with pytest.warns(
-        DeprecationWarning,
-        match=r"Dict-like length is deprecated and will be removed in a future version\. Use `asdict\(object\)` instead\.",
-    ):
-        _ = len(weight_info)
-
-
 def test_lhe_init_info_getitem_deprecation_warning():
     """Test that DeprecationWarning is raised when using __getitem__ on LHEInitInfo."""
     init_info = pylhe.LHEInitInfo(

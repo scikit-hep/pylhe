@@ -33,13 +33,14 @@ __all__ = [
     "LHEEvent",
     "LHEEventInfo",
     "LHEFile",
+    "LHEGenerator",
     "LHEHeader",
     "LHEInit",
     "LHEInitInfo",
     "LHEParticle",
     "LHEProcInfo",
+    "LHEWeight",
     "LHEWeightGroup",
-    "LHEWeightInfo",
     "__version__",
     "read_lhe",
     "read_lhe_file",
@@ -421,36 +422,19 @@ class LHEProcInfo(DictCompatibility):
         )
 
 
-@dataclass
-class LHEWeightInfo(DictCompatibility):
-    """Information about a single weight in a weight group."""
-
-    attrib: dict[str, str]
-    """Weight XML attributes"""
-    name: str
-    """Weight description text"""
-    index: int
-    """Sequential index for ordering"""
-
-
 class LHEWeight:
     """Information about a single weight outside of a weight group."""
 
     def __init__(
         self,
+        id: str,
         name: str,
         attrib: dict[str, str],
-        id: Optional[str] = None,
     ) -> None:
         self.attributes = attrib
         self.name = name
-
-        if id is not None:
-            self.id = id
-
-        if "id" not in self.attributes:
-            ae = "weight must have attribute 'id'"
-            raise AttributeError(ae)
+        # set id after attributes so that it takes precedence if there is a conflict between the id argument and the id in the attributes
+        self.id = id
 
     attributes: dict[str, str]
     """Weight XML attributes"""
@@ -473,24 +457,21 @@ class LHEWeightGroup:
 
     def __init__(
         self,
-        attrib: dict[str, str],
         weights: list[LHEWeight],
-        name: Optional[str] = None,
+        attrib: dict[str, str],
+        name: Optional[
+            str
+        ] = None,  # Normally this is required, i.e. not Optional, but old Madgraph-2.0.0 uses type instead of name...
         combine: Optional[str] = None,
     ) -> None:
         self.attributes = attrib
         self.weights = weights
-
+        # set name after attributes so that they take precedence if there is a conflict between the name arguments and the name in the attributes
         if name is not None:
             self.name = name
 
         if combine is not None:
             self.combine = combine
-
-        # old Madgraph used 'type' instead of 'name' for the weightgroup name, so we allow both for backward compatibility
-        if not ("type" in self.attributes or "name" in self.attributes):
-            ae = "weightgroup must have attribute 'type' or 'name'."
-            raise AttributeError(ae)
 
     attributes: dict[str, str]
     """Weight group XML attributes"""
@@ -610,8 +591,12 @@ class LHEHeader(DictCompatibility):
                                 weight_child.tag == "weight"
                                 and weight_child.attrib != {}
                             ):
+                                if "id" not in weight_child.attrib:
+                                    ae = "weight must have attribute 'id'"
+                                    raise AttributeError(ae)
                                 initrwgtentries.append(
                                     LHEWeight(
+                                        id=weight_child.attrib["id"],
                                         attrib=weight_child.attrib,
                                         name=weight_child.text.strip()
                                         if weight_child.text
@@ -623,15 +608,25 @@ class LHEHeader(DictCompatibility):
                                 weight_child.tag == "weightgroup"
                                 and weight_child.attrib != {}
                             ):
+                                if (
+                                    "type" not in weight_child.attrib
+                                    and "name" not in weight_child.attrib
+                                ):
+                                    ae = "weightgroup must have attribute 'type' or 'name'."
+                                    raise AttributeError(ae)
                                 temp_group = LHEWeightGroup(
                                     attrib=weight_child.attrib, weights=[]
                                 )
                                 # Iterate over all weights in this weightgroup
                                 for wc in weight_child:
+                                    if "id" not in wc.attrib:
+                                        ae = "weight must have attribute 'id'"
+                                        raise AttributeError(ae)
                                     if wc.tag != "weight":
                                         continue
                                     temp_group.weights.append(
                                         LHEWeight(
+                                            id=wc.attrib["id"],
                                             attrib=wc.attrib,
                                             name=wc.text.strip() if wc.text else "",
                                         )
@@ -657,17 +652,16 @@ class LHEGenerator:
 
     def __init__(
         self,
+        name: str,
+        version: str,
         description: str,
         attributes: Optional[dict[str, str]] = None,
-        name: Optional[str] = None,
-        version: Optional[str] = None,
     ) -> None:
         self.description = description
         self.attributes = attributes or {}
-        if name is not None:
-            self.name = name
-        if version is not None:
-            self.version = version
+        # set name and version after attributes so that they take precedence if there is a conflict between the name and version arguments and the name and version in the attributes
+        self.name = name
+        self.version = version
 
     @property
     def name(self) -> str:
@@ -787,6 +781,8 @@ class LHEInit(DictCompatibility):
                 if "name" in element.attrib:
                     # lhe-v3 has name and version
                     generator = LHEGenerator(
+                        name=element.attrib["name"],
+                        version=element.attrib["version"],
                         description=""
                         if element.text is None
                         else element.text.strip(),
@@ -796,10 +792,11 @@ class LHEInit(DictCompatibility):
                 else:
                     # lhe-v2 has version and name is in the text
                     generator = LHEGenerator(
-                        description="",
+                        version=element.attrib["version"],
+                        name="",
+                        description=element.text.strip() if element.text else "",
                         attributes=element.attrib.copy(),
                     )
-                    generator.name = element.text.strip() if element.text else ""
                     generators.append(generator)
             if (
                 element.tag == "init" and event == "end"
