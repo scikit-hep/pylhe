@@ -138,6 +138,24 @@ def test_empty_init_block_error():
         pylhe.LHEFile.frombuffer(buffer)
 
 
+def test_initrwgt_top_level_weight_without_id_error():
+    """Test that AttributeError is raised when a top-level <initrwgt><weight> has attributes but no id."""
+    invalid_initrwgt_content = """<LesHouchesEvents version="3.0">
+<header>
+<initrwgt>
+  <weight bogus="1">central</weight>
+</initrwgt>
+</header>
+<init>
+  2212  2212  6.500000e+03  6.500000e+03  0  0  0  0  3  1
+  1.000000e+00  0.000000e+00  1.000000e+00  1
+</init>
+</LesHouchesEvents>"""
+
+    with pytest.raises(AttributeError, match=r"weight must have attribute 'id'"):
+        pylhe.LHEFile.fromstring(invalid_initrwgt_content)
+
+
 def test_empty_event_block_error():
     """Test that ValueError is raised when <event> block has no text content."""
     # Create LHE content with valid init but empty event block

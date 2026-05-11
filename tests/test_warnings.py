@@ -200,3 +200,29 @@ def test_lhe_init_setitem_deprecation_warning():
         DeprecationWarning, match=r"Access by `lheinit\[\"InitInfo\"\]` is deprecated"
     ):
         lhe_init["InitInfo"] = init_info
+
+
+def test_lhe_init_setitem_dataclass_field_deprecation_warning():
+    """Test that setting a real LHEInit dataclass field goes through the direct field branch."""
+    init_info = pylhe.LHEInitInfo(
+        beamA=2212,
+        beamB=2212,
+        energyA=6500.0,
+        energyB=6500.0,
+        PDFgroupA=10800,
+        PDFgroupB=10800,
+        PDFsetA=0,
+        PDFsetB=0,
+        weightingStrategy=3,
+        numProcesses=1,
+    )
+
+    lhe_init = pylhe.LHEInit(initInfo=init_info, procInfo=[], generators=[])
+    proc_info = [pylhe.LHEProcInfo(xSection=1.0, error=0.1, unitWeight=1.0, procId=1)]
+
+    with pytest.warns(
+        DeprecationWarning, match=r"Access by `lheinit\[\"procInfo\"\]` is deprecated"
+    ):
+        lhe_init["procInfo"] = proc_info
+
+    assert lhe_init.procInfo == proc_info

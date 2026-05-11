@@ -622,18 +622,17 @@ class LHEHeader(DictCompatibility):
                                 )
                                 # Iterate over all weights in this weightgroup
                                 for wc in weight_child:
-                                    if "id" not in wc.attrib:
-                                        ae = "weight must have attribute 'id'"
-                                        raise AttributeError(ae)
-                                    if wc.tag != "weight":
-                                        continue
-                                    temp_group.weights.append(
-                                        LHEWeight(
-                                            id=wc.attrib["id"],
-                                            attrib=wc.attrib,
-                                            name=wc.text.strip() if wc.text else "",
+                                    if wc.tag == "weight":
+                                        if "id" not in wc.attrib:
+                                            ae = "weight must have attribute 'id'"
+                                            raise AttributeError(ae)
+                                        temp_group.weights.append(
+                                            LHEWeight(
+                                                id=wc.attrib["id"],
+                                                attrib=wc.attrib,
+                                                name=wc.text.strip() if wc.text else "",
+                                            )
                                         )
-                                    )
                                 initrwgtentries.append(temp_group)
                     else:
                         extra_elements.append(_copy_xml_element(child))
