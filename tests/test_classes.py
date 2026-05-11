@@ -77,6 +77,32 @@ def test_LHEFile_no_default_init():
         _ = LHEFile()
 
 
+def test_LHEFile_version_property():
+    init_info = LHEInitInfo(
+        beamA=2212,
+        beamB=2212,
+        energyA=6500.0,
+        energyB=6500.0,
+        PDFgroupA=10800,
+        PDFgroupB=10800,
+        PDFsetA=0,
+        PDFsetB=0,
+        weightingStrategy=3,
+        numProcesses=1,
+    )
+    lhefile = LHEFile(
+        init=LHEInit(initInfo=init_info, procInfo=[], generators=[]),
+        version="1.0",
+    )
+
+    assert lhefile.version == "1.0"
+
+    lhefile.version = "3.0"
+
+    assert lhefile.version == "3.0"
+    assert lhefile.attributes["version"] == "3.0"
+
+
 def test_LHEInit_no_default_init():
     with pytest.raises(TypeError):
         _ = LHEInit()

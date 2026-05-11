@@ -8,6 +8,23 @@ import pytest
 import pylhe
 
 
+def test_invalid_root_element_error():
+    """Test that ValueError is raised when root element is not <LesHouchesEvents>."""
+    invalid_root_content = """<NotLesHouchesEvents version="1.0">
+<init>
+  2212  2212  6.500000e+03  6.500000e+03  0  0  0  0  3  1
+  1.000000e+00  0.000000e+00  1.000000e+00  1
+</init>
+</NotLesHouchesEvents>"""
+
+    with pytest.raises(ValueError, match=r"Root element is not <LesHouchesEvents>"):
+        pylhe.LHEFile.fromstring(invalid_root_content)
+
+    buffer = io.StringIO(invalid_root_content)
+    with pytest.raises(ValueError, match=r"Root element is not <LesHouchesEvents>"):
+        pylhe.LHEFile.frombuffer(buffer)
+
+
 def test_missing_init_block_error():
     """Test that ValueError is raised when no <init> block is found in LHE file."""
     # Create an invalid LHE file content without an <init> block
@@ -167,6 +184,42 @@ def test_empty_weights_block_error():
 
     try:
         with pytest.raises(ValueError, match=r"<weights> block has no text"):
+            list(pylhe.read_lhe_with_attributes(tmp_file_path))
+    finally:
+        os.unlink(tmp_file_path)
+
+
+def test_weights_block_without_initrwgt_error():
+    """Test that ValueError is raised when <weights> is present but <initrwgt> is missing from the header."""
+    weights_without_initrwgt_content = """<LesHouchesEvents version="1.0">
+<header>
+<MGGenerationInfo>
+#  Number of Events        :       1
+</MGGenerationInfo>
+</header>
+<init>
+  2212  2212  6.500000e+03  6.500000e+03  0  0  0  0  3  1
+  1.000000e+00  0.000000e+00  1.000000e+00  1
+</init>
+<event>
+  2      0 +1.0000000e+00  9.11884000e+01 -1.00000000e+00 -1.00000000e+00
+       21 -1    0    0  501  502 +0.00000000e+00 +0.00000000e+00 +4.56308892e+02 +4.56308892e+02 +0.00000000e+00 0.0000e+00 9.0000e+00
+       21 -1    0    0  502  501 -0.00000000e+00 -0.00000000e+00 -2.24036073e+02 +2.24036073e+02 +0.00000000e+00 0.0000e+00 9.0000e+00
+<weights>
+ 1.0000000e+00
+</weights>
+</event>
+</LesHouchesEvents>"""
+
+    with NamedTemporaryFile(mode="w", suffix=".lhe", delete=False) as tmp_file:
+        tmp_file.write(weights_without_initrwgt_content)
+        tmp_file_path = tmp_file.name
+
+    try:
+        with pytest.raises(
+            ValueError,
+            match=r"<initrwgt> is required to parse <weights> block but not found in the header",
+        ):
             list(pylhe.read_lhe_with_attributes(tmp_file_path))
     finally:
         os.unlink(tmp_file_path)

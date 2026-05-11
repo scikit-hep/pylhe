@@ -4,6 +4,9 @@ import pylhe
 
 TEST_FILE_LHE_v1 = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 TEST_FILE_LHE_v3 = skhep_testdata.data_path("pylhe-testlhef3.lhe")
+TEST_FILE_LHE_POWHEG_TRIJET = skhep_testdata.data_path(
+    "pylhe-testfile-powheg-box-v2-trijet.lhe"
+)
 TEST_FILE_LHE_INITRWGT_WEIGHTS = skhep_testdata.data_path(
     "pylhe-testfile-powheg-box-v2-hvq.lhe"
 )
@@ -181,6 +184,21 @@ def test_write_lhe():
 </event>
 </LesHouchesEvents>"""
     )
+
+
+def test_write_lhe_includes_powheg_comment():
+    """
+    Test that writing a POWHEG LHE file preserves the top-level XML comment.
+    """
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_POWHEG_TRIJET, with_attributes=True)
+    events = file.events
+    file.events = [next(events)]
+
+    output = file.tolhe()
+
+    assert "<!-- file generated with POWHEG-BOX-V2" in output
+    assert "End of powheg.input content" in output
+    assert output.index("<!-- ") < output.index("<init>")
 
 
 def test_write_lhe_twice(tmpdir):

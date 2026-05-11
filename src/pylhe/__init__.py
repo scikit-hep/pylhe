@@ -639,12 +639,6 @@ class LHEHeader(DictCompatibility):
                     else:
                         extra_elements.append(_copy_xml_element(child))
                 break
-            if element.tag == "init":
-                if not initrwgtentries and not attributes and not extra_elements:
-                    # If we reach the end of the header block without finding an initrwgt block, we can stop looking for it
-                    return None
-                break  # header must come before init, so we can stop looking for it after init starts
-
         return LHEHeader(
             initrwgt=LHEInitRWGT(entries=initrwgtentries),
             extra_elements=extra_elements,
