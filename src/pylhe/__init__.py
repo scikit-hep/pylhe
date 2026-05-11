@@ -423,7 +423,7 @@ class LHEProcInfo(DictCompatibility):
 
 
 class LHEWeight:
-    """Information about a single weight outside of a weight group."""
+    """Information about a single weight inside or outside of a weight group."""
 
     def __init__(
         self,
@@ -511,6 +511,7 @@ class LHEInitRWGT(DictCompatibility):
     entries: list[InitRWGTEntry] = field(default_factory=list)
 
     def iter_weights(self) -> Iterator[LHEWeight]:
+        """Iterate over all weights in the <initrwgt> block, including those inside weight groups."""
         for entry in self.entries:
             if isinstance(entry, LHEWeight):
                 yield entry
@@ -518,9 +519,11 @@ class LHEInitRWGT(DictCompatibility):
                 yield from entry.weights
 
     def weights_by_id(self) -> dict[str, LHEWeight]:
+        """Return a dictionary mapping weight IDs to LHEWeight instances for all weights in the <initrwgt> block."""
         return {w.id: w for w in self.iter_weights()}
 
     def index_to_id(self) -> dict[int, str]:
+        """Return a dictionary mapping weight indices to weight IDs for all weights in the <initrwgt> block."""
         return {i: w.id for i, w in enumerate(self.iter_weights())}
 
     def tolhe(self) -> str:

@@ -199,4 +199,4 @@ def test_lhe_init_setitem_deprecation_warning():
     with pytest.warns(
         DeprecationWarning, match=r"Access by `lheinit\[\"LHEVersion\"\]` is deprecated"
     ):
-        lhe_init["LHEVersion"] = "2.0"
+        lhe_init["InitInfo"] = init_info
