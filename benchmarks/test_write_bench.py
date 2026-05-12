@@ -191,11 +191,6 @@ def test_write_random_events_gzip_benchmark(benchmark) -> None:
     benchmark.extra_info["num_events"] = NUM_EVENTS
     benchmark.extra_info["num_weights"] = len(WEIGHT_IDS)
 
-    result = benchmark.pedantic(
-        _write_random_events_to_temporary_gzip,
-        args=(NUM_EVENTS,),
-        rounds=1,
-        iterations=1,
-    )
+    result = benchmark(_write_random_events_to_temporary_gzip, NUM_EVENTS)
 
     assert result > 0
