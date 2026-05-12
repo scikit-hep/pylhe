@@ -186,7 +186,10 @@ def _write_random_events_to_temporary_gzip(num_events: int) -> int:
 
 
 def test_write_random_events_gzip_benchmark(benchmark) -> None:
-    """Benchmark writing one hundred thousand random weighted events to a temporary gzip file."""
+    """Benchmark writing NUM_EVENTS random weighted events to a temporary gzip file.
+
+    NUM_EVENTS is configurable via the PYLHE_BENCH_NUM_EVENTS environment variable.
+    """
 
     benchmark.extra_info["num_events"] = NUM_EVENTS
     benchmark.extra_info["num_weights"] = len(WEIGHT_IDS)
