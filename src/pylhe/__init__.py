@@ -1379,6 +1379,26 @@ def write_lhe_file_string(
     return lhefile.tolhe(rwgt=rwgt, weights=weights)
 
 
+def write_lhe_string(
+    lheinit: LHEInit,
+    lheevents: Iterable[LHEEvent],
+    rwgt: bool = True,
+    weights: bool = False,
+) -> str:
+    """
+    Return the LHE file as a string.
+    .. deprecated:: 0.9.1
+       Instead of :func:`~pylhe.write_lhe_string(init,events,rwgt,weights)` use `LHEFile(init,events).tolhe(rwgt,weights)`.
+    """
+    warnings.warn(
+        "`write_lhe_string` is deprecated and will be removed in a future version. "
+        "Use `LHEFile(...).tolhe(...)` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return LHEFile(init=lheinit, events=lheevents).tolhe(rwgt=rwgt, weights=weights)
+
+
 def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
     if filepath.endswith((".gz", ".gzip")) or gz:
         return gzip.open(filepath, "wt")
@@ -1405,6 +1425,33 @@ def write_lhe_file_path(
         stacklevel=2,
     )
     lhefile.tofile(filepath, gz=gz, rwgt=rwgt, weights=weights)
+
+
+def write_lhe_file(
+    lheinit: LHEInit,
+    lheevents: Iterable[LHEEvent],
+    filepath: str,
+    gz: bool = False,
+    rwgt: bool = True,
+    weights: bool = False,
+) -> None:
+    """
+    Write the LHE file.
+    .. deprecated:: 0.9.1
+       Instead of :func:`~pylhe.write_lhe_file(init,events,filepath,gz,rwgt,weights)` use `LHEFile(init,events).tofile(filepath,gz,rwgt,weights)`.
+    """
+    warnings.warn(
+        "`write_lhe_file` is deprecated and will be removed in a future version. "
+        "Use `LHEFile(...).tofile(...)` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    LHEFile(init=lheinit, events=lheevents).tofile(
+        filepath,
+        gz=gz,
+        rwgt=rwgt,
+        weights=weights,
+    )
 
 
 # we import this later to avoid circular imports
