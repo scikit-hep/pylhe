@@ -38,12 +38,12 @@ def test_missing_init_block_error():
 </LesHouchesEvents>"""
 
     # Test with string buffer
-    with pytest.raises(ValueError, match=r"<init> block not found in the LHE file"):
+    with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
         pylhe.LHEFile.fromstring(invalid_lhe_content)
 
     # Test with file-like object
     buffer = io.StringIO(invalid_lhe_content)
-    with pytest.raises(ValueError, match=r"<init> block not found in the LHE file"):
+    with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
         pylhe.LHEFile.frombuffer(buffer)
 
 
@@ -65,7 +65,7 @@ def test_missing_init_block_error_with_file():
 
     try:
         # Test reading the file through read_lhe_init function
-        with pytest.raises(ValueError, match=r"<init> block not found in the LHE file"):
+        with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
             pylhe.read_lhe_init(tmp_file_path)
     finally:
         os.unlink(tmp_file_path)
@@ -87,7 +87,7 @@ def test_missing_init_block_error_with_only_events():
 </event>
 </LesHouchesEvents>"""
 
-    with pytest.raises(ValueError, match=r"<init> block not found in the LHE file"):
+    with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
         pylhe.LHEFile.fromstring(events_only_content)
 
 

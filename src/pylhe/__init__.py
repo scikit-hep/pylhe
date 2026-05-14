@@ -1171,7 +1171,7 @@ class LesHouchesEvents:
                         lheinit = LHEInit._fromcontext(root, context)
                         lhef.init = lheinit
                     else:
-                        err = "<init> block not found in the LHE file."
+                        err = "No <init> block found in the LHE file."
                         raise ValueError(err)
 
                     # First yield allows caller to advance generator to read lheinit before consuming real events
