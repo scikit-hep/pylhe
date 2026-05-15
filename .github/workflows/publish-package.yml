@@ -51,7 +51,7 @@ jobs:
 
     - name: Build a sdist and a wheel
       run: |
-        pipx run pyproject-build --from build --installer uv .
+         uv tool run --from build pyproject-build .
 
     - name: Verify history available for dev versions
       run: |
