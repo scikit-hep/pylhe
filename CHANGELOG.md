@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - The following old deprecated functions were removed: `read_lhe_file`, `read_lhe_init`, `read_lhe`, `read_lhe_with_attributes`, `read_num_events`, `write_lhe_file_string`, `write_lhe_string`, `write_lhe_file_path`, `write_lhe_file`
-- `DictCompatibility` is removed.
+- `DictCompatibility` is removed and thereby also `fieldnames`.
 - `LHEWeightGroup` and `LHEWeightInfo` are removed.
 
 ## [1.0.4] - 2026-05-15
