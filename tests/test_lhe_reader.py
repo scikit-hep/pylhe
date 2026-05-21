@@ -84,10 +84,8 @@ def test_gzip_open(testdata_gzip_file):
 
 
 def test_read_num_events(testdata_gzip_file):
-    assert pylhe.read_num_events(TEST_FILE_LHE_v1) == 791
-    assert pylhe.read_num_events(TEST_FILE_LHE_v1) == pylhe.read_num_events(
-        testdata_gzip_file
-    )
+    assert pylhe.LesHouchesEvents.count_events(TEST_FILE_LHE_v1) == 791
+    assert pylhe.LesHouchesEvents.count_events(testdata_gzip_file) == 791
 
 
 @pytest.mark.parametrize("file", TEST_FILES_LHE_ALL)
@@ -98,8 +96,9 @@ def test_count_events(file):
 
 
 def test_read_lhe_init_gzipped_file(testdata_gzip_file):
-    assert pylhe.read_lhe_init(TEST_FILE_LHE_v1) == pylhe.read_lhe_init(
-        testdata_gzip_file
+    assert (
+        pylhe.LesHouchesEvents.fromfile(TEST_FILE_LHE_v1).init
+        == pylhe.LesHouchesEvents.fromfile(testdata_gzip_file).init
     )
 
 
@@ -266,7 +265,9 @@ def test_read_lhe_v1():
     """
     Test method read_lhe() on a LesHouchesEvents version="1.0" file.
     """
-    events = pylhe.read_lhe(TEST_FILE_LHE_v1)
+    events = pylhe.LesHouchesEvents.fromfile(
+        TEST_FILE_LHE_v1, with_attributes=False
+    ).events
 
     assert events
     for e in events:
@@ -337,15 +338,15 @@ def test_read_lhe_file(file):
     """
     Test that the read_lhe_file function works as the individual reads.
     """
-    lhefile = pylhe.read_lhe_file(file, with_attributes=False)
-    lheinit = pylhe.read_lhe_init(file)
-    lheevents = pylhe.read_lhe(file)
+    lhefile = pylhe.LesHouchesEvents.fromfile(file, with_attributes=False)
+    lheinit = pylhe.LesHouchesEvents.fromfile(file).init
+    lheevents = pylhe.LesHouchesEvents.fromfile(file, with_attributes=False).events
 
     assert lheinit == lhefile.init
     assert next(lheevents).tolhe() == next(lhefile.events).tolhe()
 
-    lhefile = pylhe.read_lhe_file(file, with_attributes=True)
-    lheevents = pylhe.read_lhe_with_attributes(file)
+    lhefile = pylhe.LesHouchesEvents.fromfile(file, with_attributes=True)
+    lheevents = pylhe.LesHouchesEvents.fromfile(file, with_attributes=True).events
 
     assert lheinit == lhefile.init
     assert next(lheevents).tolhe() == next(lhefile.events).tolhe()
@@ -365,7 +366,7 @@ def test_read_lhe_initrwgt_weights():
     """
     Test the weights from initrwgt with a weights list.
     """
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_INITRWGT_WEIGHTS)
+    events = pylhe.LesHouchesEvents.fromfile(TEST_FILE_LHE_INITRWGT_WEIGHTS).events
 
     assert events
     for e in events:
@@ -377,7 +378,7 @@ def test_read_lhe_rwgt_wgt():
     """
     Test the weights from rwgt with a wgt list.
     """
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_RWGT_WGT)
+    events = pylhe.LesHouchesEvents.fromfile(TEST_FILE_LHE_RWGT_WGT).events
 
     assert events
     for e in events:
@@ -389,10 +390,14 @@ def test_issue_102():
     """
     Test a file containing lines starting with "#aMCatNLO".
     """
-    assert pylhe.read_num_events(TEST_FILE_LHE_v3) == 59
-    assert len(list(pylhe.read_lhe(TEST_FILE_LHE_v3))) == len(
-        list(pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3))
-    )
+    assert pylhe.LesHouchesEvents.count_events(TEST_FILE_LHE_v3) == 59
+    assert len(
+        list(
+            pylhe.LesHouchesEvents.fromfile(
+                TEST_FILE_LHE_v3, with_attributes=False
+            ).events
+        )
+    ) == len(list(pylhe.LesHouchesEvents.fromfile(TEST_FILE_LHE_v3).events))
 
 
 def test_read_lhe_init_raises():
