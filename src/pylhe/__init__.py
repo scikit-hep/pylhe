@@ -41,16 +41,7 @@ __all__ = [
     "LHEParticle",
     "LHEProcInfo",
     "__version__",
-    "read_lhe",
-    "read_lhe_file",
-    "read_lhe_init",
-    "read_lhe_with_attributes",
-    "read_num_events",
     "to_awkward",
-    "write_lhe_file",
-    "write_lhe_file_path",
-    "write_lhe_file_string",
-    "write_lhe_string",
 ]
 
 
