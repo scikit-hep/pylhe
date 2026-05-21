@@ -647,9 +647,10 @@ class LHEInit:
             "<init>\n"
             + self.initInfo.tolhe()
             + "\n"
-            + "\n".join([p.tolhe() for p in self.procInfo])
-            + "\n"
-            + "\n".join([g.tolhe() for g in self.generators])
+            + "\n".join(
+                [p.tolhe() for p in self.procInfo]
+                + [g.tolhe() for g in self.generators]
+            )
             + "\n"
             + "</init>"
         )
