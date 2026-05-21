@@ -10,16 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - CHANGELOG.md file to track updates relevant to library consumers
-- new dataclass `LHEHeader`
-- added `<scales>` to `LHEEvent`
-- new `LesHouchesEvents` is a synonym for `LHEFile`
-- new `LHEGenerator` dataclass to represent the `<generator>` block in the `<init>`.
-- new `LHEInitRWGT`, `LHEInitRWGTWeightGroup` and `LHEInitRWGTWeight` dataclasses.
-- benchmarking of write performance
+- New dataclass `LHEHeader`
+- Added `<scales>` to `LHEEvent`
+- New `LesHouchesEvents` is a synonym for `LHEFile`
+- New `LHEGenerator` dataclass to represent the `<generator>` block in the `<init>`.
+- New `LHEInitRWGT`, `LHEInitRWGTWeightGroup` and `LHEInitRWGTWeight` dataclasses.
+- Benchmarking of write performance
 
 ### Changed
 
-- weights and weightgroups are now no longer stored in `LHEInit.weightgroup` but in `LHEHeader.initrwgt.entities`. They are thus part of the `<header>` instead of `<init>` as demanded by LHE specification.
+- Weights and weightgroups are now no longer stored in `LHEInit.weightgroup` but in `LHEHeader.initrwgt.entities`. They are thus part of the `<header>` instead of `<init>` as demanded by LHE specification.
 - `LHEInit` no longer has `LHEVersion`. Instead, the version is stored `LesHoucheEvents.version`.
 - `LHEParticle.mothers()` is now deprecated in favour of `LHEEvent.mothers(particle)`.
 
@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- raise an error when weight format is requested to be both `rwgt` and `weights` simultaneously
+- Raise an error when weight format is requested to be both `rwgt` and `weights` simultaneously.
 
 [unreleased]: https://github.com/scikit-hep/pylhe/compare/v1.0.4...HEAD
 [1.0.4]: https://github.com/scikit-hep/pylhe/compare/v1.0.3...v1.0.4
