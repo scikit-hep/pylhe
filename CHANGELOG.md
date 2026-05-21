@@ -9,18 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- LHEHeader
-- LHEEvent now also contains `<scales>`
 - CHANGELOG.md file to track updates relevant to library consumers
+- new dataclass LHEHeader
+- LHEEvent now also contains `<scales>`
+- LesHouchesEvents is a synonym for LHEFile now
 
 ### Changed
 
-- Replace broken OpenGraph image with an appropriately-sized Keep a Changelog
+- weights and weightgroups are now no longer stored in LHEInit.weightgroup but in LHEHeader.initrwgt.entities. They are thus part of the `<header>` instead of `<init>` as demanded by LHE specification.
+- `LHEInit` no longer has `LHEVersion`. Instead the version is stored `LesHoucheEvents.version`.
 
 ### Removed
 
-- LHEInit no longer has `weightgroup` nor `LHEVersion`
-0.3.0
+- The following old deprecated functions were removed: `read_lhe_file`, `read_lhe_init`, `read_lhe`, `read_lhe_with_attributes`, `read_num_events`, `write_lhe_file_string`, `write_lhe_string`, `write_lhe_file_path`, `write_lhe_file`
 
 ## [1.0.4] - 2026-05-15
 
