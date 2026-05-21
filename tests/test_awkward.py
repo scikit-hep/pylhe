@@ -52,6 +52,30 @@ def test_to_awkward():
         assert len(arr) == len(arr.weights[field])
 
 
+def test_to_awkward_from_lhefile():
+    lhefile = pylhe.LHEFile.fromfile(TEST_FILE_WITH_WEIGHTS, with_attributes=True)
+    arr = pylhe.to_awkward(lhefile)
+
+    assert len(arr) == 59
+    assert len(arr) == len(arr.particles)
+    assert len(arr) == len(arr.eventinfo)
+    assert "weights" in arr.fields
+    assert len(arr) == len(arr.weights)
+    assert arr.weights.fields == [
+        "1001",
+        "1002",
+        "1003",
+        "1004",
+        "1005",
+        "1006",
+        "1007",
+        "1008",
+        "1009",
+    ]
+    assert arr.weights["1001"][0] == pytest.approx(0.50109e02)
+    assert arr.weights["1009"][0] == pytest.approx(0.52581e02)
+
+
 def test_awkward_registration():
     arr = pylhe.to_awkward(pylhe.read_lhe_with_attributes(TEST_FILE_WITHOUT_WEIGHTS))
     assert len(arr.particles.vector.mass) == len(arr.particles)
