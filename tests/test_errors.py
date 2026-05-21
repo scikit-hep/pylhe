@@ -1,11 +1,29 @@
 import io
 import os
 import tempfile
+import xml.etree.ElementTree as ET
 from tempfile import NamedTemporaryFile
 
 import pytest
 
 import pylhe
+
+
+def test_invalid_root_element_error():
+    """Test that ValueError is raised when root element is not <LesHouchesEvents>."""
+    invalid_root_content = """<NotLesHouchesEvents version="1.0">
+<init>
+  2212  2212  6.500000e+03  6.500000e+03  0  0  0  0  3  1
+  1.000000e+00  0.000000e+00  1.000000e+00  1
+</init>
+</NotLesHouchesEvents>"""
+
+    with pytest.raises(ValueError, match=r"Root element is not <LesHouchesEvents>"):
+        pylhe.LHEFile.fromstring(invalid_root_content)
+
+    buffer = io.StringIO(invalid_root_content)
+    with pytest.raises(ValueError, match=r"Root element is not <LesHouchesEvents>"):
+        pylhe.LHEFile.frombuffer(buffer)
 
 
 def test_missing_init_block_error():
@@ -73,6 +91,23 @@ def test_missing_init_block_error_with_only_events():
         pylhe.LHEFile.fromstring(events_only_content)
 
 
+def test_lheinit_fromcontext_no_init_block_error():
+    """Test that LHEInit._fromcontext raises when the parse context contains no <init> block."""
+    invalid_lhe_content = """<LesHouchesEvents version="1.0">
+<header>
+<MGGenerationInfo>
+#  Number of Events        :       1
+</MGGenerationInfo>
+</header>
+</LesHouchesEvents>"""
+
+    context = ET.iterparse(io.StringIO(invalid_lhe_content), events=["start", "end"])
+    _, root = next(context)
+
+    with pytest.raises(ValueError, match=r"No <init> block found in the LHE file\."):
+        pylhe.LHEInit._fromcontext(root, context)
+
+
 def test_dataclass_delete_field_error():
     """Test that TypeError is raised when attempting to delete a dataclass field."""
     # Create a simple LHEEventInfo instance to test deletion
@@ -121,6 +156,24 @@ def test_empty_init_block_error():
         pylhe.LHEFile.frombuffer(buffer)
 
 
+def test_initrwgt_top_level_weight_without_id_error():
+    """Test that AttributeError is raised when a top-level <initrwgt><weight> has attributes but no id."""
+    invalid_initrwgt_content = """<LesHouchesEvents version="3.0">
+<header>
+<initrwgt>
+  <weight bogus="1">central</weight>
+</initrwgt>
+</header>
+<init>
+  2212  2212  6.500000e+03  6.500000e+03  0  0  0  0  3  1
+  1.000000e+00  0.000000e+00  1.000000e+00  1
+</init>
+</LesHouchesEvents>"""
+
+    with pytest.raises(AttributeError, match=r"weight must have attribute 'id'"):
+        pylhe.LHEFile.fromstring(invalid_initrwgt_content)
+
+
 def test_empty_event_block_error():
     """Test that ValueError is raised when <event> block has no text content."""
     # Create LHE content with valid init but empty event block
@@ -167,6 +220,42 @@ def test_empty_weights_block_error():
 
     try:
         with pytest.raises(ValueError, match=r"<weights> block has no text"):
+            list(pylhe.read_lhe_with_attributes(tmp_file_path))
+    finally:
+        os.unlink(tmp_file_path)
+
+
+def test_weights_block_without_initrwgt_error():
+    """Test that ValueError is raised when <weights> is present but <initrwgt> is missing from the header."""
+    weights_without_initrwgt_content = """<LesHouchesEvents version="1.0">
+<header>
+<MGGenerationInfo>
+#  Number of Events        :       1
+</MGGenerationInfo>
+</header>
+<init>
+  2212  2212  6.500000e+03  6.500000e+03  0  0  0  0  3  1
+  1.000000e+00  0.000000e+00  1.000000e+00  1
+</init>
+<event>
+  2      0 +1.0000000e+00  9.11884000e+01 -1.00000000e+00 -1.00000000e+00
+       21 -1    0    0  501  502 +0.00000000e+00 +0.00000000e+00 +4.56308892e+02 +4.56308892e+02 +0.00000000e+00 0.0000e+00 9.0000e+00
+       21 -1    0    0  502  501 -0.00000000e+00 -0.00000000e+00 -2.24036073e+02 +2.24036073e+02 +0.00000000e+00 0.0000e+00 9.0000e+00
+<weights>
+ 1.0000000e+00
+</weights>
+</event>
+</LesHouchesEvents>"""
+
+    with NamedTemporaryFile(mode="w", suffix=".lhe", delete=False) as tmp_file:
+        tmp_file.write(weights_without_initrwgt_content)
+        tmp_file_path = tmp_file.name
+
+    try:
+        with pytest.raises(
+            ValueError,
+            match=r"<initrwgt> is required to parse <weights> block but not found in the header",
+        ):
             list(pylhe.read_lhe_with_attributes(tmp_file_path))
     finally:
         os.unlink(tmp_file_path)
@@ -269,7 +358,8 @@ def test_fromfile_parse_error():
         with (
             pytest.warns(RuntimeWarning, match=r"Parse Error:"),
             pytest.raises(
-                ValueError, match=r"No or faulty <init> block found in the LHE file"
+                ValueError,
+                match=r"No or faulty <header>/<init> block found in the LHE file",
             ),
         ):
             pylhe.LHEFile.fromfile(f.name)
