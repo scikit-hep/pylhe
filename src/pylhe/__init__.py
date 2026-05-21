@@ -227,11 +227,11 @@ class LHEParticle:
         Return a list of the particle's mothers.
 
         .. deprecated:: 2.0.0
-                Accessing mothers via `LHEParticle.mothers()` is deprecated and will be removed in a future version. Use `LHEEvent.mothers(LHEParticle)` method,`LHEParticle.mother1` and `LHEParticle.mother2` instead.
+                Accessing mothers via `LHEParticle.mothers()` is deprecated and will be removed in a future version. Use `LHEEvent.mothers(LHEParticle)` method, `LHEParticle.mother1` and `LHEParticle.mother2` instead.
         """
         warnings.warn(
             "Access by `LHEParticle.mothers()` is deprecated and will be removed in a future version. "
-            "Use `LHEEvent.mothers(LHEParticle)` method,`LHEParticle.mother1` and `LHEParticle.mother2` instead.",
+            "Use `LHEEvent.mothers(LHEParticle)` method, `LHEParticle.mother1` and `LHEParticle.mother2` instead.",
             DeprecationWarning,
             stacklevel=2,
         )
