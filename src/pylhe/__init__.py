@@ -7,10 +7,9 @@ import io
 import os
 import warnings
 import xml.etree.ElementTree as ET
-from abc import ABC
-from collections.abc import Iterable, Iterator, MutableMapping
+from collections.abc import Iterable, Iterator
 from copy import deepcopy
-from dataclasses import asdict, dataclass, field, fields
+from dataclasses import dataclass, field
 from typing import (
     Any,
     BinaryIO,
@@ -78,87 +77,6 @@ class Writeable(Protocol):
 TWriteable = TypeVar("TWriteable", bound=Writeable)
 
 
-@dataclass
-class DictCompatibility(MutableMapping[str, Any], ABC):
-    """
-    Mixin for dataclasses to behave like mutable dictionaries.
-    """
-
-    def __getitem__(self, key: str) -> Any:
-        """
-        Get a dict by fieldname.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Access by `object['key']` is deprecated and will be removed in a future version. Use `object.key` instead.
-        """
-        warnings.warn(
-            f'Access by `object["{key}"]` is deprecated and will be removed in a future version. '
-            f"Use `object.{key}` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return getattr(self, key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """
-        Set a dict by fieldname.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Access by `object['key']` is deprecated and will be removed in a future version. Use `object.key` instead.
-        """
-        warnings.warn(
-            f'Access by `object["{key}"]` is deprecated and will be removed in a future version. '
-            f"Use `object.{key}` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        setattr(self, key, value)
-
-    def __delitem__(self, key: str) -> None:
-        err = f"Cannot delete field {key!r} from dataclass instance"
-        raise TypeError(err)
-
-    def __iter__(self) -> Any:
-        warnings.warn(
-            "Dict-like iteration is deprecated and will be removed in a future version. "
-            "Use `asdict(object)` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return iter(asdict(self))
-
-    def __len__(self) -> int:
-        warnings.warn(
-            "Dict-like length is deprecated and will be removed in a future version. "
-            "Use `asdict(object)` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return len(asdict(self))
-
-    @property
-    def fieldnames(self) -> list[str]:
-        """
-        Return the fieldnames.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Listing fieldnames via `object.fieldnames` is deprecated and will be removed in a future version.
-        """
-        warnings.warn(
-            "The fieldnames property is deprecated and will be removed in a future version. "
-            "Use `asdict(object)` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return [f.name for f in fields(self)]
-
-
 def _open_xml_tag(tag: str, attributes: dict[str, str]) -> str:
     """Helper function to open an XML tag with attributes."""
     attrs = ""
@@ -175,7 +93,7 @@ def _copy_xml_element(element: ET.Element) -> ET.Element:
 
 
 @dataclass
-class LHEEventInfo(DictCompatibility):
+class LHEEventInfo:
     """
     Store the event information in the LHE format.
     """
@@ -219,7 +137,7 @@ class LHEEventInfo(DictCompatibility):
 
 
 @dataclass
-class LHEParticle(DictCompatibility):
+class LHEParticle:
     """
     Represents a single particle in the LHE format.
     """
@@ -333,7 +251,7 @@ def _indent(elem: ET.Element, level: int = 0) -> None:
 
 
 @dataclass
-class LHEInitInfo(DictCompatibility):
+class LHEInitInfo:
     """Store the first line of the <init> block as a dataclass."""
 
     beamA: int
@@ -387,7 +305,7 @@ class LHEInitInfo(DictCompatibility):
 
 
 @dataclass
-class LHEProcInfo(DictCompatibility):
+class LHEProcInfo:
     """Store the process info block as a dataclass."""
 
     xSection: float
@@ -503,7 +421,7 @@ InitRWGTEntry = Union[LHEWeight, LHEWeightGroup]
 
 
 @dataclass
-class LHEInitRWGT(DictCompatibility):
+class LHEInitRWGT:
     """
     Represents the <initrwgt> block of an LHE file as a dataclass.
     """
@@ -553,7 +471,7 @@ class LHEInitRWGT(DictCompatibility):
 
 
 @dataclass
-class LHEHeader(DictCompatibility):
+class LHEHeader:
     """
     Represents the header block of an LHE file as a dataclass.
     """
@@ -697,7 +615,7 @@ class LHEGenerator:
 
 
 @dataclass
-class LHEInit(DictCompatibility):
+class LHEInit:
     """Store the <init> block as a dataclass."""
 
     initInfo: LHEInitInfo
@@ -724,49 +642,6 @@ class LHEInit(DictCompatibility):
             + "\n"
             + "</init>"
         )
-
-    def __getitem__(self, key: str) -> Any:
-        """
-        Get a dict fieldname.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Access by `lheinit["key"]` is deprecated and will be removed in a future version.
-        """
-        warnings.warn(
-            f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
-            f"Use `lheinit.{key}` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        # Map field names to dataclass attributes
-        if key in self.fieldnames:
-            return getattr(self, key)
-        # Try to get from initInfo for backward compatibility
-        return getattr(self.initInfo, key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """
-        Set a dict fieldname.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Access by `lheinit["key"]` is deprecated and will be removed in a future version.
-        """
-        warnings.warn(
-            f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
-            f"Use `lheinit.{key}` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        # Map field names to dataclass attributes
-        if key in self.fieldnames:
-            setattr(self, key, value)
-        else:
-            # Try to set on initInfo for backward compatibility
-            setattr(self.initInfo, key, value)
 
     @classmethod
     def _fromcontext(cls, _root: ET.Element, context: Any) -> "LHEInit":
@@ -821,7 +696,7 @@ class LHEInit(DictCompatibility):
 
 
 @dataclass
-class LHEEvent(DictCompatibility):
+class LHEEvent:
     """
     Store a single event in the LHE format.
     """
@@ -1251,22 +1126,6 @@ class LesHouchesEvents:
 LHEFile = LesHouchesEvents
 
 
-def read_lhe_file(filepath: PathLike, with_attributes: bool = True) -> LHEFile:
-    """
-    Read an LHE file and return an LHEFile object.
-
-    .. deprecated:: 1.0.0
-        Use `LHEFile.fromfile` instead.
-    """
-    warnings.warn(
-        "read_lhe_file is deprecated and will be removed in a future version. "
-        "Use `LHEFile.fromfile` instead",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return LHEFile.fromfile(filepath, with_attributes=with_attributes)
-
-
 def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFile]:
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
@@ -1289,169 +1148,10 @@ def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFi
     )
 
 
-def read_lhe_init(filepath: PathLike) -> LHEInit:
-    """
-    Read and return the init blocks. This encodes the weight group
-    and related things according to https://arxiv.org/abs/1405.1067
-
-    Args:
-        filepath: A path-like object or str.
-
-    Returns:
-        dict: Dictionary containing the init blocks of the LHE file.
-
-    .. deprecated:: 1.0.0
-        Use `LHEFile.fromfile(...).init` instead.
-    """
-    warnings.warn(
-        "read_lhe_init is deprecated and will be removed in a future version. "
-        "Use `LHEFile.fromfile(...).init` instead",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return LHEFile.fromfile(filepath).init
-
-
-def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
-    """
-    Read and yield the events in the LHE file.
-
-    .. deprecated:: 1.0.0
-        Use `LHEFile.fromfile(...).events` instead.
-    """
-    warnings.warn(
-        "read_lhe is deprecated and will be removed in a future version. "
-        "Use `LHEFile.fromfile(...).events` instead",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    yield from LHEFile.fromfile(filepath, with_attributes=False).events
-
-
-def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
-    """
-    Iterate through file, similar to read_lhe but also set
-    weights and attributes.
-
-    .. deprecated:: 1.0.0
-        Use `LHEEvent.fromfile` with the `with_attributes` parameter instead.
-    """
-    warnings.warn(
-        "read_lhe_with_attributes is deprecated and will be removed in a future version. "
-        "Use `LHEEvent.fromfile` with the `with_attributes` parameter instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    yield from LHEFile.fromfile(filepath, with_attributes=True).events
-
-
-def read_num_events(filepath: PathLike) -> int:
-    """
-    Moderately efficient way to get the number of events stored in a file.
-
-    .. deprecated:: 1.0.0
-        Use `LHEFile.count_events` instead.
-    """
-    warnings.warn(
-        "read_num_events is deprecated and will be removed in a future version. "
-        "Use `LHEFile.count_events` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return LHEFile.count_events(filepath)
-
-
-def write_lhe_file_string(
-    lhefile: LHEFile, rwgt: bool = True, weights: bool = False
-) -> str:  # pragma: no cover
-    """
-    Return the LHE file as a string.
-
-    .. deprecated:: 1.0.0
-         Use `LHEFile.tolhe` instead.
-    """
-    warnings.warn(
-        "write_lhe_file_string is deprecated and will be removed in a future version. "
-        "Use `LHEFile.tolhe` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return lhefile.tolhe(rwgt=rwgt, weights=weights)
-
-
-def write_lhe_string(
-    lheinit: LHEInit,
-    lheevents: Iterable[LHEEvent],
-    rwgt: bool = True,
-    weights: bool = False,
-) -> str:
-    """
-    Return the LHE file as a string.
-    .. deprecated:: 0.9.1
-       Instead of :func:`~pylhe.write_lhe_string(init,events,rwgt,weights)` use `LHEFile(init,events).tolhe(rwgt,weights)`.
-    """
-    warnings.warn(
-        "`write_lhe_string` is deprecated and will be removed in a future version. "
-        "Use `LHEFile(...).tolhe(...)` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return LHEFile(init=lheinit, events=lheevents).tolhe(rwgt=rwgt, weights=weights)
-
-
 def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
     if filepath.endswith((".gz", ".gzip")) or gz:
         return gzip.open(filepath, "wt")
     return open(filepath, "w")
-
-
-def write_lhe_file_path(
-    lhefile: LHEFile,
-    filepath: str,
-    gz: bool = False,
-    rwgt: bool = True,
-    weights: bool = False,
-) -> None:
-    """
-    Write the LHE file.
-
-    .. deprecated:: 1.0.0
-        Use `LHEFile.tofile` instead.
-    """
-    warnings.warn(
-        "write_lhe_file_path is deprecated and will be removed in a future version. "
-        "Use `LHEFile.tofile` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    lhefile.tofile(filepath, gz=gz, rwgt=rwgt, weights=weights)
-
-
-def write_lhe_file(
-    lheinit: LHEInit,
-    lheevents: Iterable[LHEEvent],
-    filepath: str,
-    gz: bool = False,
-    rwgt: bool = True,
-    weights: bool = False,
-) -> None:
-    """
-    Write the LHE file.
-    .. deprecated:: 0.9.1
-       Instead of :func:`~pylhe.write_lhe_file(init,events,filepath,gz,rwgt,weights)` use `LHEFile(init,events).tofile(filepath,gz,rwgt,weights)`.
-    """
-    warnings.warn(
-        "`write_lhe_file` is deprecated and will be removed in a future version. "
-        "Use `LHEFile(...).tofile(...)` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    LHEFile(init=lheinit, events=lheevents).tofile(
-        filepath,
-        gz=gz,
-        rwgt=rwgt,
-        weights=weights,
-    )
 
 
 # we import this later to avoid circular imports
