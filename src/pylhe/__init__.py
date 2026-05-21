@@ -159,6 +159,50 @@ class DictCompatibility(MutableMapping[str, Any], ABC):
         return [f.name for f in fields(self)]
 
 
+@dataclass
+class LHEWeightInfo(DictCompatibility):
+    """
+    Information about a single weight in a weight group.
+
+    ... deprecated:: 2.0.0
+    """
+
+    attrib: dict[str, str]
+    """Weight XML attributes"""
+    name: str
+    """Weight description text"""
+    index: int
+    """Sequential index for ordering"""
+
+    def __post_init__(self) -> None:
+        warnings.warn(
+            "LHEWeightInfo is deprecated read-only now and will be removed in a future version. Use LHEInitRWGTWeight instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+
+@dataclass
+class LHEWeightGroup(DictCompatibility):
+    """
+    Information about a weight group.
+
+    ... deprecated:: 2.0.0
+    """
+
+    attrib: dict[str, str]
+    """Weight group XML attributes"""
+    weights: dict[str, LHEWeightInfo]
+    """Dictionary of weight ID to weight information"""
+
+    def __post_init__(self) -> None:
+        warnings.warn(
+            "LHEWeightGroup is deprecated and read-only now and will be removed in a future version. Use LHEInitRWGTWeightGroup instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+
 def _open_xml_tag(tag: str, attributes: dict[str, str]) -> str:
     """Helper function to open an XML tag with attributes."""
     attrs = ""
@@ -706,6 +750,53 @@ class LHEInit(DictCompatibility):
     """Process information"""
     generators: list[LHEGenerator]
     """Generator information"""
+    _lhe: Optional["LesHouchesEvents"] = field(compare=False, repr=False, default=None)
+    """Reference to parent LHE file for backwards compatibility"""
+
+    @property
+    def LHEVersion(self) -> str:
+        """
+        Return the LHE version from the parent LHE file for backwards compatibility.
+
+        ... deprecated:: 2.0.0
+            Accessing the LHE version via `lheinit.LHEVersion` is deprecated and will be removed in a future version. Use `LesHouchesEvents.version` instead.
+        """
+        if self._lhe is None:
+            err = "LHEInit instance is not associated to an LHE file."
+            raise ValueError(err)
+        return self._lhe.version
+
+    @property
+    def weightgroups(self) -> dict[str, LHEWeightGroup]:
+        """
+        Return the weight groups from the parent LHE file for backwards compatibility.
+
+        ... deprecated:: 2.0.0
+            Accessing weight groups via `lheinit.weightgroups` is deprecated and will be removed in a future version. Use `LesHouchesEvents.weightgroups` instead.
+        """
+        if self._lhe is None:
+            err = "LHEInit instance is not associated to an LHE file."
+            raise ValueError(err)
+        if self._lhe.header is None:
+            err = "LHE file has no header block, cannot retrieve weight groups."
+            raise ValueError(err)
+        # old weightgroups did not support single weights outside of groups, so we only keep groups here
+        groups = [
+            e
+            for e in self._lhe.header.initrwgt.entries
+            if isinstance(e, LHEInitRWGTWeightGroup)
+        ]
+        ret = {}
+        index = 0
+        for g in groups:
+            weights = {}
+            for w in g.weights:
+                weights[w.id] = LHEWeightInfo(
+                    attrib=w.attributes, name=w.name, index=index
+                )
+                index += 1
+            ret[g.name] = LHEWeightGroup(attrib=g.attributes, weights=weights)
+        return ret
 
     def tolhe(self) -> str:
         """
@@ -1169,6 +1260,7 @@ class LesHouchesEvents:
                         lhef.header = None
                     if element.tag == "init" and event == "start":
                         lheinit = LHEInit._fromcontext(root, context)
+                        lheinit._lhe = lhef  # set reference to parent LHE file for backwards compatibility
                         lhef.init = lheinit
                     else:
                         err = "No <init> block found in the LHE file."

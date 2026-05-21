@@ -132,7 +132,7 @@ def test_read_lhe_init_v3():
 
     assert header is not None
     assert len(header.initrwgt.entries) == 1
-    assert isinstance(header.initrwgt.entries[0], pylhe.LHEWeightGroup)
+    assert isinstance(header.initrwgt.entries[0], pylhe.LHEInitRWGTWeightGroup)
     assert header.initrwgt.entries[0].attributes["type"] == "scale_variation"
     assert len(header.initrwgt.entries[0].weights) == 9
 
@@ -224,28 +224,28 @@ def test_read_lhe_init_v3_mixed_initrwgt_entries():
     entries = lhefile.header.initrwgt.entries
     assert len(entries) == 5
 
-    assert isinstance(entries[0], pylhe.LHEWeight)
+    assert isinstance(entries[0], pylhe.LHEInitRWGTWeight)
     assert entries[0].id == "1"
     assert entries[0].name == "This is the original event weight"
 
-    assert isinstance(entries[1], pylhe.LHEWeightGroup)
+    assert isinstance(entries[1], pylhe.LHEInitRWGTWeightGroup)
     assert entries[1].name == "scale variation"
     assert entries[1].combine == "envelope"
     assert [weight.id for weight in entries[1].weights] == ["2", "3"]
     assert [weight.name for weight in entries[1].weights] == ["muR = 2.0", "muR = 0.5"]
 
-    assert isinstance(entries[2], pylhe.LHEWeightGroup)
+    assert isinstance(entries[2], pylhe.LHEInitRWGTWeightGroup)
     assert entries[2].name == "MRST2008 PDF uncertainty"
     assert entries[2].combine == "hessian"
     assert [weight.id for weight in entries[2].weights] == ["4", "5"]
 
-    assert isinstance(entries[3], pylhe.LHEWeightGroup)
+    assert isinstance(entries[3], pylhe.LHEInitRWGTWeightGroup)
     assert entries[3].name == "Qmatch variation"
     assert entries[3].combine == "envelope"
     assert [weight.id for weight in entries[3].weights] == ["44", "my_own_id"]
     assert [weight.name for weight in entries[3].weights] == ["Qmatch=20", "Qmatch=40"]
 
-    assert isinstance(entries[4], pylhe.LHEWeight)
+    assert isinstance(entries[4], pylhe.LHEInitRWGTWeight)
     assert entries[4].id == "46"
     assert entries[4].name == "BSM benchmark point number 42B"
 

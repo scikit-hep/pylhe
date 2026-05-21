@@ -9,10 +9,10 @@ from pylhe import (
     LHEGenerator,
     LHEInit,
     LHEInitInfo,
+    LHEInitRWGTWeight,
+    LHEInitRWGTWeightGroup,
     LHEParticle,
     LHEProcInfo,
-    LHEWeight,
-    LHEWeightGroup,
     read_lhe,
 )
 
@@ -275,17 +275,17 @@ def test_LHEProcInfo_backwards_compatibility():
     assert proc_info.procId == pytest.approx(67.0)
 
 
-def test_LHEWeight_init_with_id_argument():
-    weight = LHEWeight(name="muR = 2.0", attrib={}, id="1001")
+def test_LHEInitRWGTWeight_init_with_id_argument():
+    weight = LHEInitRWGTWeight(name="muR = 2.0", attrib={}, id="1001")
 
     assert weight.id == "1001"
     assert weight.attributes["id"] == "1001"
     assert weight.name == "muR = 2.0"
 
 
-def test_LHEWeightGroup_init_with_name_and_combine_arguments():
-    weight = LHEWeight(name="muR = 2.0", attrib={}, id="1001")
-    weight_group = LHEWeightGroup(
+def test_LHEInitRWGTWeightGroup_init_with_name_and_combine_arguments():
+    weight = LHEInitRWGTWeight(name="muR = 2.0", attrib={}, id="1001")
+    weight_group = LHEInitRWGTWeightGroup(
         attrib={},
         weights=[weight],
         name="scale variation",
