@@ -258,7 +258,12 @@ class LHEParticle(DictCompatibility):
 
     @property
     def event(self) -> Optional["LHEEvent"]:
-        """Reference to the parent event, set when the particle is added to an event."""
+        """
+        Reference to the parent event, set when the particle is added to an event.
+
+        .. deprecated:: 2.0.0
+            Access by `particle.event` is deprecated and will be removed in a future version.
+        """
         # Previously it was just event so we still allow that for backward compatibility
         return self._event
 
@@ -302,7 +307,17 @@ class LHEParticle(DictCompatibility):
     def mothers(self) -> list["LHEParticle"]:
         """
         Return a list of the particle's mothers.
+
+        .. deprecated:: 2.0.0
+                Accessing mothers via `LHEParticle.mothers()` is deprecated and will be removed in a future version. Use `LHEEvent.mothers(LHEParticle)` method,`LHEParticle.mother1` and `LHEParticle.mother2` instead.
         """
+        warnings.warn(
+            "Access by `LHEParticle.mothers()` is deprecated and will be removed in a future version. "
+            "Use `LHEEvent.mothers(LHEParticle)` method,`LHEParticle.mother1` and `LHEParticle.mother2` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         if self.event is None:
             err = "Particle is not associated to an event."
             raise ValueError(err)
@@ -1000,8 +1015,17 @@ class LHEEvent(DictCompatibility):
                 str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
             )
         for i, p in enumerate(self.particles):
-            for mom in p.mothers():
-                self._graph.edge(str(self.particles.index(mom)), str(i))
+            for mother in self.mothers(p):
+                self._graph.edge(str(self.particles.index(mother)), str(i))
+
+    def mothers(self, particle: LHEParticle) -> list[LHEParticle]:
+        """
+        Return a list of the particle's mothers.
+        """
+        first_idx = int(particle.mother1) - 1
+        second_idx = int(particle.mother2) - 1
+
+        return [self.particles[idx] for idx in (first_idx, second_idx) if idx >= 0]
 
     def _repr_mimebundle_(
         self,
