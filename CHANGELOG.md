@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - new `LesHouchesEvents` is a synonym for `LHEFile`
 - new `LHEGenerator` dataclass to represent the `<generator>` block in the `<init>`.
 - new `LHEInitRWGT`, `LHEInitRWGTWeightGroup` and `LHEInitRWGTWeight` dataclasses.
+- benchmarking of write performance
 
 ### Changed
 
