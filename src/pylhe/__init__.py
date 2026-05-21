@@ -585,7 +585,7 @@ class LHEGenerator:
         self,
         name: str,
         version: str,
-        description: str,
+        description: str = "",
         attributes: Optional[dict[str, str]] = None,
     ) -> None:
         self.description = description
