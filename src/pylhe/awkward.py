@@ -3,11 +3,12 @@
 """
 
 from collections.abc import Iterable
+from typing import Union
 
 import awkward as ak  # type: ignore[import-untyped]
 import vector
 
-from pylhe import LHEEvent
+from pylhe import LHEEvent, LHEFile
 
 __all__ = ["to_awkward"]
 
@@ -16,7 +17,7 @@ def __dir__() -> list[str]:
     return __all__
 
 
-def to_awkward(event_iterable: Iterable[LHEEvent]) -> ak.Array:
+def to_awkward(event_iterable: Union[Iterable[LHEEvent], LHEFile]) -> ak.Array:
     """Convert an iterable of LHEEvent instances to an Awkward-Array.
 
     Uses Awkward's ArrayBuilder to construct the array by iterating over the events.
@@ -25,11 +26,13 @@ def to_awkward(event_iterable: Iterable[LHEEvent]) -> ak.Array:
     pylhe.LHEFile.fromfile(filepath).events.
 
     Args:
-        event_iterable (iterable): An iterable of LHEEvent instances.
+        event_iterable (iterable): An iterable of LHEEvent instances or LHEFile.
 
     Returns:
         awkward.Array: An Awkward array of all the events.
     """
+    if isinstance(event_iterable, LHEFile):
+        event_iterable = event_iterable.events
 
     builder = ak.ArrayBuilder()
     for event in event_iterable:
