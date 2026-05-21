@@ -6,10 +6,13 @@ import skhep_testdata
 from pylhe import (
     LHEEventInfo,
     LHEFile,
+    LHEGenerator,
     LHEInit,
     LHEInitInfo,
     LHEParticle,
     LHEProcInfo,
+    LHEWeight,
+    LHEWeightGroup,
     read_lhe,
 )
 
@@ -72,6 +75,32 @@ def test_LHEEventInfo_backwards_compatibility():
 def test_LHEFile_no_default_init():
     with pytest.raises(TypeError):
         _ = LHEFile()
+
+
+def test_LHEFile_version_property():
+    init_info = LHEInitInfo(
+        beamA=2212,
+        beamB=2212,
+        energyA=6500.0,
+        energyB=6500.0,
+        PDFgroupA=10800,
+        PDFgroupB=10800,
+        PDFsetA=0,
+        PDFsetB=0,
+        weightingStrategy=3,
+        numProcesses=1,
+    )
+    lhefile = LHEFile(
+        init=LHEInit(initInfo=init_info, procInfo=[], generators=[]),
+        version="1.0",
+    )
+
+    assert lhefile.version == "1.0"
+
+    lhefile.version = "3.0"
+
+    assert lhefile.version == "3.0"
+    assert lhefile.attributes["version"] == "3.0"
 
 
 def test_LHEInit_no_default_init():
@@ -230,20 +259,59 @@ def test_LHEProcInfo_backwards_compatibility():
 
     assert proc_info.fieldnames == ["xSection", "error", "unitWeight", "procId"]
 
-    assert proc_info["xSection"] == pytest.approx(50.109086)
-    assert proc_info["error"] == pytest.approx(0.089185414)
-    assert proc_info["unitWeight"] == pytest.approx(50.109093)
-    assert proc_info["procId"] == pytest.approx(66.0)
+    assert proc_info.xSection == pytest.approx(50.109086)
+    assert proc_info.error == pytest.approx(0.089185414)
+    assert proc_info.unitWeight == pytest.approx(50.109093)
+    assert proc_info.procId == pytest.approx(66.0)
 
-    proc_info["xSection"] = 60.0
-    proc_info["error"] = 0.1
-    proc_info["unitWeight"] = 60.0
-    proc_info["procId"] = 67.0
+    proc_info.xSection = 60.0
+    proc_info.error = 0.1
+    proc_info.unitWeight = 60.0
+    proc_info.procId = 67.0
 
-    assert proc_info["xSection"] == pytest.approx(60.0)
-    assert proc_info["error"] == pytest.approx(0.1)
-    assert proc_info["unitWeight"] == pytest.approx(60.0)
-    assert proc_info["procId"] == pytest.approx(67.0)
+    assert proc_info.xSection == pytest.approx(60.0)
+    assert proc_info.error == pytest.approx(0.1)
+    assert proc_info.unitWeight == pytest.approx(60.0)
+    assert proc_info.procId == pytest.approx(67.0)
+
+
+def test_LHEWeight_init_with_id_argument():
+    weight = LHEWeight(name="muR = 2.0", attrib={}, id="1001")
+
+    assert weight.id == "1001"
+    assert weight.attributes["id"] == "1001"
+    assert weight.name == "muR = 2.0"
+
+
+def test_LHEWeightGroup_init_with_name_and_combine_arguments():
+    weight = LHEWeight(name="muR = 2.0", attrib={}, id="1001")
+    weight_group = LHEWeightGroup(
+        attrib={},
+        weights=[weight],
+        name="scale variation",
+        combine="envelope",
+    )
+
+    assert weight_group.name == "scale variation"
+    assert weight_group.combine == "envelope"
+    assert weight_group.attributes["name"] == "scale variation"
+    assert weight_group.attributes["combine"] == "envelope"
+    assert weight_group.weights == [weight]
+
+
+def test_LHEGenerator_init_with_name_and_version_arguments():
+    generator = LHEGenerator(
+        description="some additional comments",
+        attributes={},
+        name="SomeGen",
+        version="1.2.3",
+    )
+
+    assert generator.name == "SomeGen"
+    assert generator.version == "1.2.3"
+    assert generator.attributes["name"] == "SomeGen"
+    assert generator.attributes["version"] == "1.2.3"
+    assert generator.description == "some additional comments"
 
 
 def test_LHEInitInfo_backwards_compatibility():
@@ -276,35 +344,35 @@ def test_LHEInitInfo_backwards_compatibility():
         "numProcesses",
     ]
 
-    assert lheii["beamA"] == 1
-    assert lheii["beamB"] == 2
-    assert lheii["energyA"] == 3.0
-    assert lheii["energyB"] == 4.0
-    assert lheii["PDFgroupA"] == -1
-    assert lheii["PDFgroupB"] == -1
-    assert lheii["PDFsetA"] == 21100
-    assert lheii["PDFsetB"] == 21100
-    assert lheii["weightingStrategy"] == 1
-    assert lheii["numProcesses"] == 1
+    assert lheii.beamA == 1
+    assert lheii.beamB == 2
+    assert lheii.energyA == 3.0
+    assert lheii.energyB == 4.0
+    assert lheii.PDFgroupA == -1
+    assert lheii.PDFgroupB == -1
+    assert lheii.PDFsetA == 21100
+    assert lheii.PDFsetB == 21100
+    assert lheii.weightingStrategy == 1
+    assert lheii.numProcesses == 1
 
-    lheii["beamA"] = 5
-    lheii["beamB"] = 6
-    lheii["energyA"] = 7.0
-    lheii["energyB"] = 8.0
-    lheii["PDFgroupA"] = -2
-    lheii["PDFgroupB"] = -2
-    lheii["PDFsetA"] = 21101
-    lheii["PDFsetB"] = 21101
-    lheii["weightingStrategy"] = 2
-    lheii["numProcesses"] = 2
+    lheii.beamA = 5
+    lheii.beamB = 6
+    lheii.energyA = 7.0
+    lheii.energyB = 8.0
+    lheii.PDFgroupA = -2
+    lheii.PDFgroupB = -2
+    lheii.PDFsetA = 21101
+    lheii.PDFsetB = 21101
+    lheii.weightingStrategy = 2
+    lheii.numProcesses = 2
 
-    assert lheii["beamA"] == 5
-    assert lheii["beamB"] == 6
-    assert lheii["energyA"] == 7.0
-    assert lheii["energyB"] == 8.0
-    assert lheii["PDFgroupA"] == -2
-    assert lheii["PDFgroupB"] == -2
-    assert lheii["PDFsetA"] == 21101
-    assert lheii["PDFsetB"] == 21101
-    assert lheii["weightingStrategy"] == 2
-    assert lheii["numProcesses"] == 2
+    assert lheii.beamA == 5
+    assert lheii.beamB == 6
+    assert lheii.energyA == 7.0
+    assert lheii.energyB == 8.0
+    assert lheii.PDFgroupA == -2
+    assert lheii.PDFgroupB == -2
+    assert lheii.PDFsetA == 21101
+    assert lheii.PDFsetB == 21101
+    assert lheii.weightingStrategy == 2
+    assert lheii.numProcesses == 2

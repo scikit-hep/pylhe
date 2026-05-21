@@ -9,6 +9,7 @@ import warnings
 import xml.etree.ElementTree as ET
 from abc import ABC
 from collections.abc import Iterable, Iterator, MutableMapping
+from copy import deepcopy
 from dataclasses import asdict, dataclass, field, fields
 from typing import (
     Any,
@@ -19,6 +20,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from xml.sax.saxutils import quoteattr
 
 import graphviz  # type: ignore[import-untyped]
 from particle import latex_to_html_name
@@ -31,12 +33,14 @@ __all__ = [
     "LHEEvent",
     "LHEEventInfo",
     "LHEFile",
+    "LHEGenerator",
+    "LHEHeader",
     "LHEInit",
     "LHEInitInfo",
     "LHEParticle",
     "LHEProcInfo",
+    "LHEWeight",
     "LHEWeightGroup",
-    "LHEWeightInfo",
     "__version__",
     "read_lhe",
     "read_lhe_file",
@@ -153,6 +157,21 @@ class DictCompatibility(MutableMapping[str, Any], ABC):
             stacklevel=2,
         )
         return [f.name for f in fields(self)]
+
+
+def _open_xml_tag(tag: str, attributes: dict[str, str]) -> str:
+    """Helper function to open an XML tag with attributes."""
+    attrs = ""
+    for k, v in attributes.items():
+        attrs += f" {k}={quoteattr(v)}"
+    return f"<{tag}{attrs}>"
+
+
+def _copy_xml_element(element: ET.Element) -> ET.Element:
+    """Return a detached copy of an XML element."""
+    copied = deepcopy(element)
+    copied.tail = None
+    return copied
 
 
 @dataclass
@@ -403,40 +422,109 @@ class LHEProcInfo(DictCompatibility):
         )
 
 
-@dataclass
-class LHEWeightInfo(DictCompatibility):
-    """Information about a single weight in a weight group."""
+class LHEWeight:
+    """Information about a single weight inside or outside of a weight group."""
 
-    attrib: dict[str, str]
+    def __init__(
+        self,
+        id: str,
+        name: str,
+        attrib: dict[str, str],
+    ) -> None:
+        self.attributes = attrib
+        self.name = name
+        # set id after attributes so that it takes precedence if there is a conflict between the id argument and the id in the attributes
+        self.id = id
+
+    attributes: dict[str, str]
     """Weight XML attributes"""
     name: str
     """Weight description text"""
-    index: int
-    """Sequential index for ordering"""
+
+    @property
+    def id(self) -> str:
+        """ID of the weight, retrieved from the attributes."""
+        return self.attributes.get("id", "")
+
+    @id.setter
+    def id(self, value: str) -> None:
+        """Set the ID of the weight in the attributes."""
+        self.attributes["id"] = value
 
 
-@dataclass
-class LHEWeightGroup(DictCompatibility):
+class LHEWeightGroup:
     """Information about a weight group."""
 
-    attrib: dict[str, str]
+    def __init__(
+        self,
+        weights: list[LHEWeight],
+        attrib: dict[str, str],
+        name: Optional[
+            str
+        ] = None,  # Normally this is required, i.e. not Optional, but old Madgraph-2.0.0 uses type instead of name...
+        combine: Optional[str] = None,
+    ) -> None:
+        self.attributes = attrib
+        self.weights = weights
+        # set name after attributes so that they take precedence if there is a conflict between the name arguments and the name in the attributes
+        if name is not None:
+            self.name = name
+
+        if combine is not None:
+            self.combine = combine
+
+    attributes: dict[str, str]
     """Weight group XML attributes"""
-    weights: dict[str, LHEWeightInfo]
-    """Dictionary of weight ID to weight information"""
+    weights: list[LHEWeight]
+    """List of weight information"""
+
+    @property
+    def name(self) -> str:
+        """Name of the weight group, retrieved from the attributes."""
+        return self.attributes.get("name", "")
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """Set the name of the weight group in the attributes."""
+        self.attributes["name"] = value
+
+    @property
+    def combine(self) -> str:
+        """Combination method of the weight group, retrieved from the attributes."""
+        return self.attributes.get("combine", "")
+
+    @combine.setter
+    def combine(self, value: str) -> None:
+        """Set the combination method of the weight group in the attributes."""
+        self.attributes["combine"] = value
+
+
+InitRWGTEntry = Union[LHEWeight, LHEWeightGroup]
 
 
 @dataclass
-class LHEInit(DictCompatibility):
-    """Store the <init> block as a dataclass."""
+class LHEInitRWGT(DictCompatibility):
+    """
+    Represents the <initrwgt> block of an LHE file as a dataclass.
+    """
 
-    initInfo: LHEInitInfo
-    """Init information"""
-    procInfo: list[LHEProcInfo]
-    """Process information"""
-    weightgroup: dict[str, LHEWeightGroup]
-    """Weight group information"""
-    LHEVersion: str
-    """LHE version"""
+    entries: list[InitRWGTEntry] = field(default_factory=list)
+
+    def iter_weights(self) -> Iterator[LHEWeight]:
+        """Iterate over all weights in the <initrwgt> block, including those inside weight groups."""
+        for entry in self.entries:
+            if isinstance(entry, LHEWeight):
+                yield entry
+            else:
+                yield from entry.weights
+
+    def weights_by_id(self) -> dict[str, LHEWeight]:
+        """Return a dictionary mapping weight IDs to LHEWeight instances for all weights in the <initrwgt> block."""
+        return {w.id: w for w in self.iter_weights()}
+
+    def index_to_id(self) -> dict[int, str]:
+        """Return a dictionary mapping weight indices to weight IDs for all weights in the <initrwgt> block."""
+        return {i: w.id for i, w in enumerate(self.iter_weights())}
 
     def tolhe(self) -> str:
         """
@@ -447,23 +535,193 @@ class LHEInit(DictCompatibility):
         """
         # weightgroups to xml
         root = ET.Element("initrwgt")
-        for _k, v in self.weightgroup.items():
-            weightgroup_elem = ET.SubElement(root, "weightgroup", attrib=v.attrib)
-            for _key, value in v.weights.items():
-                weight_elem = ET.SubElement(
-                    weightgroup_elem, "weight", attrib=value.attrib
+        for e in self.entries:
+            if isinstance(e, LHEWeightGroup):
+                weightgroup_elem = ET.SubElement(
+                    root, "weightgroup", attrib=e.attributes
                 )
-                weight_elem.text = value.name
+                for value in e.weights:
+                    weight_elem = ET.SubElement(
+                        weightgroup_elem, "weight", attrib=value.attributes
+                    )
+                    weight_elem.text = value.name
+            else:
+                weight_elem = ET.SubElement(root, "weight", attrib=e.attributes)
+                weight_elem.text = e.name
         _indent(root)
-        sweightgroups = ET.tostring(root, encoding="unicode", method="xml")
+        return ET.tostring(root, encoding="unicode", method="xml")
 
+
+@dataclass
+class LHEHeader(DictCompatibility):
+    """
+    Represents the header block of an LHE file as a dataclass.
+    """
+
+    initrwgt: LHEInitRWGT
+    """<initrwgt> block information"""
+    extra_elements: list[ET.Element] = field(default_factory=list)
+    """Other XML elements stored directly inside the header block"""
+    attributes: dict[str, str] = field(default_factory=dict)
+    """Attributes of the header element"""
+
+    def tolhe(self) -> str:
+        """Return the header block as a string in LHE format."""
+        root = ET.Element("header", attrib=self.attributes)
+        for element in self.extra_elements:
+            root.append(_copy_xml_element(element))
+        if self.initrwgt.entries:
+            root.append(ET.fromstring(self.initrwgt.tolhe()))
+
+        _indent(root)
+        return ET.tostring(root, encoding="unicode", method="xml")
+
+    @classmethod
+    def _fromcontext(cls, _root: ET.Element, context: Any) -> Union["LHEHeader", None]:
+        initrwgtentries: list[InitRWGTEntry] = []
+        extra_elements: list[ET.Element] = []
+        attributes: dict[str, str] = {}
+
+        for event, element in context:
+            if (
+                element.tag == "header" and event == "end"
+            ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
+                attributes = element.attrib.copy()
+                for child in element:
+                    if child.tag == "initrwgt":
+                        for weight_child in child:
+                            if (
+                                weight_child.tag == "weight"
+                                and weight_child.attrib != {}
+                            ):
+                                if "id" not in weight_child.attrib:
+                                    ae = "weight must have attribute 'id'"
+                                    raise AttributeError(ae)
+                                initrwgtentries.append(
+                                    LHEWeight(
+                                        id=weight_child.attrib["id"],
+                                        attrib=weight_child.attrib,
+                                        name=weight_child.text.strip()
+                                        if weight_child.text
+                                        else "",
+                                    )
+                                )
+                            # Find all weightgroups
+                            if (
+                                weight_child.tag == "weightgroup"
+                                and weight_child.attrib != {}
+                            ):
+                                if (
+                                    "type" not in weight_child.attrib
+                                    and "name" not in weight_child.attrib
+                                ):
+                                    ae = "weightgroup must have attribute 'type' or 'name'."
+                                    raise AttributeError(ae)
+                                temp_group = LHEWeightGroup(
+                                    attrib=weight_child.attrib, weights=[]
+                                )
+                                # Iterate over all weights in this weightgroup
+                                for wc in weight_child:
+                                    if wc.tag == "weight":
+                                        if "id" not in wc.attrib:
+                                            ae = "weight must have attribute 'id'"
+                                            raise AttributeError(ae)
+                                        temp_group.weights.append(
+                                            LHEWeight(
+                                                id=wc.attrib["id"],
+                                                attrib=wc.attrib,
+                                                name=wc.text.strip() if wc.text else "",
+                                            )
+                                        )
+                                initrwgtentries.append(temp_group)
+                    else:
+                        extra_elements.append(_copy_xml_element(child))
+                break
+        return LHEHeader(
+            initrwgt=LHEInitRWGT(entries=initrwgtentries),
+            extra_elements=extra_elements,
+            attributes=attributes,
+        )
+
+
+class LHEGenerator:
+    """Information about a generator."""
+
+    description: str
+    """Description of the generator"""
+    attributes: dict[str, str] = {}
+    """Generator XML attributes, e.g. name and version"""
+
+    def __init__(
+        self,
+        name: str,
+        version: str,
+        description: str,
+        attributes: Optional[dict[str, str]] = None,
+    ) -> None:
+        self.description = description
+        self.attributes = attributes or {}
+        # set name and version after attributes so that they take precedence if there is a conflict between the name and version arguments and the name and version in the attributes
+        self.name = name
+        self.version = version
+
+    @property
+    def name(self) -> str:
+        """Name of the generator, retrieved from the attributes."""
+        return self.attributes.get("name", "")
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """Set the name of the generator in the attributes."""
+        self.attributes["name"] = value
+
+    @property
+    def version(self) -> str:
+        """Version of the generator, retrieved from the attributes."""
+        return self.attributes.get("version", "")
+
+    @version.setter
+    def version(self, value: str) -> None:
+        """Set the version of the generator in the attributes."""
+        self.attributes["version"] = value
+
+    def tolhe(self) -> str:
+        """
+        Return the generator information as a string in LHE format.
+
+        Returns:
+            str: The generator information as a string in LHE format.
+        """
+        opening_tag = _open_xml_tag("generator", self.attributes)
+        return f"{opening_tag}{self.description}</generator>"
+
+
+@dataclass
+class LHEInit(DictCompatibility):
+    """Store the <init> block as a dataclass."""
+
+    initInfo: LHEInitInfo
+    """Init information"""
+    procInfo: list[LHEProcInfo]
+    """Process information"""
+    generators: list[LHEGenerator]
+    """Generator information"""
+
+    def tolhe(self) -> str:
+        """
+        Return the init block as a string in LHE format.
+
+        Returns:
+            str: The init block as a string in LHE format.
+        """
         return (
             "<init>\n"
             + self.initInfo.tolhe()
             + "\n"
             + "\n".join([p.tolhe() for p in self.procInfo])
             + "\n"
-            + f"{sweightgroups}"
+            + "\n".join([g.tolhe() for g in self.generators])
+            + "\n"
             + "</init>"
         )
 
@@ -511,46 +769,37 @@ class LHEInit(DictCompatibility):
             setattr(self.initInfo, key, value)
 
     @classmethod
-    def _fromcontext(cls, root: ET.Element, context: Any) -> "LHEInit":
+    def _fromcontext(cls, _root: ET.Element, context: Any) -> "LHEInit":
         initInfo = None
         procInfo = []
-        weightgroup: dict[str, LHEWeightGroup] = {}
-        LHEVersion: str = ""
-
-        if root.tag == "LesHouchesEvents":
-            LHEVersion = root.attrib["version"]
+        generators = []
 
         for event, element in context:
-            if element.tag == "initrwgt":
-                weightgroup = {}
-                index = 0
-                for child in element:
-                    # Find all weightgroups
-                    if child.tag == "weightgroup" and child.attrib != {}:
-                        if "type" in child.attrib:
-                            wg_type = child.attrib["type"]
-                        elif "name" in child.attrib:
-                            wg_type = child.attrib["name"]
-                        else:
-                            ae = "weightgroup must have attribute 'type' or 'name'."
-                            raise AttributeError(ae)
-                        _temp = LHEWeightGroup(attrib=child.attrib, weights={})
-                        # Iterate over all weights in this weightgroup
-                        for wc in child:
-                            if wc.tag != "weight":
-                                continue
-                            if "id" not in wc.attrib:
-                                ae = "weight must have attribute 'id'"
-                                raise AttributeError(ae)
-                            wg_id = wc.attrib["id"]
-                            _temp.weights[wg_id] = LHEWeightInfo(
-                                attrib=wc.attrib,
-                                name=wc.text.strip() if wc.text else "",
-                                index=index,
-                            )
-                            index += 1
-
-                        weightgroup[wg_type] = _temp
+            if (
+                element.tag == "generator"
+                and "version" in element.attrib
+                and event == "end"
+            ):
+                if "name" in element.attrib:
+                    # lhe-v3 has name and version
+                    generator = LHEGenerator(
+                        name=element.attrib["name"],
+                        version=element.attrib["version"],
+                        description=""
+                        if element.text is None
+                        else element.text.strip(),
+                        attributes=element.attrib.copy(),
+                    )
+                    generators.append(generator)
+                else:
+                    # lhe-v2 has version and name is in the text
+                    generator = LHEGenerator(
+                        version=element.attrib["version"],
+                        name="",
+                        description=element.text.strip() if element.text else "",
+                        attributes=element.attrib.copy(),
+                    )
+                    generators.append(generator)
             if (
                 element.tag == "init" and event == "end"
             ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
@@ -560,8 +809,6 @@ class LHEInit(DictCompatibility):
                 data = element.text.split("\n")[1:-1]
                 initInfo = LHEInitInfo.fromstring(data[0])
                 procInfo = [LHEProcInfo.fromstring(d) for d in data[1:]]
-
-            if element.tag == "event":
                 break
         if initInfo is None:
             err = "No <init> block found in the LHE file."
@@ -569,8 +816,7 @@ class LHEInit(DictCompatibility):
         return LHEInit(
             initInfo=initInfo,
             procInfo=procInfo,
-            weightgroup=weightgroup,
-            LHEVersion=LHEVersion,
+            generators=generators,
         )
 
 
@@ -586,6 +832,8 @@ class LHEEvent(DictCompatibility):
     """List of particles in the event"""
     weights: dict[str, float] = field(default_factory=dict)
     """Event weights"""
+    scales: dict[str, float] = field(default_factory=dict)
+    """Event scales"""
     attributes: dict[str, str] = field(default_factory=dict)
     """Event attributes"""
     optional: list[str] = field(default_factory=list)
@@ -624,6 +872,14 @@ class LHEEvent(DictCompatibility):
                 sweights += f"{v:11.4e}\n"
             sweights += "</weights>\n"
 
+        sscales = ""
+        if self.scales:
+            sscales = (
+                "<scales "
+                + " ".join(f"{k}='{v}'" for k, v in self.scales.items())
+                + "/>\n"
+            )
+
         return (
             "<event>\n"
             + self.eventinfo.tolhe()
@@ -631,6 +887,7 @@ class LHEEvent(DictCompatibility):
             + "\n".join([p.tolhe() for p in self.particles])
             + "\n"
             + sweights
+            + sscales
             + "</event>"
         )
 
@@ -639,10 +896,12 @@ class LHEEvent(DictCompatibility):
         cls,
         root: ET.Element,
         context: Any,
-        lheinit: LHEInit,
-        with_attributes: bool,
+        lheheader: Optional[LHEHeader] = None,
+        with_attributes: bool = True,
     ) -> Iterator["LHEEvent"]:
-        index_map = _get_index_to_id_map(lheinit) if with_attributes else {}
+        index_map = (
+            lheheader.initrwgt.index_to_id() if with_attributes and lheheader else {}
+        )
         for event, element in context:
             if event == "end" and element.tag == "event":
                 if element.text is None:
@@ -661,6 +920,7 @@ class LHEEvent(DictCompatibility):
 
                 if with_attributes:
                     weights = {}
+                    scales = {}
                     attrib = element.attrib
                     optional = [
                         p.strip() for p in particles_str if p.strip().startswith("#")
@@ -670,6 +930,9 @@ class LHEEvent(DictCompatibility):
                         if sub.tag == "weights":
                             if sub.text is None:
                                 err = "<weights> block has no text."
+                                raise ValueError(err)
+                            if not index_map:
+                                err = "<initrwgt> is required to parse <weights> block but not found in the header."
                                 raise ValueError(err)
                             for i, w in enumerate(sub.text.split()):
                                 if w and index_map[i] not in weights:
@@ -681,11 +944,15 @@ class LHEEvent(DictCompatibility):
                                         err = "<wgt> block has no text."
                                         raise ValueError(err)
                                     weights[r.attrib["id"]] = float(r.text.strip())
+                        elif sub.tag == "scales":
+                            for k, v in sub.attrib.items():
+                                scales[k] = float(v)
 
                     yield LHEEvent(
                         eventinfo=eventinfo,
                         particles=particles,
                         weights=weights,
+                        scales=scales,
                         attributes=attrib,
                         optional=optional,
                     )
@@ -748,8 +1015,7 @@ class LHEEvent(DictCompatibility):
         return self.graph._repr_mimebundle_(include=include, exclude=exclude, **kwargs)
 
 
-@dataclass
-class LHEFile(DictCompatibility):
+class LesHouchesEvents:
     """
     Represents an LHE file as a dataclass.
     """
@@ -758,6 +1024,39 @@ class LHEFile(DictCompatibility):
     """Init block"""
     events: Iterable[LHEEvent] = ()
     """Event block"""
+    header: Optional[LHEHeader] = None
+    """Header block"""
+    comment: Optional[str] = None
+    """Comment block"""
+    attributes: dict[str, str] = {}
+    """Attributes of the root LesHouchesEvents element"""
+
+    def __init__(
+        self,
+        init: LHEInit,
+        events: Iterable[LHEEvent] = (),
+        header: Optional[LHEHeader] = None,
+        comment: Optional[str] = None,
+        attributes: Optional[dict[str, str]] = None,
+        version: Optional[str] = None,
+    ) -> None:
+        self.init = init
+        self.events = events
+        self.header = header
+        self.comment = comment
+        self.attributes = attributes if attributes is not None else {}
+        if version is not None:
+            self.attributes["version"] = version
+
+    @property
+    def version(self) -> str:
+        """Version of the LHE file, retrieved from the root element attribute."""
+        return self.attributes.get("version", "3.0")  # default to 3.0 if not specified
+
+    @version.setter
+    def version(self, value: str) -> None:
+        """Set the version attribute of the LHE file."""
+        self.attributes["version"] = value
 
     def write(
         self, output_stream: TWriteable, rwgt: bool = True, weights: bool = False
@@ -765,7 +1064,11 @@ class LHEFile(DictCompatibility):
         """
         Write the LHE file to an output stream.
         """
-        output_stream.write(f'<LesHouchesEvents version="{self.init.LHEVersion}">\n')
+        output_stream.write(_open_xml_tag("LesHouchesEvents", self.attributes) + "\n")
+        if self.comment is not None:
+            output_stream.write(f"<!-- {self.comment} -->\n")
+        if self.header is not None:
+            output_stream.write(self.header.tolhe() + "\n")
         output_stream.write(self.init.tolhe() + "\n")
         for e in self.events:
             output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
@@ -836,13 +1139,41 @@ class LHEFile(DictCompatibility):
         """
 
         def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
+
             try:
                 with fileobject as fileobj:
-                    context = ET.iterparse(fileobj, events=["start", "end"])
+                    context = ET.iterparse(fileobj, events=["start", "end", "comment"])
                     _, root = next(context)  # Get the root element
 
-                    lheinit = LHEInit._fromcontext(root, context)
-                    lhef.init = lheinit
+                    if root.tag != "LesHouchesEvents":
+                        err = "Root element is not <LesHouchesEvents>."
+                        raise ValueError(err)
+                    else:
+                        lhef.attributes = root.attrib.copy()
+
+                    # We do not allow other xml tags before <header> or <init>
+                    event, element = next(context)  # Get the first element in the file
+                    # look for optional header first
+                    if event == "comment":
+                        # Here we extract e.g. the POWHEG run card stored in first <!-- ... --> comment block before the header
+                        lhef.comment = element.text.strip() if element.text else None
+                        event, element = next(
+                            context
+                        )  # Get the next element in the file after the comment
+                    if element.tag == "header" and event == "start":
+                        lhef.header = LHEHeader._fromcontext(root, context)
+                        event, element = next(
+                            context
+                        )  # Get the second element in the file
+                    else:
+                        lhef.header = None
+                    if element.tag == "init" and event == "start":
+                        lheinit = LHEInit._fromcontext(root, context)
+                        lhef.init = lheinit
+                    else:
+                        err = "No <init> block found in the LHE file."
+                        raise ValueError(err)
+
                     # First yield allows caller to advance generator to read lheinit before consuming real events
                     yield LHEEvent(
                         eventinfo=LHEEventInfo(
@@ -856,7 +1187,7 @@ class LHEFile(DictCompatibility):
                         particles=[],
                     )
                     yield from LHEEvent._fromcontext(
-                        root, context, lheinit, with_attributes
+                        root, context, lhef.header, with_attributes
                     )
 
             except ET.ParseError as excep:
@@ -864,21 +1195,23 @@ class LHEFile(DictCompatibility):
                 return
 
         lhef = cls(
+            version="3.0",  # dummy version, will be replaced
             # dummy init, will be replaced
             init=LHEInit(
                 initInfo=LHEInitInfo(0, 0, 0.0, 0.0, 0, 0, 0, 0, 0, 0),
                 procInfo=[],
-                weightgroup={},
-                LHEVersion="3.0",
+                generators=[],
             ),
+            header=None,
             events=[],
+            comment=None,
         )
         events = _generator(lhef)
         try:
-            next(events)  # advance to read lheinit
+            next(events)  # advance to read lheinit and version
         except StopIteration:
             # If generator stops without yielding, it means no init was read
-            err = "No or faulty <init> block found in the LHE file."
+            err = "No or faulty <header>/<init> block found in the LHE file."
             raise ValueError(err) from None
 
         lhef.events = events if generator else list(events)
@@ -912,6 +1245,10 @@ class LHEFile(DictCompatibility):
         except ET.ParseError as excep:
             warnings.warn(f"Parse Error: {excep}", RuntimeWarning, stacklevel=1)
         return -1
+
+
+# Backwards compatibility
+LHEFile = LesHouchesEvents
 
 
 def read_lhe_file(filepath: PathLike, with_attributes: bool = True) -> LHEFile:
@@ -991,27 +1328,6 @@ def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
     yield from LHEFile.fromfile(filepath, with_attributes=False).events
 
 
-def _get_index_to_id_map(init: LHEInit) -> dict[int, str]:
-    """
-    Produce a dictionary to map weight indices to the id of the weight.
-
-    It is used for LHE files where there is only a list of weights per event.
-    This dictionary is then used to map the list of weights to their weight id.
-    Ideally, this needs to be done only once and the dictionary can be reused.
-
-    Args:
-        init (LHEInit): init block as returned by read_lhe_init
-
-    Returns:
-        dict: {weight index: weight id}
-    """
-    ret = {}
-    for wg in init.weightgroup.values():
-        for id, w in wg.weights.items():
-            ret[w.index] = id
-    return ret
-
-
 def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
     """
     Iterate through file, similar to read_lhe but also set
@@ -1071,7 +1387,6 @@ def write_lhe_string(
 ) -> str:
     """
     Return the LHE file as a string.
-
     .. deprecated:: 0.9.1
        Instead of :func:`~pylhe.write_lhe_string(init,events,rwgt,weights)` use `LHEFile(init,events).tolhe(rwgt,weights)`.
     """
@@ -1122,7 +1437,6 @@ def write_lhe_file(
 ) -> None:
     """
     Write the LHE file.
-
     .. deprecated:: 0.9.1
        Instead of :func:`~pylhe.write_lhe_file(init,events,filepath,gz,rwgt,weights)` use `LHEFile(init,events).tofile(filepath,gz,rwgt,weights)`.
     """
