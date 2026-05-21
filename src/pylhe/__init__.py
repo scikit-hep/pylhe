@@ -37,10 +37,10 @@ __all__ = [
     "LHEHeader",
     "LHEInit",
     "LHEInitInfo",
+    "LHEInitRWGTWeight",
+    "LHEInitRWGTWeightGroup",
     "LHEParticle",
     "LHEProcInfo",
-    "LHEWeight",
-    "LHEWeightGroup",
     "__version__",
     "read_lhe",
     "read_lhe_file",
@@ -422,7 +422,7 @@ class LHEProcInfo(DictCompatibility):
         )
 
 
-class LHEWeight:
+class LHEInitRWGTWeight:
     """Information about a single weight inside or outside of a weight group."""
 
     def __init__(
@@ -452,12 +452,12 @@ class LHEWeight:
         self.attributes["id"] = value
 
 
-class LHEWeightGroup:
+class LHEInitRWGTWeightGroup:
     """Information about a weight group."""
 
     def __init__(
         self,
-        weights: list[LHEWeight],
+        weights: list[LHEInitRWGTWeight],
         attrib: dict[str, str],
         name: Optional[
             str
@@ -475,7 +475,7 @@ class LHEWeightGroup:
 
     attributes: dict[str, str]
     """Weight group XML attributes"""
-    weights: list[LHEWeight]
+    weights: list[LHEInitRWGTWeight]
     """List of weight information"""
 
     @property
@@ -499,7 +499,7 @@ class LHEWeightGroup:
         self.attributes["combine"] = value
 
 
-InitRWGTEntry = Union[LHEWeight, LHEWeightGroup]
+InitRWGTEntry = Union[LHEInitRWGTWeight, LHEInitRWGTWeightGroup]
 
 
 @dataclass
@@ -510,16 +510,16 @@ class LHEInitRWGT(DictCompatibility):
 
     entries: list[InitRWGTEntry] = field(default_factory=list)
 
-    def iter_weights(self) -> Iterator[LHEWeight]:
+    def iter_weights(self) -> Iterator[LHEInitRWGTWeight]:
         """Iterate over all weights in the <initrwgt> block, including those inside weight groups."""
         for entry in self.entries:
-            if isinstance(entry, LHEWeight):
+            if isinstance(entry, LHEInitRWGTWeight):
                 yield entry
             else:
                 yield from entry.weights
 
-    def weights_by_id(self) -> dict[str, LHEWeight]:
-        """Return a dictionary mapping weight IDs to LHEWeight instances for all weights in the <initrwgt> block."""
+    def weights_by_id(self) -> dict[str, LHEInitRWGTWeight]:
+        """Return a dictionary mapping weight IDs to LHEInitRWGTWeight instances for all weights in the <initrwgt> block."""
         return {w.id: w for w in self.iter_weights()}
 
     def index_to_id(self) -> dict[int, str]:
@@ -536,7 +536,7 @@ class LHEInitRWGT(DictCompatibility):
         # weightgroups to xml
         root = ET.Element("initrwgt")
         for e in self.entries:
-            if isinstance(e, LHEWeightGroup):
+            if isinstance(e, LHEInitRWGTWeightGroup):
                 weightgroup_elem = ET.SubElement(
                     root, "weightgroup", attrib=e.attributes
                 )
@@ -598,7 +598,7 @@ class LHEHeader(DictCompatibility):
                                     ae = "weight must have attribute 'id'"
                                     raise AttributeError(ae)
                                 initrwgtentries.append(
-                                    LHEWeight(
+                                    LHEInitRWGTWeight(
                                         id=weight_child.attrib["id"],
                                         attrib=weight_child.attrib,
                                         name=weight_child.text.strip()
@@ -617,7 +617,7 @@ class LHEHeader(DictCompatibility):
                                 ):
                                     ae = "weightgroup must have attribute 'type' or 'name'."
                                     raise AttributeError(ae)
-                                temp_group = LHEWeightGroup(
+                                temp_group = LHEInitRWGTWeightGroup(
                                     attrib=weight_child.attrib, weights=[]
                                 )
                                 # Iterate over all weights in this weightgroup
@@ -627,7 +627,7 @@ class LHEHeader(DictCompatibility):
                                             ae = "weight must have attribute 'id'"
                                             raise AttributeError(ae)
                                         temp_group.weights.append(
-                                            LHEWeight(
+                                            LHEInitRWGTWeight(
                                                 id=wc.attrib["id"],
                                                 attrib=wc.attrib,
                                                 name=wc.text.strip() if wc.text else "",
