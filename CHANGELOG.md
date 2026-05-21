@@ -10,14 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - CHANGELOG.md file to track updates relevant to library consumers
-- new dataclass LHEHeader
-- LHEEvent now also contains `<scales>`
-- LesHouchesEvents is a synonym for LHEFile now
+- new dataclass `LHEHeader`
+- added `<scales>` to `LHEEvent`
+- new `LesHouchesEvents` is a synonym for `LHEFile`
+- new `LHEGenerator` dataclass to represent the `<generator>` block in the `<init>`.
 
 ### Changed
 
-- weights and weightgroups are now no longer stored in LHEInit.weightgroup but in LHEHeader.initrwgt.entities. They are thus part of the `<header>` instead of `<init>` as demanded by LHE specification.
-- `LHEInit` no longer has `LHEVersion`. Instead the version is stored `LesHoucheEvents.version`.
+- weights and weightgroups are now no longer stored in `LHEInit.weightgroup` but in `LHEHeader.initrwgt.entities`. They are thus part of the `<header>` instead of `<init>` as demanded by LHE specification.
+- `LHEInit` no longer has `LHEVersion`. Instead, the version is stored `LesHoucheEvents.version`.
 
 ### Removed
 
@@ -27,9 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.3] - 2026-05-15
 
-### Added
+### Changed
 
-- error handling for rwgt and weights parameters
+- raise an error when weight format is requested to be both `rwgt` and `weights` simultaneously
 
 [unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.0.4...HEAD
 [1.0.4]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.0.3...v1.0.4
