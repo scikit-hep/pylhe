@@ -173,6 +173,11 @@ class LHEParticle:
         .. deprecated:: 2.0.0
             Access by `particle.event` is deprecated and will be removed in a future version.
         """
+        warnings.warn(
+            "Access by `particle.event` is deprecated and will be removed in a future version.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         # Previously it was just event so we still allow that for backward compatibility
         return self._event
 
