@@ -4,6 +4,9 @@ import pylhe
 
 TEST_FILE_LHE_v1 = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 TEST_FILE_LHE_v3 = skhep_testdata.data_path("pylhe-testlhef3.lhe")
+TEST_FILE_LHE_POWHEG_TRIJET = skhep_testdata.data_path(
+    "pylhe-testfile-powheg-box-v2-trijet.lhe"
+)
 TEST_FILE_LHE_INITRWGT_WEIGHTS = skhep_testdata.data_path(
     "pylhe-testfile-powheg-box-v2-hvq.lhe"
 )
@@ -15,17 +18,19 @@ TEST_FILES_LHE_POWHEG = [
 
 
 def test_backwards_compatibility_lheinit():
-    init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
+    init = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3).init
+    assert init.initInfo.beamA == init["beamA"]
     assert init["initInfo"]["beamA"] == init["beamA"]
     init["beamA"] = 11
     assert init["initInfo"]["beamA"] == 11
+    assert init.initInfo.beamA == 11
 
 
 def test_write_lhe_eventline():
     """
     Test that the event line is written correctly.
     """
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3).events
     e = next(events)
     assert (
         e.particles[0].tolhe()
@@ -37,7 +42,7 @@ def test_write_lhe_eventinfo():
     """
     Test that the event info is written correctly.
     """
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3).events
     e = next(events)
     assert (
         e.eventinfo.tolhe()
@@ -49,7 +54,7 @@ def test_write_lhe_event():
     """
     Test that the event is written correctly.
     """
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3).events
     e = next(events)
     assert (
         e.tolhe()
@@ -71,6 +76,7 @@ def test_write_lhe_event():
  <wgt id='1008'> 4.5746e+01</wgt>
  <wgt id='1009'> 5.2581e+01</wgt>
 </rwgt>
+<scales muf='90.1' mur='90.2' mups='90.3' newscale='90.4'/>
 </event>"""
     )
 
@@ -79,15 +85,14 @@ def test_write_lhe_init():
     """
     Test that the <init> block is written correctly.
     """
-    init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
+    init = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3).init
 
     assert (
-        init["initInfo"].tolhe()
+        init.initInfo.tolhe()
         == "   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1"
     )
     assert (
-        init["procInfo"][0].tolhe()
-        == " 5.0109086e+01  8.9185414e-02  5.0109093e+01    66"
+        init.procInfo[0].tolhe() == " 5.0109086e+01  8.9185414e-02  5.0109093e+01    66"
     )
 
     assert (
@@ -95,53 +100,54 @@ def test_write_lhe_init():
         == """<init>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66
-<initrwgt>
-  <weightgroup type="scale_variation" combine="envelope">
-    <weight id="1001">muR=0.10000E+01 muF=0.10000E+01</weight>
-    <weight id="1002">muR=0.10000E+01 muF=0.20000E+01</weight>
-    <weight id="1003">muR=0.10000E+01 muF=0.50000E+00</weight>
-    <weight id="1004">muR=0.20000E+01 muF=0.10000E+01</weight>
-    <weight id="1005">muR=0.20000E+01 muF=0.20000E+01</weight>
-    <weight id="1006">muR=0.20000E+01 muF=0.50000E+00</weight>
-    <weight id="1007">muR=0.50000E+00 muF=0.10000E+01</weight>
-    <weight id="1008">muR=0.50000E+00 muF=0.20000E+01</weight>
-    <weight id="1009">muR=0.50000E+00 muF=0.50000E+00</weight>
-  </weightgroup>
-</initrwgt>
+<generator name="SomeGen1" version="1.2.3">some additional comments</generator>
+<generator name="SomeGen2" version="a.x.3">some other comments</generator>
+<generator name="SomeGen3" version="+.#.@">more comments</generator>
 </init>"""
     )
-    assert init.tolhe() == pylhe.LHEFile.fromstring(init.tolhe()).init.tolhe()
+    assert (
+        init.tolhe()
+        == pylhe.LHEFile.fromstring(
+            f"""
+        <LesHouchesEvents version="3.0">
+        {init.tolhe()}
+        </LesHouchesEvents>
+        """
+        ).init.tolhe()
+    )
+
+
+def test_write_lhe_generator_escapes_attributes():
+    generator = pylhe.LHEGenerator(
+        description="some additional comments",
+        attributes={},
+        name='Some "Gen" & Co',
+        version="1'2&3",
+    )
+
+    assert (
+        generator.tolhe()
+        == """<generator name='Some "Gen" &amp; Co' version="1'2&amp;3">some additional comments</generator>"""
+    )
 
 
 def test_write_lhe():
     """
     Test that the LHE file is written correctly.
     """
-    init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    assert file.header is not None
+    events = file.events
     # single test event
-    events = [next(events)]
+    file.events = [next(events)]
+    header = file.header.tolhe()
+    init = file.init.tolhe()
 
     assert (
-        pylhe.write_lhe_string(init, events)
-        == """<LesHouchesEvents version="3.0">
-<init>
-   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
- 5.0109086e+01  8.9185414e-02  5.0109093e+01    66
-<initrwgt>
-  <weightgroup type="scale_variation" combine="envelope">
-    <weight id="1001">muR=0.10000E+01 muF=0.10000E+01</weight>
-    <weight id="1002">muR=0.10000E+01 muF=0.20000E+01</weight>
-    <weight id="1003">muR=0.10000E+01 muF=0.50000E+00</weight>
-    <weight id="1004">muR=0.20000E+01 muF=0.10000E+01</weight>
-    <weight id="1005">muR=0.20000E+01 muF=0.20000E+01</weight>
-    <weight id="1006">muR=0.20000E+01 muF=0.50000E+00</weight>
-    <weight id="1007">muR=0.50000E+00 muF=0.10000E+01</weight>
-    <weight id="1008">muR=0.50000E+00 muF=0.20000E+01</weight>
-    <weight id="1009">muR=0.50000E+00 muF=0.50000E+00</weight>
-  </weightgroup>
-</initrwgt>
-</init>
+        file.tolhe(True, False)
+        == f"""<LesHouchesEvents version="3.0">
+{header}
+{init}
 <event>
   5     66  5.0109093000e+01  1.4137688000e+02  7.5563862000e-03  1.2114027000e-01
     5  -1   0   0 501   0  0.00000000e+00  0.00000000e+00  1.43229060e+02  1.43309460e+02  4.80000000e+00  0.0000e+00  0.0000e+00
@@ -160,30 +166,16 @@ def test_write_lhe():
  <wgt id='1008'> 4.5746e+01</wgt>
  <wgt id='1009'> 5.2581e+01</wgt>
 </rwgt>
+<scales muf='90.1' mur='90.2' mups='90.3' newscale='90.4'/>
 </event>
 </LesHouchesEvents>"""
     )
 
     assert (
-        pylhe.write_lhe_string(init, events, rwgt=False, weights=True)
-        == """<LesHouchesEvents version="3.0">
-<init>
-   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
- 5.0109086e+01  8.9185414e-02  5.0109093e+01    66
-<initrwgt>
-  <weightgroup type="scale_variation" combine="envelope">
-    <weight id="1001">muR=0.10000E+01 muF=0.10000E+01</weight>
-    <weight id="1002">muR=0.10000E+01 muF=0.20000E+01</weight>
-    <weight id="1003">muR=0.10000E+01 muF=0.50000E+00</weight>
-    <weight id="1004">muR=0.20000E+01 muF=0.10000E+01</weight>
-    <weight id="1005">muR=0.20000E+01 muF=0.20000E+01</weight>
-    <weight id="1006">muR=0.20000E+01 muF=0.50000E+00</weight>
-    <weight id="1007">muR=0.50000E+00 muF=0.10000E+01</weight>
-    <weight id="1008">muR=0.50000E+00 muF=0.20000E+01</weight>
-    <weight id="1009">muR=0.50000E+00 muF=0.50000E+00</weight>
-  </weightgroup>
-</initrwgt>
-</init>
+        file.tolhe(rwgt=False, weights=True)
+        == f"""<LesHouchesEvents version="3.0">
+{header}
+{init}
 <event>
   5     66  5.0109093000e+01  1.4137688000e+02  7.5563862000e-03  1.2114027000e-01
     5  -1   0   0 501   0  0.00000000e+00  0.00000000e+00  1.43229060e+02  1.43309460e+02  4.80000000e+00  0.0000e+00  0.0000e+00
@@ -202,29 +194,45 @@ def test_write_lhe():
  4.5746e+01
  5.2581e+01
 </weights>
+<scales muf='90.1' mur='90.2' mups='90.3' newscale='90.4'/>
 </event>
 </LesHouchesEvents>"""
     )
+
+
+def test_write_lhe_includes_powheg_comment():
+    """
+    Test that writing a POWHEG LHE file preserves the top-level XML comment.
+    """
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_POWHEG_TRIJET, with_attributes=True)
+    events = file.events
+    file.events = [next(events)]
+
+    output = file.tolhe()
+
+    assert "<!-- file generated with POWHEG-BOX-V2" in output
+    assert "End of powheg.input content" in output
+    assert output.index("<!-- ") < output.index("<init>")
 
 
 def test_write_lhe_twice(tmpdir):
     file1 = tmpdir.join("test1.lhe")
     file2 = tmpdir.join("test2.lhe")
 
-    init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    events = file.events
     # single test event
     events = [next(events)]
 
     # write the file
-    pylhe.write_lhe_file(init, events, filepath=file1.strpath)
+    file.tofile(file1.strpath)
 
     # read it again
-    init = pylhe.read_lhe_init(file1)
-    events = pylhe.read_lhe_with_attributes(file1)
+    lhefile = pylhe.LHEFile.fromfile(file1, with_attributes=True)
+    events = lhefile.events
 
     # write it again
-    pylhe.write_lhe_file_path(pylhe.LHEFile(init, events), filepath=file2.strpath)
+    lhefile.tofile(file2.strpath)
 
     # assert that the files are the same
     assert file1.read() == file2.read()
@@ -233,14 +241,15 @@ def test_write_lhe_twice(tmpdir):
 def test_write_lhe_gzip(tmpdir):
     file1 = tmpdir.join("test1.lhe.gz")
 
-    init = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
+    file = pylhe.LesHouchesEvents.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    init = file.init
     assert init is not None
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
+    events = file.events
     # single test event
     events = [next(events)]
 
     # write the file
-    pylhe.write_lhe_file(init, events, filepath=file1.strpath, gz=True)
+    file.tofile(file1.strpath, gz=True)
 
     # read it again
-    init = pylhe.read_lhe_init(file1)
+    init = pylhe.LesHouchesEvents.fromfile(file1.strpath).init

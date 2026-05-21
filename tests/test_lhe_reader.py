@@ -12,6 +12,9 @@ from pylhe import LHEEvent
 
 TEST_FILE_LHE_v1 = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 TEST_FILE_LHE_v3 = skhep_testdata.data_path("pylhe-testlhef3.lhe")
+TEST_FILE_LHE_POWHEG_TRIJET = skhep_testdata.data_path(
+    "pylhe-testfile-powheg-box-v2-trijet.lhe"
+)
 TEST_FILE_LHE_INITRWGT_WEIGHTS = skhep_testdata.data_path(
     "pylhe-testfile-powheg-box-v2-hvq.lhe"
 )
@@ -104,33 +107,159 @@ def test_read_lhe_init_v1():
     """
     Test method read_lhe_init() on a LesHouchesEvents version="1.0" file.
     """
-    init_data = pylhe.read_lhe_init(TEST_FILE_LHE_v1)
+    init_data = pylhe.LesHouchesEvents.fromfile(TEST_FILE_LHE_v1).init
 
-    assert init_data["LHEVersion"] == "1.0"
+    init_info = init_data.initInfo
+    assert init_info.beamA == pytest.approx(1.0)
+    assert init_info.beamB == pytest.approx(2.0)
+    assert init_info.energyA == pytest.approx(1.234567)
+    assert init_info.energyB == pytest.approx(2.345678)
+    assert init_info.PDFgroupA == pytest.approx(3.0)
+    assert init_info.PDFgroupB == pytest.approx(4.0)
+    assert init_info.PDFsetA == pytest.approx(5.0)
+    assert init_info.PDFsetB == pytest.approx(6.0)
+    assert init_info.weightingStrategy == pytest.approx(7.0)
+    assert init_info.numProcesses == pytest.approx(8.0)
 
-    init_info = init_data["initInfo"]
-    assert init_info["beamA"] == pytest.approx(1.0)
-    assert init_info["beamB"] == pytest.approx(2.0)
-    assert init_info["energyA"] == pytest.approx(1.234567)
-    assert init_info["energyB"] == pytest.approx(2.345678)
-    assert init_info["PDFgroupA"] == pytest.approx(3.0)
-    assert init_info["PDFgroupB"] == pytest.approx(4.0)
-    assert init_info["PDFsetA"] == pytest.approx(5.0)
-    assert init_info["PDFsetB"] == pytest.approx(6.0)
-    assert init_info["weightingStrategy"] == pytest.approx(7.0)
-    assert init_info["numProcesses"] == pytest.approx(8.0)
-
-    assert init_data["procInfo"] == []
+    assert init_data.procInfo == []
 
 
 def test_read_lhe_init_v3():
     """
     Test method read_lhe_init() on a LesHouchesEvents version="3.0" file.
     """
-    init_data = pylhe.read_lhe_init(TEST_FILE_LHE_v3)
+    header = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True).header
 
-    assert len(init_data["weightgroup"]) == 1
-    assert len(init_data["weightgroup"]["scale_variation"]["weights"]) == 9
+    assert header is not None
+    assert len(header.initrwgt.entries) == 1
+    assert isinstance(header.initrwgt.entries[0], pylhe.LHEWeightGroup)
+    assert header.initrwgt.entries[0].attributes["type"] == "scale_variation"
+    assert len(header.initrwgt.entries[0].weights) == 9
+
+
+def test_read_lhe_header_additional_xml_elements():
+    """
+    Test that non-initrwgt XML elements inside the header are preserved.
+    """
+    lhefile = pylhe.LHEFile.fromstring(
+        """<LesHouchesEvents version="3.0">
+<header>
+<MGGenerationInfo>
+#  Number of Events        :       1000
+#  Integrated weight (pb)  :       699670670.0
+</MGGenerationInfo>
+<initrwgt>
+  <weight id="1">central</weight>
+</initrwgt>
+<RunSettings generator="MadGraph">LO</RunSettings>
+</header>
+<init>
+  2212   2212  6.5000000e+03  6.5000000e+03    -1    -1  260000  260000     3     1
+  1.0000000e+00  0.0000000e+00  1.0000000e+00     1
+</init>
+</LesHouchesEvents>""",
+        with_attributes=True,
+    )
+
+    assert lhefile.header is not None
+    assert [element.tag for element in lhefile.header.extra_elements] == [
+        "MGGenerationInfo",
+        "RunSettings",
+    ]
+    assert "Number of Events" in (lhefile.header.extra_elements[0].text or "")
+    assert "Integrated weight (pb)" in (lhefile.header.extra_elements[0].text or "")
+    assert lhefile.header.extra_elements[1].attrib["generator"] == "MadGraph"
+    assert (lhefile.header.extra_elements[1].text or "").strip() == "LO"
+
+    header_xml = lhefile.header.tolhe()
+    assert header_xml.index("<MGGenerationInfo>") < header_xml.index("<initrwgt>")
+    assert header_xml.index("<RunSettings") < header_xml.index("<initrwgt>")
+
+
+def test_read_lhe_powheg_xml_comment_is_nonempty():
+    """
+    Test that the top-level XML comment in a POWHEG LHE file is captured.
+    """
+    lhefile = pylhe.LHEFile.fromfile(TEST_FILE_LHE_POWHEG_TRIJET)
+
+    assert lhefile.comment is not None
+    assert lhefile.comment.strip() != ""
+    assert "POWHEG-BOX-V2" in lhefile.comment
+
+
+def test_read_lhe_init_v3_mixed_initrwgt_entries():
+    """
+    Test that mixed top-level weights and weightgroups are read in order.
+    """
+    lhefile = pylhe.LHEFile.fromstring(
+        """<LesHouchesEvents version="3.0">
+<header>
+<initrwgt>
+  <weight id="1">This is the original event weight</weight>
+  <weightgroup name="scale variation" combine="envelope">
+    <weight id="2">muR = 2.0</weight>
+    <weight id="3">muR = 0.5</weight>
+  </weightgroup>
+  <weightgroup name="MRST2008 PDF uncertainty" combine="hessian">
+    <weight id="4">set 01</weight>
+    <weight id="5">set 02</weight>
+  </weightgroup>
+  <weightgroup name="Qmatch variation" combine="envelope">
+    <weight id="44">Qmatch=20</weight>
+    <weight id="my_own_id">Qmatch=40</weight>
+  </weightgroup>
+  <weight id="46">BSM benchmark point number 42B</weight>
+</initrwgt>
+</header>
+<init>
+  2212   2212  6.5000000e+03  6.5000000e+03    -1    -1  260000  260000     3     1
+  1.0000000e+00  0.0000000e+00  1.0000000e+00     1
+</init>
+</LesHouchesEvents>""",
+        with_attributes=True,
+    )
+
+    assert lhefile.header is not None
+
+    entries = lhefile.header.initrwgt.entries
+    assert len(entries) == 5
+
+    assert isinstance(entries[0], pylhe.LHEWeight)
+    assert entries[0].id == "1"
+    assert entries[0].name == "This is the original event weight"
+
+    assert isinstance(entries[1], pylhe.LHEWeightGroup)
+    assert entries[1].name == "scale variation"
+    assert entries[1].combine == "envelope"
+    assert [weight.id for weight in entries[1].weights] == ["2", "3"]
+    assert [weight.name for weight in entries[1].weights] == ["muR = 2.0", "muR = 0.5"]
+
+    assert isinstance(entries[2], pylhe.LHEWeightGroup)
+    assert entries[2].name == "MRST2008 PDF uncertainty"
+    assert entries[2].combine == "hessian"
+    assert [weight.id for weight in entries[2].weights] == ["4", "5"]
+
+    assert isinstance(entries[3], pylhe.LHEWeightGroup)
+    assert entries[3].name == "Qmatch variation"
+    assert entries[3].combine == "envelope"
+    assert [weight.id for weight in entries[3].weights] == ["44", "my_own_id"]
+    assert [weight.name for weight in entries[3].weights] == ["Qmatch=20", "Qmatch=40"]
+
+    assert isinstance(entries[4], pylhe.LHEWeight)
+    assert entries[4].id == "46"
+    assert entries[4].name == "BSM benchmark point number 42B"
+
+    assert lhefile.header.initrwgt.index_to_id() == {
+        0: "1",
+        1: "2",
+        2: "3",
+        3: "4",
+        4: "5",
+        5: "44",
+        6: "my_own_id",
+        7: "46",
+    }
+    assert lhefile.header.initrwgt.weights_by_id()["my_own_id"].name == "Qmatch=40"
 
 
 def test_read_lhe_v1():
@@ -148,7 +277,7 @@ def test_read_lhe_v3():
     """
     Test method read_lhe() on a LesHouchesEvents version="3.0" file.
     """
-    events = pylhe.read_lhe(TEST_FILE_LHE_v3)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=False).events
 
     assert events
     for e in events:
@@ -159,7 +288,7 @@ def test_read_lhe_with_attributes_v1():
     """
     Test method read_lhe_with_attributes() on a LesHouchesEvents version="1.0" file.
     """
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v1)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v1, with_attributes=True).events
 
     assert events
     for e in events:
@@ -170,7 +299,7 @@ def test_read_lhe_with_attributes_v3():
     """
     Test method read_lhe_with_attributes() on a LesHouchesEvents version="3.0" file.
     """
-    events = pylhe.read_lhe_with_attributes(TEST_FILE_LHE_v3)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True).events
 
     assert events
     for e in events:
@@ -182,7 +311,7 @@ def test_read_lhe_generator(file):
     """
     Test method read_lhe() on several types of LesHouchesEvents generator files.
     """
-    events = pylhe.read_lhe(file)
+    events = pylhe.LHEFile.fromfile(file, with_attributes=False).events
 
     assert events
     for e in events:
@@ -194,7 +323,7 @@ def test_read_lhe_with_attributes_generator(file):
     """
     Test method read_lhe_with_attributes() on several types of LesHouchesEvents generator files.
     """
-    events = pylhe.read_lhe_with_attributes(file)
+    events = pylhe.LHEFile.fromfile(file, with_attributes=True).events
 
     assert events
     for e in events:
@@ -274,7 +403,9 @@ def test_read_lhe_init_raises():
     with pytest.raises(
         AttributeError, match=r"weightgroup must have attribute 'type' or 'name'."
     ):
-        pylhe.LHEFile.fromstring("""<init>
+        pylhe.LHEFile.fromstring("""
+<LesHouchesEvents>
+<header>
    2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
  5.0109086e+01  8.9185414e-02  5.0109093e+01    66
 <initrwgt>
@@ -290,12 +421,12 @@ def test_read_lhe_init_raises():
     <weight id="1009">muR=0.50000E+00 muF=0.50000E+00</weight>
   </weightgroup>
 </initrwgt>
-</init>""")
+</header>
+<LesHouchesEvents>""")
 
     with pytest.raises(AttributeError, match=r"weight must have attribute 'id'"):
-        pylhe.LHEFile.fromstring("""<init>
-   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
- 5.0109086e+01  8.9185414e-02  5.0109093e+01    66
+        pylhe.LHEFile.fromstring("""<LesHouchesEvents>
+<header>
 <initrwgt>
   <weightgroup name="a fake name" combine="envelope">
     <spam>muR=0.10000E+01 muF=0.10000E+01</spam>
@@ -310,7 +441,8 @@ def test_read_lhe_init_raises():
     <weight>muR=0.50000E+00 muF=0.50000E+00</weight>
   </weightgroup>
 </initrwgt>
-</init>""")
+</header>
+<LesHouchesEvents>""")
 
 
 def test_event_at_position_5():
@@ -328,7 +460,7 @@ def test_event_at_position_5():
     # 5    34  1.5543917618E-03   3.6288856778E+01  0.0000000000E+00  0.0000000000E+00  3.6288856778E+01   1.9388062018E+01  2.3242767182E+00  2.1256769904E+00  1.9130504008E+01   9.0374892691E-01 -1.4114
     </event>
     """
-    events = pylhe.read_lhe(TEST_FILE_LHE_v1)
+    events = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v1, with_attributes=False).events
 
     # Get the event at position 5 (0-indexed)
     target_event = None
