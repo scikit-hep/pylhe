@@ -64,3 +64,11 @@ def test_write_lhe_file_backwards_compatibility(tmp_path):
     assert getattr(reread, "header", None) is None
     assert reread.init.tolhe() == lhefile.init.tolhe()
     assert next(reread.events).tolhe() == lhefile.events[0].tolhe()
+
+
+def test_mothers_backwards_compatibility():
+    lhefile = _single_event_lhefile()
+    event = lhefile.events[0]
+    assert len(event.particles) > 3
+    assert len(event.mothers(event.particles[3])) == 2
+    assert event.particles[3].mothers() == event.mothers(event.particles[3])
