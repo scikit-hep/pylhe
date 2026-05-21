@@ -19,18 +19,6 @@ WEIGHT_IDS = ("1001", "1002", "1003", "1004", "1005", "1006")
 
 
 def _build_init() -> pylhe.LHEInit:
-    weightgroup = pylhe.LHEWeightGroup(
-        attrib={"type": "scale_variation", "combine": "envelope"},
-        weights={
-            weight_id: pylhe.LHEWeightInfo(
-                attrib={"id": weight_id},
-                name=f"variation_{index}",
-                index=index,
-            )
-            for index, weight_id in enumerate(WEIGHT_IDS)
-        },
-    )
-
     return pylhe.LHEInit(
         initInfo=pylhe.LHEInitInfo(
             beamA=2212,
@@ -52,8 +40,27 @@ def _build_init() -> pylhe.LHEInit:
                 procId=1,
             )
         ],
-        weightgroup={"scale_variation": weightgroup},
-        LHEVersion="3.0",
+        generators=[],
+    )
+
+
+def _build_header() -> pylhe.LHEHeader:
+    return pylhe.LHEHeader(
+        initrwgt=pylhe.LHEInitRWGT(
+            entries=[
+                pylhe.LHEWeightGroup(
+                    attrib={"type": "scale_variation", "combine": "envelope"},
+                    weights=[
+                        pylhe.LHEWeight(
+                            id=weight_id,
+                            attrib={"id": weight_id},
+                            name=f"variation_{index}",
+                        )
+                        for index, weight_id in enumerate(WEIGHT_IDS)
+                    ],
+                )
+            ]
+        )
     )
 
 
@@ -180,7 +187,9 @@ def _write_random_events_to_temporary_gzip(num_events: int) -> int:
         output_path = Path(tmp_dir) / "random-events.lhe.gz"
         pylhe.LHEFile(
             init=_build_init(),
+            header=_build_header(),
             events=_random_events(num_events=num_events, seed=RNG_SEED),
+            version="3.0",
         ).tofile(str(output_path), gz=True, rwgt=True)
         return output_path.stat().st_size
 
