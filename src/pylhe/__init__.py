@@ -351,81 +351,60 @@ class LHEProcInfo:
         )
 
 
+@dataclass
 class LHEInitRWGTWeight:
     """Information about a single weight inside or outside of a weight group."""
 
-    def __init__(
-        self,
-        id: str,
-        name: str,
-        attrib: dict[str, str],
-    ) -> None:
-        self.attributes = attrib
-        self.name = name
-        # set id after attributes so that it takes precedence if there is a conflict between the id argument and the id in the attributes
-        self.id = id
-
-    attributes: dict[str, str]
-    """Weight XML attributes"""
+    id: str
+    """ID of the weight"""
     name: str
     """Weight description text"""
+    extra_attributes: dict[str, str] = field(default_factory=dict)
+    """Weight XML attributes not represented by dedicated fields"""
+
+    def __post_init__(self) -> None:
+        # Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies
+        self.extra_attributes.pop("id", None)
 
     @property
-    def id(self) -> str:
-        """ID of the weight, retrieved from the attributes."""
-        return self.attributes.get("id", "")
-
-    @id.setter
-    def id(self, value: str) -> None:
-        """Set the ID of the weight in the attributes."""
-        self.attributes["id"] = value
+    def attributes(self) -> dict[str, str]:
+        """Return the XML attributes of the weight, including the ID."""
+        return {**self.extra_attributes, "id": self.id}
 
 
+@dataclass
 class LHEInitRWGTWeightGroup:
     """Information about a weight group."""
 
-    def __init__(
-        self,
-        weights: list[LHEInitRWGTWeight],
-        attrib: dict[str, str],
-        name: Optional[
-            str
-        ] = None,  # Normally this is required, i.e. not Optional, but old Madgraph-2.0.0 uses type instead of name...
-        combine: Optional[str] = None,
-    ) -> None:
-        self.attributes = attrib
-        self.weights = weights
-        # set name after attributes so that they take precedence if there is a conflict between the name arguments and the name in the attributes
-        if name is not None:
-            self.name = name
-
-        if combine is not None:
-            self.combine = combine
-
-    attributes: dict[str, str]
-    """Weight group XML attributes"""
-    weights: list[LHEInitRWGTWeight]
+    name: Optional[str] = (
+        None  # Normally this is required, i.e. not Optional, but old Madgraph-2.0.0 uses 'type' instead of 'name'...
+    )
+    """Name of the weight group"""
+    combine: Optional[str] = None
+    """Combination method of the weight group"""
+    weights: list[LHEInitRWGTWeight] = field(default_factory=list)
     """List of weight information"""
+    extra_attributes: dict[str, str] = field(default_factory=dict)
+    """Weight group XML attributes not represented by dedicated fields"""
 
     @property
-    def name(self) -> str:
-        """Name of the weight group, retrieved from the attributes."""
-        return self.attributes.get("name", "")
+    def attributes(self) -> dict[str, str]:
+        """Return the attributes of the weight group, including the name and combine attributes."""
+        attrs = {}
+        if self.name is not None:
+            attrs["name"] = self.name
+        if self.combine is not None:
+            attrs["combine"] = self.combine
+        return {**self.extra_attributes, **attrs}
 
-    @name.setter
-    def name(self, value: str) -> None:
-        """Set the name of the weight group in the attributes."""
-        self.attributes["name"] = value
-
-    @property
-    def combine(self) -> str:
-        """Combination method of the weight group, retrieved from the attributes."""
-        return self.attributes.get("combine", "")
-
-    @combine.setter
-    def combine(self, value: str) -> None:
-        """Set the combination method of the weight group in the attributes."""
-        self.attributes["combine"] = value
+    def __post_init__(self) -> None:
+        # Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies
+        name = self.extra_attributes.pop("name", None)
+        if self.name is None:
+            self.name = name
+        combine = self.extra_attributes.pop("combine", None)
+        if self.combine is None:
+            self.combine = combine
 
 
 InitRWGTEntry = Union[LHEInitRWGTWeight, LHEInitRWGTWeightGroup]
@@ -491,8 +470,13 @@ class LHEHeader:
     """<initrwgt> block information"""
     extra_elements: list[ET.Element] = field(default_factory=list)
     """Other XML elements stored directly inside the header block"""
-    attributes: dict[str, str] = field(default_factory=dict)
-    """Attributes of the header element"""
+    extra_attributes: dict[str, str] = field(default_factory=dict)
+    """Attributes of the header element not represented by dedicated fields"""
+
+    @property
+    def attributes(self) -> dict[str, str]:
+        """Return the attributes of the header element"""
+        return {**self.extra_attributes}
 
     def tolhe(self) -> str:
         """Return the header block as a string in LHE format."""
@@ -529,7 +513,7 @@ class LHEHeader:
                                 initrwgtentries.append(
                                     LHEInitRWGTWeight(
                                         id=weight_child.attrib["id"],
-                                        attrib=weight_child.attrib,
+                                        extra_attributes=weight_child.attrib,
                                         name=weight_child.text.strip()
                                         if weight_child.text
                                         else "",
@@ -547,7 +531,7 @@ class LHEHeader:
                                     ae = "weightgroup must have attribute 'type' or 'name'."
                                     raise AttributeError(ae)
                                 temp_group = LHEInitRWGTWeightGroup(
-                                    attrib=weight_child.attrib, weights=[]
+                                    extra_attributes=weight_child.attrib, weights=[]
                                 )
                                 # Iterate over all weights in this weightgroup
                                 for wc in weight_child:
@@ -558,7 +542,7 @@ class LHEHeader:
                                         temp_group.weights.append(
                                             LHEInitRWGTWeight(
                                                 id=wc.attrib["id"],
-                                                attrib=wc.attrib,
+                                                extra_attributes=wc.attrib,
                                                 name=wc.text.strip() if wc.text else "",
                                             )
                                         )
@@ -569,50 +553,32 @@ class LHEHeader:
         return LHEHeader(
             initrwgt=LHEInitRWGT(entries=initrwgtentries),
             extra_elements=extra_elements,
-            attributes=attributes,
+            extra_attributes=attributes,
         )
 
 
+@dataclass
 class LHEGenerator:
     """Information about a generator."""
 
+    name: str
+    """Name of the generator"""
+    version: str
+    """Version of the generator"""
     description: str
     """Description of the generator"""
-    attributes: dict[str, str] = {}
-    """Generator XML attributes, e.g. name and version"""
-
-    def __init__(
-        self,
-        name: str,
-        version: str,
-        description: str = "",
-        attributes: Optional[dict[str, str]] = None,
-    ) -> None:
-        self.description = description
-        self.attributes = attributes or {}
-        # set name and version after attributes so that they take precedence if there is a conflict between the name and version arguments and the name and version in the attributes
-        self.name = name
-        self.version = version
+    extra_attributes: dict[str, str] = field(default_factory=dict)
+    """Generator XML attributes not represented by dedicated fields"""
 
     @property
-    def name(self) -> str:
-        """Name of the generator, retrieved from the attributes."""
-        return self.attributes.get("name", "")
+    def attributes(self) -> dict[str, str]:
+        """Return the attributes of the generator element"""
+        return {**self.extra_attributes, "name": self.name, "version": self.version}
 
-    @name.setter
-    def name(self, value: str) -> None:
-        """Set the name of the generator in the attributes."""
-        self.attributes["name"] = value
-
-    @property
-    def version(self) -> str:
-        """Version of the generator, retrieved from the attributes."""
-        return self.attributes.get("version", "")
-
-    @version.setter
-    def version(self, value: str) -> None:
-        """Set the version of the generator in the attributes."""
-        self.attributes["version"] = value
+    def __post_init__(self) -> None:
+        # Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies
+        self.extra_attributes.pop("name", None)
+        self.extra_attributes.pop("version", None)
 
     def tolhe(self) -> str:
         """
@@ -675,7 +641,7 @@ class LHEInit:
                         description=""
                         if element.text is None
                         else element.text.strip(),
-                        attributes=element.attrib.copy(),
+                        extra_attributes=element.attrib.copy(),
                     )
                     generators.append(generator)
                 else:
@@ -684,7 +650,7 @@ class LHEInit:
                         version=element.attrib["version"],
                         name="",
                         description=element.text.strip() if element.text else "",
-                        attributes=element.attrib.copy(),
+                        extra_attributes=element.attrib.copy(),
                     )
                     generators.append(generator)
             if (
@@ -722,7 +688,7 @@ class LHEEvent:
     scales: dict[str, float] = field(default_factory=dict)
     """Event scales"""
     attributes: dict[str, str] = field(default_factory=dict)
-    """Event attributes"""
+    """Event attributes not represented by dedicated fields"""
     optional: list[str] = field(default_factory=list)
     """Optional '#' comments stored in the event"""
     _graph: Optional[graphviz.Digraph] = None
@@ -911,6 +877,7 @@ class LHEEvent:
         return self.graph._repr_mimebundle_(include=include, exclude=exclude, **kwargs)
 
 
+@dataclass
 class LesHouchesEvents:
     """
     Represents an LHE file as a dataclass.
@@ -918,41 +885,29 @@ class LesHouchesEvents:
 
     init: LHEInit
     """Init block"""
-    events: Iterable[LHEEvent] = ()
+    events: Iterable[LHEEvent] = field(default_factory=list)
     """Event block"""
     header: Optional[LHEHeader] = None
     """Header block"""
     comment: Optional[str] = None
     """Comment block"""
-    attributes: dict[str, str] = {}
+    version: Optional[str] = None
+    """Version of the LHE file"""
+    extra_attributes: dict[str, str] = field(default_factory=dict)
     """Attributes of the root LesHouchesEvents element"""
 
-    def __init__(
-        self,
-        init: LHEInit,
-        events: Iterable[LHEEvent] = (),
-        header: Optional[LHEHeader] = None,
-        comment: Optional[str] = None,
-        attributes: Optional[dict[str, str]] = None,
-        version: Optional[str] = None,
-    ) -> None:
-        self.init = init
-        self.events = events
-        self.header = header
-        self.comment = comment
-        self.attributes = attributes if attributes is not None else {}
-        if version is not None:
-            self.attributes["version"] = version
+    def __post_init__(self) -> None:
+        version = self.extra_attributes.pop("version", None)
+        if self.version is None:
+            self.version = version
 
     @property
-    def version(self) -> str:
-        """Version of the LHE file, retrieved from the root element attribute."""
-        return self.attributes.get("version", "3.0")  # default to 3.0 if not specified
-
-    @version.setter
-    def version(self, value: str) -> None:
-        """Set the version attribute of the LHE file."""
-        self.attributes["version"] = value
+    def attributes(self) -> dict[str, str]:
+        """Return the attributes of the root LesHouchesEvents element, including the version."""
+        attrs = {}
+        if self.version is not None:
+            attrs["version"] = self.version
+        return {**self.extra_attributes, **attrs}
 
     def write(
         self, output_stream: TWriteable, rwgt: bool = True, weights: bool = False
@@ -1045,7 +1000,7 @@ class LesHouchesEvents:
                         err = "Root element is not <LesHouchesEvents>."
                         raise ValueError(err)
                     else:
-                        lhef.attributes = root.attrib.copy()
+                        lhef.extra_attributes = root.attrib.copy()
 
                     # We do not allow other xml tags before <header> or <init>
                     event, element = next(context)  # Get the first element in the file
@@ -1091,7 +1046,7 @@ class LesHouchesEvents:
                 return
 
         lhef = cls(
-            version="3.0",  # dummy version, will be replaced
+            version=None,  # dummy version, will be replaced
             # dummy init, will be replaced
             init=LHEInit(
                 initInfo=LHEInitInfo(0, 0, 0.0, 0.0, 0, 0, 0, 0, 0, 0),

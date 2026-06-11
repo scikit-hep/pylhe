@@ -111,7 +111,7 @@ def test_write_lhe_init():
 def test_write_lhe_generator_escapes_attributes():
     generator = pylhe.LHEGenerator(
         description="some additional comments",
-        attributes={},
+        extra_attributes={},
         name='Some "Gen" & Co',
         version="1'2&3",
     )

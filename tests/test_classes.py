@@ -215,7 +215,7 @@ def test_LHEProcInfo_backwards_compatibility():
 
 
 def test_LHEInitRWGTWeight_init_with_id_argument():
-    weight = LHEInitRWGTWeight(name="muR = 2.0", attrib={}, id="1001")
+    weight = LHEInitRWGTWeight(name="muR = 2.0", extra_attributes={}, id="1001")
 
     assert weight.id == "1001"
     assert weight.attributes["id"] == "1001"
@@ -223,9 +223,9 @@ def test_LHEInitRWGTWeight_init_with_id_argument():
 
 
 def test_LHEInitRWGTWeightGroup_init_with_name_and_combine_arguments():
-    weight = LHEInitRWGTWeight(name="muR = 2.0", attrib={}, id="1001")
+    weight = LHEInitRWGTWeight(name="muR = 2.0", extra_attributes={}, id="1001")
     weight_group = LHEInitRWGTWeightGroup(
-        attrib={},
+        extra_attributes={},
         weights=[weight],
         name="scale variation",
         combine="envelope",
@@ -241,7 +241,7 @@ def test_LHEInitRWGTWeightGroup_init_with_name_and_combine_arguments():
 def test_LHEGenerator_init_with_name_and_version_arguments():
     generator = LHEGenerator(
         description="some additional comments",
-        attributes={},
+        extra_attributes={},
         name="SomeGen",
         version="1.2.3",
     )
