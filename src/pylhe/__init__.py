@@ -363,7 +363,7 @@ class LHEInitRWGTWeight:
     """Weight XML attributes not represented by dedicated fields"""
 
     def __post_init__(self) -> None:
-        # Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies
+        """Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies."""
         self.extra_attributes.pop("id", None)
 
     @property
@@ -398,7 +398,7 @@ class LHEInitRWGTWeightGroup:
         return {**self.extra_attributes, **attrs}
 
     def __post_init__(self) -> None:
-        # Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies
+        """Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies."""
         name = self.extra_attributes.pop("name", None)
         if self.name is None:
             self.name = name
@@ -576,7 +576,7 @@ class LHEGenerator:
         return {**self.extra_attributes, "name": self.name, "version": self.version}
 
     def __post_init__(self) -> None:
-        # Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies
+        """Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies."""
         self.extra_attributes.pop("name", None)
         self.extra_attributes.pop("version", None)
 
@@ -897,6 +897,7 @@ class LesHouchesEvents:
     """Attributes of the root LesHouchesEvents element"""
 
     def __post_init__(self) -> None:
+        """Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies."""
         version = self.extra_attributes.pop("version", None)
         if self.version is None:
             self.version = version
