@@ -7,10 +7,9 @@ import io
 import os
 import warnings
 import xml.etree.ElementTree as ET
-from abc import ABC
-from collections.abc import Iterable, Iterator, MutableMapping
+from collections.abc import Iterable, Iterator
 from copy import deepcopy
-from dataclasses import asdict, dataclass, field, fields
+from dataclasses import dataclass, field
 from typing import (
     Any,
     BinaryIO,
@@ -37,21 +36,12 @@ __all__ = [
     "LHEHeader",
     "LHEInit",
     "LHEInitInfo",
+    "LHEInitRWGTWeight",
+    "LHEInitRWGTWeightGroup",
     "LHEParticle",
     "LHEProcInfo",
-    "LHEWeight",
-    "LHEWeightGroup",
     "__version__",
-    "read_lhe",
-    "read_lhe_file",
-    "read_lhe_init",
-    "read_lhe_with_attributes",
-    "read_num_events",
     "to_awkward",
-    "write_lhe_file",
-    "write_lhe_file_path",
-    "write_lhe_file_string",
-    "write_lhe_string",
 ]
 
 
@@ -78,87 +68,6 @@ class Writeable(Protocol):
 TWriteable = TypeVar("TWriteable", bound=Writeable)
 
 
-@dataclass
-class DictCompatibility(MutableMapping[str, Any], ABC):
-    """
-    Mixin for dataclasses to behave like mutable dictionaries.
-    """
-
-    def __getitem__(self, key: str) -> Any:
-        """
-        Get a dict by fieldname.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Access by `object['key']` is deprecated and will be removed in a future version. Use `object.key` instead.
-        """
-        warnings.warn(
-            f'Access by `object["{key}"]` is deprecated and will be removed in a future version. '
-            f"Use `object.{key}` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return getattr(self, key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """
-        Set a dict by fieldname.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Access by `object['key']` is deprecated and will be removed in a future version. Use `object.key` instead.
-        """
-        warnings.warn(
-            f'Access by `object["{key}"]` is deprecated and will be removed in a future version. '
-            f"Use `object.{key}` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        setattr(self, key, value)
-
-    def __delitem__(self, key: str) -> None:
-        err = f"Cannot delete field {key!r} from dataclass instance"
-        raise TypeError(err)
-
-    def __iter__(self) -> Any:
-        warnings.warn(
-            "Dict-like iteration is deprecated and will be removed in a future version. "
-            "Use `asdict(object)` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return iter(asdict(self))
-
-    def __len__(self) -> int:
-        warnings.warn(
-            "Dict-like length is deprecated and will be removed in a future version. "
-            "Use `asdict(object)` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return len(asdict(self))
-
-    @property
-    def fieldnames(self) -> list[str]:
-        """
-        Return the fieldnames.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Listing fieldnames via `object.fieldnames` is deprecated and will be removed in a future version.
-        """
-        warnings.warn(
-            "The fieldnames property is deprecated and will be removed in a future version. "
-            "Use `asdict(object)` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return [f.name for f in fields(self)]
-
-
 def _open_xml_tag(tag: str, attributes: dict[str, str]) -> str:
     """Helper function to open an XML tag with attributes."""
     attrs = ""
@@ -175,7 +84,7 @@ def _copy_xml_element(element: ET.Element) -> ET.Element:
 
 
 @dataclass
-class LHEEventInfo(DictCompatibility):
+class LHEEventInfo:
     """
     Store the event information in the LHE format.
     """
@@ -219,7 +128,7 @@ class LHEEventInfo(DictCompatibility):
 
 
 @dataclass
-class LHEParticle(DictCompatibility):
+class LHEParticle:
     """
     Represents a single particle in the LHE format.
     """
@@ -258,7 +167,17 @@ class LHEParticle(DictCompatibility):
 
     @property
     def event(self) -> Optional["LHEEvent"]:
-        """Reference to the parent event, set when the particle is added to an event."""
+        """
+        Reference to the parent event, set when the particle is added to an event.
+
+        .. deprecated:: 2.0.0
+            Access by `particle.event` is deprecated and will be removed in a future version.
+        """
+        warnings.warn(
+            "Access by `particle.event` is deprecated and will be removed in a future version.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         # Previously it was just event so we still allow that for backward compatibility
         return self._event
 
@@ -302,7 +221,17 @@ class LHEParticle(DictCompatibility):
     def mothers(self) -> list["LHEParticle"]:
         """
         Return a list of the particle's mothers.
+
+        .. deprecated:: 2.0.0
+                Accessing mothers via `LHEParticle.mothers()` is deprecated and will be removed in a future version. Use `LHEEvent.mothers(LHEParticle)` method, `LHEParticle.mother1` and `LHEParticle.mother2` instead.
         """
+        warnings.warn(
+            "Access by `LHEParticle.mothers()` is deprecated and will be removed in a future version. "
+            "Use `LHEEvent.mothers(LHEParticle)` method, `LHEParticle.mother1` and `LHEParticle.mother2` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         if self.event is None:
             err = "Particle is not associated to an event."
             raise ValueError(err)
@@ -333,7 +262,7 @@ def _indent(elem: ET.Element, level: int = 0) -> None:
 
 
 @dataclass
-class LHEInitInfo(DictCompatibility):
+class LHEInitInfo:
     """Store the first line of the <init> block as a dataclass."""
 
     beamA: int
@@ -387,7 +316,7 @@ class LHEInitInfo(DictCompatibility):
 
 
 @dataclass
-class LHEProcInfo(DictCompatibility):
+class LHEProcInfo:
     """Store the process info block as a dataclass."""
 
     xSection: float
@@ -422,104 +351,85 @@ class LHEProcInfo(DictCompatibility):
         )
 
 
-class LHEWeight:
+@dataclass
+class LHEInitRWGTWeight:
     """Information about a single weight inside or outside of a weight group."""
 
-    def __init__(
-        self,
-        id: str,
-        name: str,
-        attrib: dict[str, str],
-    ) -> None:
-        self.attributes = attrib
-        self.name = name
-        # set id after attributes so that it takes precedence if there is a conflict between the id argument and the id in the attributes
-        self.id = id
-
-    attributes: dict[str, str]
-    """Weight XML attributes"""
+    id: str
+    """ID of the weight"""
     name: str
     """Weight description text"""
+    extra_attributes: dict[str, str] = field(default_factory=dict)
+    """Weight XML attributes not represented by dedicated fields"""
+
+    def __post_init__(self) -> None:
+        """Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies."""
+        self.extra_attributes.pop("id", None)
 
     @property
-    def id(self) -> str:
-        """ID of the weight, retrieved from the attributes."""
-        return self.attributes.get("id", "")
-
-    @id.setter
-    def id(self, value: str) -> None:
-        """Set the ID of the weight in the attributes."""
-        self.attributes["id"] = value
-
-
-class LHEWeightGroup:
-    """Information about a weight group."""
-
-    def __init__(
-        self,
-        weights: list[LHEWeight],
-        attrib: dict[str, str],
-        name: Optional[
-            str
-        ] = None,  # Normally this is required, i.e. not Optional, but old Madgraph-2.0.0 uses type instead of name...
-        combine: Optional[str] = None,
-    ) -> None:
-        self.attributes = attrib
-        self.weights = weights
-        # set name after attributes so that they take precedence if there is a conflict between the name arguments and the name in the attributes
-        if name is not None:
-            self.name = name
-
-        if combine is not None:
-            self.combine = combine
-
-    attributes: dict[str, str]
-    """Weight group XML attributes"""
-    weights: list[LHEWeight]
-    """List of weight information"""
-
-    @property
-    def name(self) -> str:
-        """Name of the weight group, retrieved from the attributes."""
-        return self.attributes.get("name", "")
-
-    @name.setter
-    def name(self, value: str) -> None:
-        """Set the name of the weight group in the attributes."""
-        self.attributes["name"] = value
-
-    @property
-    def combine(self) -> str:
-        """Combination method of the weight group, retrieved from the attributes."""
-        return self.attributes.get("combine", "")
-
-    @combine.setter
-    def combine(self, value: str) -> None:
-        """Set the combination method of the weight group in the attributes."""
-        self.attributes["combine"] = value
-
-
-InitRWGTEntry = Union[LHEWeight, LHEWeightGroup]
+    def attributes(self) -> dict[str, str]:
+        """Return all the attributes of the weight, including the ID."""
+        # class schema typed attributes take precedence over extra_attributes in case of overlap to avoid inconsistencies
+        return {**self.extra_attributes, "id": self.id}
 
 
 @dataclass
-class LHEInitRWGT(DictCompatibility):
+class LHEInitRWGTWeightGroup:
+    """Information about a weight group."""
+
+    name: Optional[str] = (
+        None  # Normally this is required, i.e. not Optional, but old Madgraph-2.0.0 uses 'type' instead of 'name'...
+    )
+    """Name of the weight group"""
+    combine: Optional[str] = None
+    """Combination method of the weight group"""
+    weights: list[LHEInitRWGTWeight] = field(default_factory=list)
+    """List of weight information"""
+    extra_attributes: dict[str, str] = field(default_factory=dict)
+    """Weight group XML attributes not represented by dedicated fields"""
+
+    @property
+    def attributes(self) -> dict[str, str]:
+        """Return all the attributes of the weight group, including the name and combine attributes."""
+        attrs = {}
+        if self.name is not None:
+            attrs["name"] = self.name
+        if self.combine is not None:
+            attrs["combine"] = self.combine
+        # class schema typed attributes take precedence over extra_attributes in case of overlap to avoid inconsistencies
+        return {**self.extra_attributes, **attrs}
+
+    def __post_init__(self) -> None:
+        """Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies."""
+        name = self.extra_attributes.pop("name", None)
+        if self.name is None:
+            self.name = name
+        combine = self.extra_attributes.pop("combine", None)
+        if self.combine is None:
+            self.combine = combine
+
+
+InitRWGTEntry = Union[LHEInitRWGTWeight, LHEInitRWGTWeightGroup]
+
+
+@dataclass
+class LHEInitRWGT:
     """
     Represents the <initrwgt> block of an LHE file as a dataclass.
     """
 
     entries: list[InitRWGTEntry] = field(default_factory=list)
 
-    def iter_weights(self) -> Iterator[LHEWeight]:
+    def iter_weights(self) -> Iterator[LHEInitRWGTWeight]:
         """Iterate over all weights in the <initrwgt> block, including those inside weight groups."""
         for entry in self.entries:
-            if isinstance(entry, LHEWeight):
+            if isinstance(entry, LHEInitRWGTWeight):
                 yield entry
             else:
                 yield from entry.weights
 
-    def weights_by_id(self) -> dict[str, LHEWeight]:
-        """Return a dictionary mapping weight IDs to LHEWeight instances for all weights in the <initrwgt> block."""
+    def weights_by_id(self) -> dict[str, LHEInitRWGTWeight]:
+        """Return a dictionary mapping weight IDs to LHEInitRWGTWeight instances for all weights in the <initrwgt> block."""
         return {w.id: w for w in self.iter_weights()}
 
     def index_to_id(self) -> dict[int, str]:
@@ -536,7 +446,7 @@ class LHEInitRWGT(DictCompatibility):
         # weightgroups to xml
         root = ET.Element("initrwgt")
         for e in self.entries:
-            if isinstance(e, LHEWeightGroup):
+            if isinstance(e, LHEInitRWGTWeightGroup):
                 weightgroup_elem = ET.SubElement(
                     root, "weightgroup", attrib=e.attributes
                 )
@@ -553,7 +463,7 @@ class LHEInitRWGT(DictCompatibility):
 
 
 @dataclass
-class LHEHeader(DictCompatibility):
+class LHEHeader:
     """
     Represents the header block of an LHE file as a dataclass.
     """
@@ -562,8 +472,13 @@ class LHEHeader(DictCompatibility):
     """<initrwgt> block information"""
     extra_elements: list[ET.Element] = field(default_factory=list)
     """Other XML elements stored directly inside the header block"""
-    attributes: dict[str, str] = field(default_factory=dict)
-    """Attributes of the header element"""
+    extra_attributes: dict[str, str] = field(default_factory=dict)
+    """Attributes of the header element not represented by dedicated fields"""
+
+    @property
+    def attributes(self) -> dict[str, str]:
+        """Return all the attributes of the header element"""
+        return {**self.extra_attributes}
 
     def tolhe(self) -> str:
         """Return the header block as a string in LHE format."""
@@ -598,9 +513,9 @@ class LHEHeader(DictCompatibility):
                                     ae = "weight must have attribute 'id'"
                                     raise AttributeError(ae)
                                 initrwgtentries.append(
-                                    LHEWeight(
+                                    LHEInitRWGTWeight(
                                         id=weight_child.attrib["id"],
-                                        attrib=weight_child.attrib,
+                                        extra_attributes=weight_child.attrib,
                                         name=weight_child.text.strip()
                                         if weight_child.text
                                         else "",
@@ -617,8 +532,8 @@ class LHEHeader(DictCompatibility):
                                 ):
                                     ae = "weightgroup must have attribute 'type' or 'name'."
                                     raise AttributeError(ae)
-                                temp_group = LHEWeightGroup(
-                                    attrib=weight_child.attrib, weights=[]
+                                temp_group = LHEInitRWGTWeightGroup(
+                                    extra_attributes=weight_child.attrib, weights=[]
                                 )
                                 # Iterate over all weights in this weightgroup
                                 for wc in weight_child:
@@ -627,9 +542,9 @@ class LHEHeader(DictCompatibility):
                                             ae = "weight must have attribute 'id'"
                                             raise AttributeError(ae)
                                         temp_group.weights.append(
-                                            LHEWeight(
+                                            LHEInitRWGTWeight(
                                                 id=wc.attrib["id"],
-                                                attrib=wc.attrib,
+                                                extra_attributes=wc.attrib,
                                                 name=wc.text.strip() if wc.text else "",
                                             )
                                         )
@@ -640,50 +555,33 @@ class LHEHeader(DictCompatibility):
         return LHEHeader(
             initrwgt=LHEInitRWGT(entries=initrwgtentries),
             extra_elements=extra_elements,
-            attributes=attributes,
+            extra_attributes=attributes,
         )
 
 
+@dataclass
 class LHEGenerator:
     """Information about a generator."""
 
+    name: str
+    """Name of the generator"""
+    version: str
+    """Version of the generator"""
     description: str
     """Description of the generator"""
-    attributes: dict[str, str] = {}
-    """Generator XML attributes, e.g. name and version"""
-
-    def __init__(
-        self,
-        name: str,
-        version: str,
-        description: str,
-        attributes: Optional[dict[str, str]] = None,
-    ) -> None:
-        self.description = description
-        self.attributes = attributes or {}
-        # set name and version after attributes so that they take precedence if there is a conflict between the name and version arguments and the name and version in the attributes
-        self.name = name
-        self.version = version
+    extra_attributes: dict[str, str] = field(default_factory=dict)
+    """Generator XML attributes not represented by dedicated fields"""
 
     @property
-    def name(self) -> str:
-        """Name of the generator, retrieved from the attributes."""
-        return self.attributes.get("name", "")
+    def attributes(self) -> dict[str, str]:
+        """Return all the attributes of the generator element, including the name and version attributes."""
+        # class schema typed attributes take precedence over extra_attributes in case of overlap to avoid inconsistencies
+        return {**self.extra_attributes, "name": self.name, "version": self.version}
 
-    @name.setter
-    def name(self, value: str) -> None:
-        """Set the name of the generator in the attributes."""
-        self.attributes["name"] = value
-
-    @property
-    def version(self) -> str:
-        """Version of the generator, retrieved from the attributes."""
-        return self.attributes.get("version", "")
-
-    @version.setter
-    def version(self, value: str) -> None:
-        """Set the version of the generator in the attributes."""
-        self.attributes["version"] = value
+    def __post_init__(self) -> None:
+        """Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies."""
+        self.extra_attributes.pop("name", None)
+        self.extra_attributes.pop("version", None)
 
     def tolhe(self) -> str:
         """
@@ -697,7 +595,7 @@ class LHEGenerator:
 
 
 @dataclass
-class LHEInit(DictCompatibility):
+class LHEInit:
     """Store the <init> block as a dataclass."""
 
     initInfo: LHEInitInfo
@@ -718,55 +616,13 @@ class LHEInit(DictCompatibility):
             "<init>\n"
             + self.initInfo.tolhe()
             + "\n"
-            + "\n".join([p.tolhe() for p in self.procInfo])
-            + "\n"
-            + "\n".join([g.tolhe() for g in self.generators])
+            + "\n".join(
+                [p.tolhe() for p in self.procInfo]
+                + [g.tolhe() for g in self.generators]
+            )
             + "\n"
             + "</init>"
         )
-
-    def __getitem__(self, key: str) -> Any:
-        """
-        Get a dict fieldname.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Access by `lheinit["key"]` is deprecated and will be removed in a future version.
-        """
-        warnings.warn(
-            f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
-            f"Use `lheinit.{key}` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        # Map field names to dataclass attributes
-        if key in self.fieldnames:
-            return getattr(self, key)
-        # Try to get from initInfo for backward compatibility
-        return getattr(self.initInfo, key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """
-        Set a dict fieldname.
-
-        For backward compatibility with versions < 1.0.0.
-
-        .. deprecated:: 1.0.0
-            Access by `lheinit["key"]` is deprecated and will be removed in a future version.
-        """
-        warnings.warn(
-            f'Access by `lheinit["{key}"]` is deprecated and will be removed in a future version. '
-            f"Use `lheinit.{key}` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        # Map field names to dataclass attributes
-        if key in self.fieldnames:
-            setattr(self, key, value)
-        else:
-            # Try to set on initInfo for backward compatibility
-            setattr(self.initInfo, key, value)
 
     @classmethod
     def _fromcontext(cls, _root: ET.Element, context: Any) -> "LHEInit":
@@ -788,7 +644,7 @@ class LHEInit(DictCompatibility):
                         description=""
                         if element.text is None
                         else element.text.strip(),
-                        attributes=element.attrib.copy(),
+                        extra_attributes=element.attrib.copy(),
                     )
                     generators.append(generator)
                 else:
@@ -797,7 +653,7 @@ class LHEInit(DictCompatibility):
                         version=element.attrib["version"],
                         name="",
                         description=element.text.strip() if element.text else "",
-                        attributes=element.attrib.copy(),
+                        extra_attributes=element.attrib.copy(),
                     )
                     generators.append(generator)
             if (
@@ -821,7 +677,7 @@ class LHEInit(DictCompatibility):
 
 
 @dataclass
-class LHEEvent(DictCompatibility):
+class LHEEvent:
     """
     Store a single event in the LHE format.
     """
@@ -835,7 +691,7 @@ class LHEEvent(DictCompatibility):
     scales: dict[str, float] = field(default_factory=dict)
     """Event scales"""
     attributes: dict[str, str] = field(default_factory=dict)
-    """Event attributes"""
+    """Event attributes not represented by dedicated fields"""
     optional: list[str] = field(default_factory=list)
     """Optional '#' comments stored in the event"""
     _graph: Optional[graphviz.Digraph] = None
@@ -1000,8 +856,17 @@ class LHEEvent(DictCompatibility):
                 str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
             )
         for i, p in enumerate(self.particles):
-            for mom in p.mothers():
-                self._graph.edge(str(self.particles.index(mom)), str(i))
+            for mother in self.mothers(p):
+                self._graph.edge(str(self.particles.index(mother)), str(i))
+
+    def mothers(self, particle: LHEParticle) -> list[LHEParticle]:
+        """
+        Return a list of the particle's mothers.
+        """
+        first_idx = int(particle.mother1) - 1
+        second_idx = int(particle.mother2) - 1
+
+        return [self.particles[idx] for idx in (first_idx, second_idx) if idx >= 0]
 
     def _repr_mimebundle_(
         self,
@@ -1015,6 +880,7 @@ class LHEEvent(DictCompatibility):
         return self.graph._repr_mimebundle_(include=include, exclude=exclude, **kwargs)
 
 
+@dataclass
 class LesHouchesEvents:
     """
     Represents an LHE file as a dataclass.
@@ -1022,41 +888,31 @@ class LesHouchesEvents:
 
     init: LHEInit
     """Init block"""
-    events: Iterable[LHEEvent] = ()
+    events: Iterable[LHEEvent] = field(default_factory=list)
     """Event block"""
     header: Optional[LHEHeader] = None
     """Header block"""
     comment: Optional[str] = None
     """Comment block"""
-    attributes: dict[str, str] = {}
+    version: Optional[str] = None
+    """Version of the LHE file"""
+    extra_attributes: dict[str, str] = field(default_factory=dict)
     """Attributes of the root LesHouchesEvents element"""
 
-    def __init__(
-        self,
-        init: LHEInit,
-        events: Iterable[LHEEvent] = (),
-        header: Optional[LHEHeader] = None,
-        comment: Optional[str] = None,
-        attributes: Optional[dict[str, str]] = None,
-        version: Optional[str] = None,
-    ) -> None:
-        self.init = init
-        self.events = events
-        self.header = header
-        self.comment = comment
-        self.attributes = attributes if attributes is not None else {}
-        if version is not None:
-            self.attributes["version"] = version
+    def __post_init__(self) -> None:
+        """Remove schema typed owned information from attributes dict to avoid duplication and potential inconsistencies."""
+        version = self.extra_attributes.pop("version", None)
+        if self.version is None:
+            self.version = version
 
     @property
-    def version(self) -> str:
-        """Version of the LHE file, retrieved from the root element attribute."""
-        return self.attributes.get("version", "3.0")  # default to 3.0 if not specified
-
-    @version.setter
-    def version(self, value: str) -> None:
-        """Set the version attribute of the LHE file."""
-        self.attributes["version"] = value
+    def attributes(self) -> dict[str, str]:
+        """Return all the attributes of the root LesHouchesEvents element, including the version."""
+        attrs = {}
+        if self.version is not None:
+            attrs["version"] = self.version
+        # class schema typed attributes take precedence over extra_attributes in case of overlap to avoid inconsistencies
+        return {**self.extra_attributes, **attrs}
 
     def write(
         self, output_stream: TWriteable, rwgt: bool = True, weights: bool = False
@@ -1149,7 +1005,7 @@ class LesHouchesEvents:
                         err = "Root element is not <LesHouchesEvents>."
                         raise ValueError(err)
                     else:
-                        lhef.attributes = root.attrib.copy()
+                        lhef.extra_attributes = root.attrib.copy()
 
                     # We do not allow other xml tags before <header> or <init>
                     event, element = next(context)  # Get the first element in the file
@@ -1195,7 +1051,7 @@ class LesHouchesEvents:
                 return
 
         lhef = cls(
-            version="3.0",  # dummy version, will be replaced
+            version=None,  # dummy version, will be replaced
             # dummy init, will be replaced
             init=LHEInit(
                 initInfo=LHEInitInfo(0, 0, 0.0, 0.0, 0, 0, 0, 0, 0, 0),
@@ -1251,22 +1107,6 @@ class LesHouchesEvents:
 LHEFile = LesHouchesEvents
 
 
-def read_lhe_file(filepath: PathLike, with_attributes: bool = True) -> LHEFile:
-    """
-    Read an LHE file and return an LHEFile object.
-
-    .. deprecated:: 1.0.0
-        Use `LHEFile.fromfile` instead.
-    """
-    warnings.warn(
-        "read_lhe_file is deprecated and will be removed in a future version. "
-        "Use `LHEFile.fromfile` instead",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return LHEFile.fromfile(filepath, with_attributes=with_attributes)
-
-
 def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFile]:
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
@@ -1289,169 +1129,10 @@ def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFi
     )
 
 
-def read_lhe_init(filepath: PathLike) -> LHEInit:
-    """
-    Read and return the init blocks. This encodes the weight group
-    and related things according to https://arxiv.org/abs/1405.1067
-
-    Args:
-        filepath: A path-like object or str.
-
-    Returns:
-        dict: Dictionary containing the init blocks of the LHE file.
-
-    .. deprecated:: 1.0.0
-        Use `LHEFile.fromfile(...).init` instead.
-    """
-    warnings.warn(
-        "read_lhe_init is deprecated and will be removed in a future version. "
-        "Use `LHEFile.fromfile(...).init` instead",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return LHEFile.fromfile(filepath).init
-
-
-def read_lhe(filepath: PathLike) -> Iterable[LHEEvent]:
-    """
-    Read and yield the events in the LHE file.
-
-    .. deprecated:: 1.0.0
-        Use `LHEFile.fromfile(...).events` instead.
-    """
-    warnings.warn(
-        "read_lhe is deprecated and will be removed in a future version. "
-        "Use `LHEFile.fromfile(...).events` instead",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    yield from LHEFile.fromfile(filepath, with_attributes=False).events
-
-
-def read_lhe_with_attributes(filepath: PathLike) -> Iterable[LHEEvent]:
-    """
-    Iterate through file, similar to read_lhe but also set
-    weights and attributes.
-
-    .. deprecated:: 1.0.0
-        Use `LHEEvent.fromfile` with the `with_attributes` parameter instead.
-    """
-    warnings.warn(
-        "read_lhe_with_attributes is deprecated and will be removed in a future version. "
-        "Use `LHEEvent.fromfile` with the `with_attributes` parameter instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    yield from LHEFile.fromfile(filepath, with_attributes=True).events
-
-
-def read_num_events(filepath: PathLike) -> int:
-    """
-    Moderately efficient way to get the number of events stored in a file.
-
-    .. deprecated:: 1.0.0
-        Use `LHEFile.count_events` instead.
-    """
-    warnings.warn(
-        "read_num_events is deprecated and will be removed in a future version. "
-        "Use `LHEFile.count_events` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return LHEFile.count_events(filepath)
-
-
-def write_lhe_file_string(
-    lhefile: LHEFile, rwgt: bool = True, weights: bool = False
-) -> str:  # pragma: no cover
-    """
-    Return the LHE file as a string.
-
-    .. deprecated:: 1.0.0
-         Use `LHEFile.tolhe` instead.
-    """
-    warnings.warn(
-        "write_lhe_file_string is deprecated and will be removed in a future version. "
-        "Use `LHEFile.tolhe` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return lhefile.tolhe(rwgt=rwgt, weights=weights)
-
-
-def write_lhe_string(
-    lheinit: LHEInit,
-    lheevents: Iterable[LHEEvent],
-    rwgt: bool = True,
-    weights: bool = False,
-) -> str:
-    """
-    Return the LHE file as a string.
-    .. deprecated:: 0.9.1
-       Instead of :func:`~pylhe.write_lhe_string(init,events,rwgt,weights)` use `LHEFile(init,events).tolhe(rwgt,weights)`.
-    """
-    warnings.warn(
-        "`write_lhe_string` is deprecated and will be removed in a future version. "
-        "Use `LHEFile(...).tolhe(...)` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return LHEFile(init=lheinit, events=lheevents).tolhe(rwgt=rwgt, weights=weights)
-
-
 def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
     if filepath.endswith((".gz", ".gzip")) or gz:
         return gzip.open(filepath, "wt")
     return open(filepath, "w")
-
-
-def write_lhe_file_path(
-    lhefile: LHEFile,
-    filepath: str,
-    gz: bool = False,
-    rwgt: bool = True,
-    weights: bool = False,
-) -> None:
-    """
-    Write the LHE file.
-
-    .. deprecated:: 1.0.0
-        Use `LHEFile.tofile` instead.
-    """
-    warnings.warn(
-        "write_lhe_file_path is deprecated and will be removed in a future version. "
-        "Use `LHEFile.tofile` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    lhefile.tofile(filepath, gz=gz, rwgt=rwgt, weights=weights)
-
-
-def write_lhe_file(
-    lheinit: LHEInit,
-    lheevents: Iterable[LHEEvent],
-    filepath: str,
-    gz: bool = False,
-    rwgt: bool = True,
-    weights: bool = False,
-) -> None:
-    """
-    Write the LHE file.
-    .. deprecated:: 0.9.1
-       Instead of :func:`~pylhe.write_lhe_file(init,events,filepath,gz,rwgt,weights)` use `LHEFile(init,events).tofile(filepath,gz,rwgt,weights)`.
-    """
-    warnings.warn(
-        "`write_lhe_file` is deprecated and will be removed in a future version. "
-        "Use `LHEFile(...).tofile(...)` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    LHEFile(init=lheinit, events=lheevents).tofile(
-        filepath,
-        gz=gz,
-        rwgt=rwgt,
-        weights=weights,
-    )
 
 
 # we import this later to avoid circular imports

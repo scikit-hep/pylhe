@@ -14,53 +14,36 @@ def _single_event_lhefile():
     return lhefile
 
 
-def test_write_lhe_file_path_backwards_compatibility(tmp_path):
+def test_mothers_backwards_compatibility():
     lhefile = _single_event_lhefile()
-    output_path = tmp_path / "test.lhe"
+    event = lhefile.events[0]
+    assert len(event.particles) > 3
+    assert len(event.mothers(event.particles[3])) == 2
+    assert event.particles[3].mothers() == event.mothers(event.particles[3])
 
-    with pytest.warns(
-        DeprecationWarning,
-        match=r"write_lhe_file_path is deprecated and will be removed in a future version",
+
+def test_mothers_backwards_compatibility_requires_parent_event():
+    particle = pylhe.LHEParticle(
+        id=1,
+        status=1,
+        mother1=1,
+        mother2=2,
+        color1=501,
+        color2=0,
+        px=0.0,
+        py=0.0,
+        pz=1.0,
+        e=1.0,
+        m=0.0,
+        lifetime=0.0,
+        spin=9.0,
+    )
+
+    with (
+        pytest.warns(
+            DeprecationWarning,
+            match=r"Access by `LHEParticle\.mothers\(\)` is deprecated",
+        ),
+        pytest.raises(ValueError, match=r"Particle is not associated to an event\."),
     ):
-        pylhe.write_lhe_file_path(lhefile, str(output_path))
-
-    assert output_path.read_text() == lhefile.tolhe()
-
-    reread = pylhe.LHEFile.fromfile(str(output_path), with_attributes=True)
-    assert reread.init.tolhe() == lhefile.init.tolhe()
-    reread_header = getattr(reread, "header", None)
-    if reread_header is not None and lhefile.header is not None:
-        assert reread_header.tolhe() == lhefile.header.tolhe()
-    assert next(reread.events).tolhe() == lhefile.events[0].tolhe()
-
-
-def test_write_lhe_string_backwards_compatibility():
-    lhefile = _single_event_lhefile()
-    expected = pylhe.LHEFile(init=lhefile.init, events=lhefile.events).tolhe()
-
-    with pytest.warns(
-        DeprecationWarning,
-        match=r"`write_lhe_string` is deprecated and will be removed in a future version",
-    ):
-        output = pylhe.write_lhe_string(lhefile.init, lhefile.events)
-
-    assert output == expected
-
-
-def test_write_lhe_file_backwards_compatibility(tmp_path):
-    lhefile = _single_event_lhefile()
-    expected = pylhe.LHEFile(init=lhefile.init, events=lhefile.events).tolhe()
-    output_path = tmp_path / "test.lhe"
-
-    with pytest.warns(
-        DeprecationWarning,
-        match=r"`write_lhe_file` is deprecated and will be removed in a future version",
-    ):
-        pylhe.write_lhe_file(lhefile.init, lhefile.events, str(output_path))
-
-    assert output_path.read_text() == expected
-
-    reread = pylhe.LHEFile.fromfile(str(output_path), with_attributes=True)
-    assert getattr(reread, "header", None) is None
-    assert reread.init.tolhe() == lhefile.init.tolhe()
-    assert next(reread.events).tolhe() == lhefile.events[0].tolhe()
+        particle.mothers()

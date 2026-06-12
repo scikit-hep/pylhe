@@ -17,15 +17,6 @@ TEST_FILES_LHE_POWHEG = [
 ]
 
 
-def test_backwards_compatibility_lheinit():
-    init = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3).init
-    assert init.initInfo.beamA == init["beamA"]
-    assert init["initInfo"]["beamA"] == init["beamA"]
-    init["beamA"] = 11
-    assert init["initInfo"]["beamA"] == 11
-    assert init.initInfo.beamA == 11
-
-
 def test_write_lhe_eventline():
     """
     Test that the event line is written correctly.
@@ -120,7 +111,7 @@ def test_write_lhe_init():
 def test_write_lhe_generator_escapes_attributes():
     generator = pylhe.LHEGenerator(
         description="some additional comments",
-        attributes={},
+        extra_attributes={},
         name='Some "Gen" & Co',
         version="1'2&3",
     )

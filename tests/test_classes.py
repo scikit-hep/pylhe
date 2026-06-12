@@ -4,23 +4,23 @@ import pytest
 import skhep_testdata
 
 from pylhe import (
+    LesHouchesEvents,
     LHEEventInfo,
     LHEFile,
     LHEGenerator,
     LHEInit,
     LHEInitInfo,
+    LHEInitRWGTWeight,
+    LHEInitRWGTWeightGroup,
     LHEParticle,
     LHEProcInfo,
-    LHEWeight,
-    LHEWeightGroup,
-    read_lhe,
 )
 
 TEST_FILE = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
 
 
 def test_LHEEvent():
-    events = read_lhe(TEST_FILE)
+    events = LesHouchesEvents.fromfile(TEST_FILE).events
     event = next(events)  # it contains 8 pions and a proton
 
     assert event.eventinfo is not None
@@ -52,24 +52,6 @@ def test_LHEEventInfo_fromstring():
     assert event_info.scale == pytest.approx(0.14137688e03)
     assert event_info.aqed == pytest.approx(0.75563862e-02)
     assert event_info.aqcd == pytest.approx(0.12114027e00)
-
-
-def test_LHEEventInfo_backwards_compatibility():
-    """
-    Test backwards-compatibility of fieldnames.
-    """
-    event_info = LHEEventInfo(
-        nparticles=6, pid=67, weight=0.6, scale=0.2, aqed=0.8, aqcd=0.2
-    )
-
-    assert event_info.fieldnames == [
-        "nparticles",
-        "pid",
-        "weight",
-        "scale",
-        "aqed",
-        "aqcd",
-    ]
 
 
 def test_LHEFile_no_default_init():
@@ -188,47 +170,6 @@ def test_LHEParticle_fromstring():
     assert [p.spin for p in particle_objs] == [0.0, 0.0, 0.0, 0.0, 0.0]
 
 
-def test_LHEParticle_backwards_compatibility():
-    """
-    Test backwards-compatibility of fieldnames.
-    """
-    particle = LHEParticle(
-        id=5,
-        status=-1,
-        mother1=0,
-        mother2=0,
-        color1=501,
-        color2=0,
-        px=0,
-        py=0,
-        pz=143.22906,
-        e=143.30946,
-        m=4.8,
-        lifetime=0,
-        spin=0,
-    )
-
-    assert particle.fieldnames == [
-        "id",
-        "status",
-        "mother1",
-        "mother2",
-        "color1",
-        "color2",
-        "px",
-        "py",
-        "pz",
-        "e",
-        "m",
-        "lifetime",
-        "spin",
-    ]
-
-    # particle is not associated to an event thus mothers should raise a ValueError
-    with pytest.raises(ValueError, match=r"Particle is not associated to an event."):
-        _ = particle.mothers()
-
-
 def test_LHEProcInfo_no_default_init():
     with pytest.raises(TypeError):
         _ = LHEProcInfo()
@@ -257,8 +198,6 @@ def test_LHEProcInfo_backwards_compatibility():
         xSection=50.109086, error=0.089185414, unitWeight=50.109093, procId=66.0
     )
 
-    assert proc_info.fieldnames == ["xSection", "error", "unitWeight", "procId"]
-
     assert proc_info.xSection == pytest.approx(50.109086)
     assert proc_info.error == pytest.approx(0.089185414)
     assert proc_info.unitWeight == pytest.approx(50.109093)
@@ -275,18 +214,18 @@ def test_LHEProcInfo_backwards_compatibility():
     assert proc_info.procId == pytest.approx(67.0)
 
 
-def test_LHEWeight_init_with_id_argument():
-    weight = LHEWeight(name="muR = 2.0", attrib={}, id="1001")
+def test_LHEInitRWGTWeight_init_with_id_argument():
+    weight = LHEInitRWGTWeight(name="muR = 2.0", extra_attributes={}, id="1001")
 
     assert weight.id == "1001"
     assert weight.attributes["id"] == "1001"
     assert weight.name == "muR = 2.0"
 
 
-def test_LHEWeightGroup_init_with_name_and_combine_arguments():
-    weight = LHEWeight(name="muR = 2.0", attrib={}, id="1001")
-    weight_group = LHEWeightGroup(
-        attrib={},
+def test_LHEInitRWGTWeightGroup_init_with_name_and_combine_arguments():
+    weight = LHEInitRWGTWeight(name="muR = 2.0", extra_attributes={}, id="1001")
+    weight_group = LHEInitRWGTWeightGroup(
+        extra_attributes={},
         weights=[weight],
         name="scale variation",
         combine="envelope",
@@ -302,7 +241,7 @@ def test_LHEWeightGroup_init_with_name_and_combine_arguments():
 def test_LHEGenerator_init_with_name_and_version_arguments():
     generator = LHEGenerator(
         description="some additional comments",
-        attributes={},
+        extra_attributes={},
         name="SomeGen",
         version="1.2.3",
     )
@@ -330,19 +269,6 @@ def test_LHEInitInfo_backwards_compatibility():
         weightingStrategy=1,
         numProcesses=1,
     )
-
-    assert lheii.fieldnames == [
-        "beamA",
-        "beamB",
-        "energyA",
-        "energyB",
-        "PDFgroupA",
-        "PDFgroupB",
-        "PDFsetA",
-        "PDFsetB",
-        "weightingStrategy",
-        "numProcesses",
-    ]
 
     assert lheii.beamA == 1
     assert lheii.beamB == 2
