@@ -2,6 +2,7 @@
 Python interface to read Les Houches Event (LHE) files.
 """
 
+import functools
 import gzip
 import io
 import os
@@ -11,6 +12,7 @@ from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import (
+    TYPE_CHECKING,
     Any,
     BinaryIO,
     Optional,
@@ -21,12 +23,10 @@ from typing import (
 )
 from xml.sax.saxutils import quoteattr
 
-import graphviz  # type: ignore[import-untyped]
-from particle import latex_to_html_name
-from particle.converters.bimap import DirectionalMaps
-from particle.exceptions import MatchingIDNotFound
-
 from pylhe._version import version as __version__
+
+if TYPE_CHECKING:
+    import graphviz  # type: ignore[import-untyped]
 
 __all__ = [
     "LHEEvent",
@@ -49,8 +49,25 @@ def __dir__() -> list[str]:
     return __all__
 
 
-# retrieve mapping of PDG ID to particle name as LaTeX string
-_PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(str, str))
+def __getattr__(name: str) -> Any:
+    # Lazily expose ``to_awkward`` so that importing ``pylhe`` does not eagerly
+    # import the (heavy) awkward and vector dependencies.
+    if name == "to_awkward":
+        from .awkward import to_awkward  # noqa: PLC0415
+
+        return to_awkward
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)
+
+
+@functools.cache
+def _pdgid_to_latex_name_map() -> Any:
+    # retrieve mapping of PDG ID to particle name as LaTeX string
+    from particle.converters.bimap import DirectionalMaps  # noqa: PLC0415
+
+    pdgid2latex, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(str, str))
+    return pdgid2latex
+
 
 PathLike = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
 
@@ -694,7 +711,7 @@ class LHEEvent:
     """Event attributes not represented by dedicated fields"""
     optional: list[str] = field(default_factory=list)
     """Optional '#' comments stored in the event"""
-    _graph: Optional[graphviz.Digraph] = None
+    _graph: 'Optional["graphviz.Digraph"]' = None
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
 
     def __post_init__(self) -> None:
@@ -822,7 +839,7 @@ class LHEEvent:
                 return
 
     @property
-    def graph(self) -> graphviz.Digraph:
+    def graph(self) -> "graphviz.Digraph":
         """
         Get the `graphviz.Digraph` object.
         The user now has full control ...
@@ -841,12 +858,17 @@ class LHEEvent:
         """
         Navigate the particles in the event and produce a Digraph in the DOT language.
         """
+        import graphviz  # noqa: PLC0415
+        from particle import latex_to_html_name  # noqa: PLC0415
+        from particle.exceptions import MatchingIDNotFound  # noqa: PLC0415
+
+        pdgid2latex = _pdgid_to_latex_name_map()
         self._graph = graphviz.Digraph()
         for i, p in enumerate(self.particles):
             iid = int(p.id)
             sid = str(iid)
             try:
-                name = _PDGID2LaTeXNameMap[sid]
+                name = pdgid2latex[sid]
                 texlbl = f"${name}$"
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{latex_to_html_name(name)}</td></tr></table>>'
             except MatchingIDNotFound:
@@ -1133,7 +1155,3 @@ def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
     if filepath.endswith((".gz", ".gzip")) or gz:
         return gzip.open(filepath, "wt")
     return open(filepath, "w")
-
-
-# we import this later to avoid circular imports
-from .awkward import to_awkward  # noqa: E402
