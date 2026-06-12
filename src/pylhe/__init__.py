@@ -369,6 +369,7 @@ class LHEInitRWGTWeight:
     @property
     def attributes(self) -> dict[str, str]:
         """Return all the attributes of the weight, including the ID."""
+        # class schema typed attributes take precedence over extra_attributes in case of overlap to avoid inconsistencies
         return {**self.extra_attributes, "id": self.id}
 
 
@@ -395,6 +396,7 @@ class LHEInitRWGTWeightGroup:
             attrs["name"] = self.name
         if self.combine is not None:
             attrs["combine"] = self.combine
+        # class schema typed attributes take precedence over extra_attributes in case of overlap to avoid inconsistencies
         return {**self.extra_attributes, **attrs}
 
     def __post_init__(self) -> None:
@@ -573,6 +575,7 @@ class LHEGenerator:
     @property
     def attributes(self) -> dict[str, str]:
         """Return all the attributes of the generator element, including the name and version attributes."""
+        # class schema typed attributes take precedence over extra_attributes in case of overlap to avoid inconsistencies
         return {**self.extra_attributes, "name": self.name, "version": self.version}
 
     def __post_init__(self) -> None:
@@ -908,6 +911,7 @@ class LesHouchesEvents:
         attrs = {}
         if self.version is not None:
             attrs["version"] = self.version
+        # class schema typed attributes take precedence over extra_attributes in case of overlap to avoid inconsistencies
         return {**self.extra_attributes, **attrs}
 
     def write(
