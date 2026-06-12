@@ -1,3 +1,7 @@
+import gzip
+import io
+
+import pytest
 import skhep_testdata
 
 import pylhe
@@ -244,3 +248,89 @@ def test_write_lhe_gzip(tmpdir):
 
     # read it again
     init = pylhe.LesHouchesEvents.fromfile(file1.strpath).init
+
+
+def test_tofile_accepts_pathlib_path(tmp_path):
+    """
+    Test that tofile() accepts a pathlib.Path object (not just str).
+    Previously raised AttributeError because _open_write_file called
+    filepath.endswith(...) which does not exist on PosixPath/WindowsPath.
+    """
+    out_path = tmp_path / "test_output.lhe"
+
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    events = file.events
+    file.events = [next(events)]
+
+    # Must not raise AttributeError
+    file.tofile(out_path)
+
+    # Verify the output is valid and readable
+    result = pylhe.LHEFile.fromfile(out_path)
+    assert result.init is not None
+    assert len(list(result.events)) == 1
+
+
+def test_tofile_accepts_pathlib_path_gz(tmp_path):
+    """
+    Test that tofile() accepts a pathlib.Path with a .gz suffix and writes
+    valid gzip-compressed output.
+    """
+    out_path = tmp_path / "test_output.lhe.gz"
+
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    events = file.events
+    file.events = [next(events)]
+
+    # Must not raise AttributeError
+    file.tofile(out_path)
+
+    # Verify the file is actually gzip-compressed
+    with gzip.open(out_path, "rt") as f:
+        content = f.read()
+    assert "<LesHouchesEvents" in content
+
+    # Verify the output is valid and readable via pylhe
+    result = pylhe.LHEFile.fromfile(out_path)
+    assert result.init is not None
+    assert len(list(result.events)) == 1
+
+
+def test_write_raises_before_writing_when_both_formats_given(tmp_path):
+    """
+    Test that LesHouchesEvents.write() raises ValueError BEFORE writing anything
+    when both rwgt=True and weights=True are specified.
+    Previously the error was only raised per-event, leaving a partial file on disk.
+    """
+    out_path = tmp_path / "should_not_exist.lhe"
+
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    events = file.events
+    file.events = [next(events)]
+
+    with pytest.raises(
+        ValueError, match=r"Cannot specify both rwgt and weights formats simultaneously"
+    ):
+        file.tofile(out_path, rwgt=True, weights=True)
+
+    # The file must NOT have been created — the error fired before any I/O
+    assert not out_path.exists()
+
+
+def test_write_stream_raises_before_writing_when_both_formats_given():
+    """
+    Test that LesHouchesEvents.write() raises ValueError on an in-memory stream
+    before any bytes are written.
+    """
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    events = file.events
+    file.events = [next(events)]
+
+    stream = io.StringIO()
+    with pytest.raises(
+        ValueError, match=r"Cannot specify both rwgt and weights formats simultaneously"
+    ):
+        file.write(stream, rwgt=True, weights=True)
+
+    # Nothing should have been written to the stream
+    assert stream.getvalue() == ""

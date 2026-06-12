@@ -920,6 +920,9 @@ class LesHouchesEvents:
         """
         Write the LHE file to an output stream.
         """
+        if rwgt and weights:
+            err = "Cannot specify both rwgt and weights formats simultaneously."
+            raise ValueError(err)
         output_stream.write(_open_xml_tag("LesHouchesEvents", self.attributes) + "\n")
         if self.comment is not None:
             output_stream.write(f"<!-- {self.comment} -->\n")
@@ -939,7 +942,7 @@ class LesHouchesEvents:
 
     def tofile(
         self,
-        filepath: str,
+        filepath: PathLike,
         gz: bool = False,
         rwgt: bool = True,
         weights: bool = False,
@@ -953,6 +956,9 @@ class LesHouchesEvents:
             rwgt: Whether to include weights in 'rwgt' format.
             weights: Whether to include weights in 'weights' format.
         """
+        if rwgt and weights:
+            err = "Cannot specify both rwgt and weights formats simultaneously."
+            raise ValueError(err)
         # if filepath suffix is gz, write as gz
         with _open_write_file(filepath, gz=gz) as f:
             self.write(f, rwgt=rwgt, weights=weights)
@@ -1129,10 +1135,11 @@ def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFi
     )
 
 
-def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
-    if filepath.endswith((".gz", ".gzip")) or gz:
-        return gzip.open(filepath, "wt")
-    return open(filepath, "w")
+def _open_write_file(filepath: PathLike, gz: bool = False) -> TextIO:
+    filepath_str = os.fsdecode(os.fspath(filepath))
+    if filepath_str.endswith((".gz", ".gzip")) or gz:
+        return gzip.open(filepath_str, "wt")
+    return open(filepath_str, "w")
 
 
 # we import this later to avoid circular imports
