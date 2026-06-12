@@ -544,3 +544,78 @@ def test_event_at_position_5():
     for particle in target_event.particles:
         assert hasattr(particle, "event")
         assert particle.event is target_event
+
+
+# Inline LHE document used for round-trip fidelity tests.
+# Covers: root version attribute, event attributes, and `#` comment lines.
+ROUNDTRIP_LHE = """<LesHouchesEvents version="3.0">
+<init>
+   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
+ 5.0109086e+01  8.9185414e-02  5.0109093e+01    66
+</init>
+<event npLO="-1" npNLO="1">
+  2     66  5.0109093000e+01  1.4137688000e+02  7.5563862000e-03  1.2114027000e-01
+    5  -1   0   0 501   0  0.00000000e+00  0.00000000e+00  1.43229060e+02  1.43309460e+02  4.80000000e+00  0.0000e+00  0.0000e+00
+    2  -1   0   0 502   0  0.00000000e+00  0.00000000e+00 -9.35443170e+02  9.35443230e+02  3.30000000e-01  0.0000e+00  0.0000e+00
+# this is a comment line
+# another comment line
+<rwgt>
+ <wgt id='1001'> 5.0109e+01</wgt>
+</rwgt>
+</event>
+</LesHouchesEvents>
+"""
+
+
+def test_roundtrip_version_populated_fromstring():
+    """The root <LesHouchesEvents version=...> attribute must populate the version field."""
+    lhef = pylhe.LHEFile.fromstring(ROUNDTRIP_LHE)
+    assert lhef.version == "3.0"
+    # version must be emitted exactly once in the attributes mapping
+    assert lhef.attributes == {"version": "3.0"}
+
+
+def test_roundtrip_version_populated_fromfile():
+    """The version field must also be populated when reading from a file."""
+    lhef = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3)
+    assert lhef.version is not None
+    assert "version" in lhef.attributes
+    # version appears exactly once
+    assert list(lhef.attributes).count("version") == 1
+
+
+def test_roundtrip_event_attributes_and_comments():
+    """Event attributes and `#` comment lines must survive parse -> tolhe -> parse."""
+    lhef = pylhe.LHEFile.fromstring(ROUNDTRIP_LHE)
+    event = next(iter(lhef.events))
+
+    assert event.attributes == {"npLO": "-1", "npNLO": "1"}
+    assert event.optional == [
+        "# this is a comment line",
+        "# another comment line",
+    ]
+
+    # Round-trip the emitted event through the parser again.
+    roundtripped = pylhe.LHEFile.fromstring(
+        f"""<LesHouchesEvents version="3.0">
+<init>
+   2212   2212  4.0000000e+03  4.0000000e+03    -1    -1  21100  21100    -4     1
+ 5.0109086e+01  8.9185414e-02  5.0109093e+01    66
+</init>
+{event.tolhe()}
+</LesHouchesEvents>
+"""
+    )
+    reparsed = next(iter(roundtripped.events))
+    assert reparsed.attributes == event.attributes
+    assert reparsed.optional == event.optional
+
+
+def test_roundtrip_tolhe_emits_event_attributes_and_comments():
+    """tolhe() output must contain the event attributes and comment lines."""
+    lhef = pylhe.LHEFile.fromstring(ROUNDTRIP_LHE)
+    event = next(iter(lhef.events))
+    out = event.tolhe()
+    assert out.startswith('<event npLO="-1" npNLO="1">')
+    assert "# this is a comment line" in out
+    assert "# another comment line" in out
