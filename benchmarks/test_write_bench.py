@@ -48,12 +48,12 @@ def _build_header() -> pylhe.LHEHeader:
     return pylhe.LHEHeader(
         initrwgt=pylhe.LHEInitRWGT(
             entries=[
-                pylhe.LHEWeightGroup(
-                    attrib={"type": "scale_variation", "combine": "envelope"},
+                pylhe.LHEInitRWGTWeightGroup(
+                    name="scale_variation",
+                    combine="envelope",
                     weights=[
-                        pylhe.LHEWeight(
+                        pylhe.LHEInitRWGTWeight(
                             id=weight_id,
-                            attrib={"id": weight_id},
                             name=f"variation_{index}",
                         )
                         for index, weight_id in enumerate(WEIGHT_IDS)
