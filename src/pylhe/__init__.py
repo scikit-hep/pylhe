@@ -694,7 +694,7 @@ class LHEEvent:
     """Event attributes not represented by dedicated fields"""
     optional: list[str] = field(default_factory=list)
     """Optional '#' comments stored in the event"""
-    _graph: Optional[graphviz.Digraph] = None
+    _graph: Optional[graphviz.Digraph] = field(default=None, repr=False, compare=False)
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
 
     def __post_init__(self) -> None:
@@ -852,12 +852,13 @@ class LHEEvent:
             except MatchingIDNotFound:
                 texlbl = sid
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
-            self._graph.node(
-                str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
-            )
+            self._graph.node(str(i), label=label, texlbl=texlbl)
         for i, p in enumerate(self.particles):
-            for mother in self.mothers(p):
-                self._graph.edge(str(self.particles.index(mother)), str(i))
+            first_idx = int(p.mother1) - 1
+            second_idx = int(p.mother2) - 1
+            for mother_idx in (first_idx, second_idx):
+                if mother_idx >= 0:
+                    self._graph.edge(str(mother_idx), str(i))
 
     def mothers(self, particle: LHEParticle) -> list[LHEParticle]:
         """
