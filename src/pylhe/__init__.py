@@ -368,7 +368,7 @@ class LHEInitRWGTWeight:
 
     @property
     def attributes(self) -> dict[str, str]:
-        """Return the XML attributes of the weight, including the ID."""
+        """Return all the attributes of the weight, including the ID."""
         return {**self.extra_attributes, "id": self.id}
 
 
@@ -389,7 +389,7 @@ class LHEInitRWGTWeightGroup:
 
     @property
     def attributes(self) -> dict[str, str]:
-        """Return the attributes of the weight group, including the name and combine attributes."""
+        """Return all the attributes of the weight group, including the name and combine attributes."""
         attrs = {}
         if self.name is not None:
             attrs["name"] = self.name
@@ -475,7 +475,7 @@ class LHEHeader:
 
     @property
     def attributes(self) -> dict[str, str]:
-        """Return the attributes of the header element"""
+        """Return all the attributes of the header element"""
         return {**self.extra_attributes}
 
     def tolhe(self) -> str:
@@ -572,7 +572,7 @@ class LHEGenerator:
 
     @property
     def attributes(self) -> dict[str, str]:
-        """Return the attributes of the generator element"""
+        """Return all the attributes of the generator element, including the name and version attributes."""
         return {**self.extra_attributes, "name": self.name, "version": self.version}
 
     def __post_init__(self) -> None:
@@ -904,7 +904,7 @@ class LesHouchesEvents:
 
     @property
     def attributes(self) -> dict[str, str]:
-        """Return the attributes of the root LesHouchesEvents element, including the version."""
+        """Return all the attributes of the root LesHouchesEvents element, including the version."""
         attrs = {}
         if self.version is not None:
             attrs["version"] = self.version
