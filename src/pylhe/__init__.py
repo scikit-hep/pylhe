@@ -694,7 +694,7 @@ class LHEEvent:
     """Event attributes not represented by dedicated fields"""
     optional: list[str] = field(default_factory=list)
     """Optional '#' comments stored in the event"""
-    _graph: Optional[graphviz.Digraph] = None
+    _graph: Optional[graphviz.Digraph] = field(default=None, repr=False, compare=False)
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
 
     def __post_init__(self) -> None:
@@ -852,21 +852,28 @@ class LHEEvent:
             except MatchingIDNotFound:
                 texlbl = sid
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
-            self._graph.node(
-                str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
-            )
+            self._graph.node(str(i), label=label, texlbl=texlbl)
         for i, p in enumerate(self.particles):
-            for mother in self.mothers(p):
-                self._graph.edge(str(self.particles.index(mother)), str(i))
+            for mother_idx in self.mothers_ids(p):
+                self._graph.edge(str(mother_idx), str(i))
+
+    def mothers_ids(self, particle: LHEParticle) -> list[int]:
+        """
+        Return the positional indices of the particle's mothers in ``self.particles``.
+
+        The LHE ``mother1``/``mother2`` fields are 1-based; absent mothers (0) are dropped.
+        """
+        return [
+            idx
+            for idx in (int(particle.mother1) - 1, int(particle.mother2) - 1)
+            if idx >= 0
+        ]
 
     def mothers(self, particle: LHEParticle) -> list[LHEParticle]:
         """
         Return a list of the particle's mothers.
         """
-        first_idx = int(particle.mother1) - 1
-        second_idx = int(particle.mother2) - 1
-
-        return [self.particles[idx] for idx in (first_idx, second_idx) if idx >= 0]
+        return [self.particles[idx] for idx in self.mothers_ids(particle)]
 
     def _repr_mimebundle_(
         self,
