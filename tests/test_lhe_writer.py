@@ -1,7 +1,5 @@
 import gzip
-import io
 
-import pytest
 import skhep_testdata
 
 import pylhe
@@ -139,7 +137,7 @@ def test_write_lhe():
     init = file.init.tolhe()
 
     assert (
-        file.tolhe(True, False)
+        file.tolhe(pylhe.LHEFormat.RWGT)
         == f"""<LesHouchesEvents version="3.0">
 {header}
 {init}
@@ -167,7 +165,7 @@ def test_write_lhe():
     )
 
     assert (
-        file.tolhe(rwgt=False, weights=True)
+        file.tolhe(format=pylhe.LHEFormat.WEIGHTS)
         == f"""<LesHouchesEvents version="3.0">
 {header}
 {init}
@@ -296,41 +294,44 @@ def test_tofile_accepts_pathlib_path_gz(tmp_path):
     assert len(list(result.events)) == 1
 
 
-def test_write_raises_before_writing_when_both_formats_given(tmp_path):
+def test_tofile_weights_format(tmp_path):
     """
-    Test that LesHouchesEvents.write() raises ValueError BEFORE writing anything
-    when both rwgt=True and weights=True are specified.
-    Previously the error was only raised per-event, leaving a partial file on disk.
+    Test that tofile(format=LHEFormat.WEIGHTS) writes a <weights> block.
     """
-    out_path = tmp_path / "should_not_exist.lhe"
+    out_path = tmp_path / "weights.lhe"
 
     file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
     events = file.events
     file.events = [next(events)]
 
-    with pytest.raises(
-        ValueError, match=r"Cannot specify both rwgt and weights formats simultaneously"
-    ):
-        file.tofile(out_path, rwgt=True, weights=True)
+    file.tofile(out_path, format=pylhe.LHEFormat.WEIGHTS)
 
-    # The file must NOT have been created — the error fired before any I/O
-    assert not out_path.exists()
+    content = out_path.read_text()
+    assert "<weights>" in content
+    assert "</weights>" in content
+    assert "<rwgt>" not in content
 
 
-def test_write_stream_raises_before_writing_when_both_formats_given():
+def test_tofile_none_format_emits_no_weight_block(tmp_path):
     """
-    Test that LesHouchesEvents.write() raises ValueError on an in-memory stream
-    before any bytes are written.
+    Test that format=LHEFormat.NONE emits no weight block at all.
     """
+    out_path = tmp_path / "none.lhe"
+
     file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
     events = file.events
     file.events = [next(events)]
 
-    stream = io.StringIO()
-    with pytest.raises(
-        ValueError, match=r"Cannot specify both rwgt and weights formats simultaneously"
-    ):
-        file.write(stream, rwgt=True, weights=True)
+    file.tofile(out_path, format=pylhe.LHEFormat.NONE)
 
-    # Nothing should have been written to the stream
-    assert stream.getvalue() == ""
+    content = out_path.read_text()
+    assert "<rwgt>" not in content
+    assert "<weights>" not in content
+
+
+def test_lheformat_is_exported():
+    """
+    Test that LHEFormat is part of the public API.
+    """
+    assert "LHEFormat" in pylhe.__all__
+    assert pylhe.LHEFormat is pylhe.LHEFormat.RWGT.__class__

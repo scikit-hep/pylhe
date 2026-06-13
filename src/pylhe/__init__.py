@@ -2,6 +2,7 @@
 Python interface to read Les Houches Event (LHE) files.
 """
 
+import enum
 import gzip
 import io
 import os
@@ -32,6 +33,7 @@ __all__ = [
     "LHEEvent",
     "LHEEventInfo",
     "LHEFile",
+    "LHEFormat",
     "LHEGenerator",
     "LHEHeader",
     "LHEInit",
@@ -53,6 +55,14 @@ def __dir__() -> list[str]:
 _PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(str, str))
 
 PathLike = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
+
+
+class LHEFormat(enum.Enum):
+    """Selects how event weights are serialized in LHE output."""
+
+    RWGT = "rwgt"  # <rwgt><wgt id=...>...</wgt></rwgt> block
+    WEIGHTS = "weights"  # <weights>...</weights> block
+    NONE = "none"  # no weight block emitted
 
 
 class Writeable(Protocol):
@@ -702,27 +712,24 @@ class LHEEvent:
         for p in self.particles:
             p.event = self
 
-    def tolhe(self, rwgt: bool = True, weights: bool = False) -> str:
+    def tolhe(self, format: LHEFormat = LHEFormat.RWGT) -> str:
         """
         Return the event as a string in LHE format.
 
         Args:
-            rwgt (bool): Include the weights in the 'rwgt' format.
-            weights (bool): Include the weights in the 'weights' format.
+            format (LHEFormat): How to serialize event weights (RWGT, WEIGHTS,
+                or NONE).
 
         Returns:
             str: The event as a string in LHE format.
         """
-        if rwgt and weights:
-            err = "Cannot specify both rwgt and weights formats simultaneously."
-            raise ValueError(err)
         sweights = ""
-        if rwgt and self.weights:
+        if format is LHEFormat.RWGT and self.weights:
             sweights = "<rwgt>\n"
             for k, v in self.weights.items():
                 sweights += f" <wgt id='{k}'>{v:11.4e}</wgt>\n"
             sweights += "</rwgt>\n"
-        if weights and self.weights:
+        elif format is LHEFormat.WEIGHTS and self.weights:
             sweights = "<weights>\n"
             for v in self.weights.values():
                 sweights += f"{v:11.4e}\n"
@@ -915,14 +922,11 @@ class LesHouchesEvents:
         return {**self.extra_attributes, **attrs}
 
     def write(
-        self, output_stream: TWriteable, rwgt: bool = True, weights: bool = False
+        self, output_stream: TWriteable, format: LHEFormat = LHEFormat.RWGT
     ) -> TWriteable:
         """
         Write the LHE file to an output stream.
         """
-        if rwgt and weights:
-            err = "Cannot specify both rwgt and weights formats simultaneously."
-            raise ValueError(err)
         output_stream.write(_open_xml_tag("LesHouchesEvents", self.attributes) + "\n")
         if self.comment is not None:
             output_stream.write(f"<!-- {self.comment} -->\n")
@@ -930,22 +934,21 @@ class LesHouchesEvents:
             output_stream.write(self.header.tolhe() + "\n")
         output_stream.write(self.init.tolhe() + "\n")
         for e in self.events:
-            output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
+            output_stream.write(e.tolhe(format=format) + "\n")
         output_stream.write("</LesHouchesEvents>")
         return output_stream
 
-    def tolhe(self, rwgt: bool = True, weights: bool = False) -> str:
+    def tolhe(self, format: LHEFormat = LHEFormat.RWGT) -> str:
         """
         Return the LHE file as a string.
         """
-        return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
+        return self.write(io.StringIO(), format=format).getvalue()
 
     def tofile(
         self,
         filepath: PathLike,
         gz: bool = False,
-        rwgt: bool = True,
-        weights: bool = False,
+        format: LHEFormat = LHEFormat.RWGT,
     ) -> None:
         """
         Write the LHE file.
@@ -953,15 +956,11 @@ class LesHouchesEvents:
         Args:
             filepath: Path to the output file.
             gz: Whether to gzip the output file (ignored if filepath suffix is .gz/.gzip).
-            rwgt: Whether to include weights in 'rwgt' format.
-            weights: Whether to include weights in 'weights' format.
+            format: How to serialize event weights (RWGT, WEIGHTS, or NONE).
         """
-        if rwgt and weights:
-            err = "Cannot specify both rwgt and weights formats simultaneously."
-            raise ValueError(err)
         # if filepath suffix is gz, write as gz
         with _open_write_file(filepath, gz=gz) as f:
-            self.write(f, rwgt=rwgt, weights=weights)
+            self.write(f, format=format)
 
     @classmethod
     def fromstring(
