@@ -854,20 +854,26 @@ class LHEEvent:
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
             self._graph.node(str(i), label=label, texlbl=texlbl)
         for i, p in enumerate(self.particles):
-            first_idx = int(p.mother1) - 1
-            second_idx = int(p.mother2) - 1
-            for mother_idx in (first_idx, second_idx):
-                if mother_idx >= 0:
-                    self._graph.edge(str(mother_idx), str(i))
+            for mother_idx in self.mothers_ids(p):
+                self._graph.edge(str(mother_idx), str(i))
+
+    def mothers_ids(self, particle: LHEParticle) -> list[int]:
+        """
+        Return the positional indices of the particle's mothers in ``self.particles``.
+
+        The LHE ``mother1``/``mother2`` fields are 1-based; absent mothers (0) are dropped.
+        """
+        return [
+            idx
+            for idx in (int(particle.mother1) - 1, int(particle.mother2) - 1)
+            if idx >= 0
+        ]
 
     def mothers(self, particle: LHEParticle) -> list[LHEParticle]:
         """
         Return a list of the particle's mothers.
         """
-        first_idx = int(particle.mother1) - 1
-        second_idx = int(particle.mother2) - 1
-
-        return [self.particles[idx] for idx in (first_idx, second_idx) if idx >= 0]
+        return [self.particles[idx] for idx in self.mothers_ids(particle)]
 
     def _repr_mimebundle_(
         self,
