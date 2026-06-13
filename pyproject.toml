@@ -129,6 +129,8 @@ addopts = [
     "-ra",
     "--strict-markers",
     "--strict-config",
+    # Non-test dirs that may hold collectable .py/.rst files (e.g. examples/ with future test_* helpers)
+    "--ignore=docs",
     "--cov=pylhe",
     "--cov-report=term-missing",
     "--cov-report=xml",
