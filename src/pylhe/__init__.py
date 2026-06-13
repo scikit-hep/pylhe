@@ -1013,11 +1013,9 @@ class LesHouchesEvents:
                         raise ValueError(err)
                     else:
                         lhef.extra_attributes = root.attrib.copy()
-                        # __post_init__ ran at construction with no attributes,
-                        # so mirror its logic here to populate the version field.
-                        version = lhef.extra_attributes.pop("version", None)
-                        if lhef.version is None:
-                            lhef.version = version
+                        # Re-run post-init now that extra_attributes is populated;
+                        # construction used an empty dict so version was not set yet.
+                        lhef.__post_init__()
 
                     # We do not allow other xml tags before <header> or <init>
                     event, element = next(context)  # Get the first element in the file
