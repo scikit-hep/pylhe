@@ -7,7 +7,7 @@ import pylhe
 
 def test_LHEEvent_graph_source():
     lhe_file = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
-    events = pylhe.read_lhe_with_attributes(lhe_file)
+    events = pylhe.LesHouchesEvents.fromfile(lhe_file).events
 
     # Get the first event
     event = next(events)
@@ -19,7 +19,7 @@ def test_LHEEvent_graph_source():
 
 def test_LHEEvent_graph_source_nonstandard_pdg():
     lhe_file = skhep_testdata.data_path("pylhe-testfile-pr180.lhe")
-    events = pylhe.read_lhe_with_attributes(lhe_file)
+    events = pylhe.LesHouchesEvents.fromfile(lhe_file).events
 
     # Get the first event
     event = next(events)
@@ -31,7 +31,7 @@ def test_LHEEvent_graph_source_nonstandard_pdg():
 
 def test_LHEEvent_graph_render():
     lhe_file = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
-    events = pylhe.read_lhe_with_attributes(lhe_file)
+    events = pylhe.LesHouchesEvents.fromfile(lhe_file).events
 
     event = next(itertools.islice(events, 1, 2))
     event.graph.render(filename="test_event1", format="pdf", cleanup=True)
@@ -39,7 +39,7 @@ def test_LHEEvent_graph_render():
 
 def test_mime():
     lhe_file = skhep_testdata.data_path("pylhe-testfile-pr29.lhe")
-    events = pylhe.read_lhe_with_attributes(lhe_file)
+    events = pylhe.LesHouchesEvents.fromfile(lhe_file).events
 
     event = next(itertools.islice(events, 1, 2))
     assert event._repr_mimebundle_() == event.graph._repr_mimebundle_()

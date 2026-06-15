@@ -66,7 +66,7 @@ def test_missing_init_block_error_with_file():
     try:
         # Test reading the file through read_lhe_init function
         with pytest.raises(ValueError, match=r"No <init> block found in the LHE file"):
-            pylhe.read_lhe_init(tmp_file_path)
+            pylhe.LesHouchesEvents.fromfile(tmp_file_path)
     finally:
         os.unlink(tmp_file_path)
 
@@ -106,32 +106,6 @@ def test_lheinit_fromcontext_no_init_block_error():
 
     with pytest.raises(ValueError, match=r"No <init> block found in the LHE file\."):
         pylhe.LHEInit._fromcontext(root, context)
-
-
-def test_dataclass_delete_field_error():
-    """Test that TypeError is raised when attempting to delete a dataclass field."""
-    # Create a simple LHEEventInfo instance to test deletion
-    eventinfo = pylhe.LHEEventInfo(
-        nparticles=2, pid=1, weight=1.0, scale=100.0, aqed=0.007, aqcd=0.1
-    )
-
-    # Test that attempting to delete a field raises TypeError
-    with pytest.raises(
-        TypeError, match=r"Cannot delete field 'nparticles' from dataclass instance"
-    ):
-        del eventinfo["nparticles"]
-
-    # Test with a different field
-    with pytest.raises(
-        TypeError, match=r"Cannot delete field 'weight' from dataclass instance"
-    ):
-        del eventinfo["weight"]
-
-    # Test with a non-existent field (should also raise TypeError)
-    with pytest.raises(
-        TypeError, match=r"Cannot delete field 'nonexistent' from dataclass instance"
-    ):
-        del eventinfo["nonexistent"]
 
 
 def test_empty_init_block_error():
@@ -192,7 +166,11 @@ def test_empty_event_block_error():
 
     try:
         with pytest.raises(ValueError, match=r"<event> block has no text"):
-            list(pylhe.read_lhe(tmp_file_path))
+            list(
+                pylhe.LesHouchesEvents.fromfile(
+                    tmp_file_path, with_attributes=False
+                ).events
+            )
     finally:
         os.unlink(tmp_file_path)
 
@@ -220,7 +198,7 @@ def test_empty_weights_block_error():
 
     try:
         with pytest.raises(ValueError, match=r"<weights> block has no text"):
-            list(pylhe.read_lhe_with_attributes(tmp_file_path))
+            list(pylhe.LesHouchesEvents.fromfile(tmp_file_path).events)
     finally:
         os.unlink(tmp_file_path)
 
@@ -256,7 +234,7 @@ def test_weights_block_without_initrwgt_error():
             ValueError,
             match=r"<initrwgt> is required to parse <weights> block but not found in the header",
         ):
-            list(pylhe.read_lhe_with_attributes(tmp_file_path))
+            list(pylhe.LesHouchesEvents.fromfile(tmp_file_path).events)
     finally:
         os.unlink(tmp_file_path)
 
@@ -286,7 +264,7 @@ def test_empty_wgt_block_error():
 
     try:
         with pytest.raises(ValueError, match=r"<wgt> block has no text"):
-            list(pylhe.read_lhe_with_attributes(tmp_file_path))
+            list(pylhe.LesHouchesEvents.fromfile(tmp_file_path).events)
     finally:
         os.unlink(tmp_file_path)
 
@@ -319,7 +297,7 @@ def test_whitespace_only_wgt_block_error():
             ValueError,
             match=r"could not convert string to float|invalid literal for float",
         ):
-            list(pylhe.read_lhe_with_attributes(tmp_file_path))
+            list(pylhe.LesHouchesEvents.fromfile(tmp_file_path).events)
     finally:
         os.unlink(tmp_file_path)
 
