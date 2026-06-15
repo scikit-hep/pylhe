@@ -190,7 +190,7 @@ def _write_random_events_to_temporary_gzip(num_events: int) -> int:
             header=_build_header(),
             events=_random_events(num_events=num_events, seed=RNG_SEED),
             version="3.0",
-        ).tofile(str(output_path), gz=True, rwgt=True)
+        ).tofile(str(output_path), gz=True, format=pylhe.LHEFormat.RWGT)
         return output_path.stat().st_size
 
 
