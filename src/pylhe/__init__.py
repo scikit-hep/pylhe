@@ -863,11 +863,17 @@ class LHEEvent:
 
         The LHE ``mother1``/``mother2`` fields are 1-based; absent mothers (0) are dropped.
         """
-        return [
-            idx
-            for idx in (int(particle.mother1) - 1, int(particle.mother2) - 1)
-            if idx >= 0
-        ]
+        idxs = [particle.mother1 - 1, particle.mother2 - 1]
+        out: list[int] = []
+        for idx in idxs:
+            if idx < 0:
+                continue
+            if idx >= len(self.particles):
+                raise IndexError(
+                    f"Mother index {idx + 1} out of range for event with {len(self.particles)} particles."
+                )
+            out.append(idx)
+        return out
 
     def mothers(self, particle: LHEParticle) -> list[LHEParticle]:
         """
