@@ -854,10 +854,10 @@ class LHEEvent:
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
             self._graph.node(str(i), label=label, texlbl=texlbl)
         for i, p in enumerate(self.particles):
-            for mother_idx in self.mothers_ids(p):
+            for mother_idx in self.mother_indices(p):
                 self._graph.edge(str(mother_idx), str(i))
 
-    def mothers_ids(self, particle: LHEParticle) -> list[int]:
+    def mother_indices(self, particle: LHEParticle) -> list[int]:
         """
         Return the positional indices of the particle's mothers in ``self.particles``.
 
@@ -869,9 +869,8 @@ class LHEEvent:
             if idx < 0:
                 continue
             if idx >= len(self.particles):
-                raise IndexError(
-                    f"Mother index {idx + 1} out of range for event with {len(self.particles)} particles."
-                )
+                err = f"Mother index {idx + 1} out of range for event with {len(self.particles)} particles."
+                raise IndexError(err)
             out.append(idx)
         return out
 
@@ -879,7 +878,7 @@ class LHEEvent:
         """
         Return a list of the particle's mothers.
         """
-        return [self.particles[idx] for idx in self.mothers_ids(particle)]
+        return [self.particles[idx] for idx in self.mother_indices(particle)]
 
     def _repr_mimebundle_(
         self,
