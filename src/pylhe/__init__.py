@@ -718,7 +718,7 @@ class LHEEvent:
 
         Args:
             format (LHEFormat): How to serialize event weights (RWGT, WEIGHTS,
-                or NONE).
+                or NONE), see the `LHEFormat Enum`.
 
         Returns:
             str: The event as a string in LHE format.
