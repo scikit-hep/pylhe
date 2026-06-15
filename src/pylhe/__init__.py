@@ -956,7 +956,7 @@ class LesHouchesEvents:
         Args:
             filepath: Path to the output file.
             gz: Whether to gzip the output file (ignored if filepath suffix is .gz/.gzip).
-            format: How to serialize event weights (RWGT, WEIGHTS, or NONE).
+            format: How to serialize event weights (RWGT, WEIGHTS, or NONE), see the `LHEFormat Enum`.
         """
         # if filepath suffix is gz, write as gz
         with _open_write_file(filepath, gz=gz) as f:

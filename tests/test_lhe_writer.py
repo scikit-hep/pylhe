@@ -137,7 +137,7 @@ def test_write_lhe():
     init = file.init.tolhe()
 
     assert (
-        file.tolhe(pylhe.LHEFormat.RWGT)
+        file.tolhe(format=pylhe.LHEFormat.RWGT)
         == f"""<LesHouchesEvents version="3.0">
 {header}
 {init}
