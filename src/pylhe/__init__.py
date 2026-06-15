@@ -623,7 +623,7 @@ class LHEInit:
                 and "version" in element.attrib
                 and event == "end"
             ):
-                # lhe-v3 has name and version; lhe-v2 has only version (name is in the text)
+                # lhe-v3 has name and version attributes; some lhe-v2 files only provide version as an attribute (text is stored in `description`)
                 generator = LHEGenerator(
                     name=element.attrib.get("name", ""),
                     version=element.attrib["version"],
