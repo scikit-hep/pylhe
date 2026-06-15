@@ -579,9 +579,8 @@ def test_roundtrip_version_populated_fromfile():
     """The version field must also be populated when reading from a file."""
     lhef = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3)
     assert lhef.version is not None
-    assert "version" in lhef.attributes
-    # version appears exactly once
-    assert list(lhef.attributes).count("version") == 1
+assert lhef.attributes.get("version") == lhef.version
+assert "version" not in lhef.extra_attributes
 
 
 def test_roundtrip_event_attributes_and_comments():
