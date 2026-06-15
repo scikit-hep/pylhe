@@ -242,6 +242,11 @@ class LHEParticle:
         ]
 
 
+def _indent(root: ET.Element, level: int = 2) -> None:
+    ET.indent(root, space=" " * level)
+    root.tail = "\n"
+
+
 @dataclass
 class LHEInitInfo:
     """Store the first line of the <init> block as a dataclass."""
@@ -439,8 +444,7 @@ class LHEInitRWGT:
             else:
                 weight_elem = ET.SubElement(root, "weight", attrib=e.attributes)
                 weight_elem.text = e.name
-        ET.indent(root, space="  ")
-        root.tail = "\n"
+        _indent(root)
         return ET.tostring(root, encoding="unicode", method="xml")
 
 
@@ -470,8 +474,7 @@ class LHEHeader:
         if self.initrwgt.entries:
             root.append(ET.fromstring(self.initrwgt.tolhe()))
 
-        ET.indent(root, space="  ")
-        root.tail = "\n"
+        _indent(root)
         return ET.tostring(root, encoding="unicode", method="xml")
 
     @classmethod
