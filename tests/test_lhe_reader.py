@@ -580,9 +580,8 @@ def test_roundtrip_version_populated_fromfile():
     lhef = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3)
     assert lhef.version is not None
 
-
-assert lhef.attributes.get("version") == lhef.version
-assert "version" not in lhef.extra_attributes
+    assert lhef.attributes.get("version") == lhef.version
+    assert "version" not in lhef.extra_attributes
 
 
 def test_roundtrip_event_attributes_and_comments():
