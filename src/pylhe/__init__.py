@@ -515,7 +515,7 @@ class LHEHeader:
                                 initrwgtentries.append(
                                     LHEInitRWGTWeight(
                                         id=weight_child.attrib["id"],
-                                        extra_attributes=weight_child.attrib,
+                                        extra_attributes=weight_child.attrib.copy(),
                                         name=weight_child.text.strip()
                                         if weight_child.text
                                         else "",
@@ -533,7 +533,8 @@ class LHEHeader:
                                     ae = "weightgroup must have attribute 'type' or 'name'."
                                     raise AttributeError(ae)
                                 temp_group = LHEInitRWGTWeightGroup(
-                                    extra_attributes=weight_child.attrib, weights=[]
+                                    extra_attributes=weight_child.attrib.copy(),
+                                    weights=[],
                                 )
                                 # Iterate over all weights in this weightgroup
                                 for wc in weight_child:
@@ -544,7 +545,7 @@ class LHEHeader:
                                         temp_group.weights.append(
                                             LHEInitRWGTWeight(
                                                 id=wc.attrib["id"],
-                                                extra_attributes=wc.attrib,
+                                                extra_attributes=wc.attrib.copy(),
                                                 name=wc.text.strip() if wc.text else "",
                                             )
                                         )
@@ -736,12 +737,18 @@ class LHEEvent:
                 + "/>\n"
             )
 
+        soptional = ""
+        if self.optional:
+            soptional = "\n".join(self.optional) + "\n"
+
         return (
-            "<event>\n"
+            _open_xml_tag("event", self.attributes)
+            + "\n"
             + self.eventinfo.tolhe()
             + "\n"
             + "\n".join([p.tolhe() for p in self.particles])
             + "\n"
+            + soptional
             + sweights
             + sscales
             + "</event>"
@@ -777,7 +784,7 @@ class LHEEvent:
                 if with_attributes:
                     weights = {}
                     scales = {}
-                    attrib = element.attrib
+                    attrib = element.attrib.copy()
                     optional = [
                         p.strip() for p in particles_str if p.strip().startswith("#")
                     ]
@@ -1018,6 +1025,9 @@ class LesHouchesEvents:
                         raise ValueError(err)
                     else:
                         lhef.extra_attributes = root.attrib.copy()
+                        # Re-run post-init now that extra_attributes is populated;
+                        # construction used an empty dict so version was not set yet.
+                        lhef.__post_init__()
 
                     # We do not allow other xml tags before <header> or <init>
                     event, element = next(context)  # Get the first element in the file
