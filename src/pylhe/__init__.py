@@ -515,7 +515,7 @@ class LHEHeader:
                                 initrwgtentries.append(
                                     LHEInitRWGTWeight(
                                         id=weight_child.attrib["id"],
-                                        extra_attributes=weight_child.attrib,
+                                        extra_attributes=weight_child.attrib.copy(),
                                         name=weight_child.text.strip()
                                         if weight_child.text
                                         else "",
@@ -533,7 +533,8 @@ class LHEHeader:
                                     ae = "weightgroup must have attribute 'type' or 'name'."
                                     raise AttributeError(ae)
                                 temp_group = LHEInitRWGTWeightGroup(
-                                    extra_attributes=weight_child.attrib, weights=[]
+                                    extra_attributes=weight_child.attrib.copy(),
+                                    weights=[],
                                 )
                                 # Iterate over all weights in this weightgroup
                                 for wc in weight_child:
@@ -544,7 +545,7 @@ class LHEHeader:
                                         temp_group.weights.append(
                                             LHEInitRWGTWeight(
                                                 id=wc.attrib["id"],
-                                                extra_attributes=wc.attrib,
+                                                extra_attributes=wc.attrib.copy(),
                                                 name=wc.text.strip() if wc.text else "",
                                             )
                                         )
@@ -694,7 +695,7 @@ class LHEEvent:
     """Event attributes not represented by dedicated fields"""
     optional: list[str] = field(default_factory=list)
     """Optional '#' comments stored in the event"""
-    _graph: Optional[graphviz.Digraph] = None
+    _graph: Optional[graphviz.Digraph] = field(default=None, repr=False, compare=False)
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
 
     def __post_init__(self) -> None:
@@ -736,12 +737,18 @@ class LHEEvent:
                 + "/>\n"
             )
 
+        soptional = ""
+        if self.optional:
+            soptional = "\n".join(self.optional) + "\n"
+
         return (
-            "<event>\n"
+            _open_xml_tag("event", self.attributes)
+            + "\n"
             + self.eventinfo.tolhe()
             + "\n"
             + "\n".join([p.tolhe() for p in self.particles])
             + "\n"
+            + soptional
             + sweights
             + sscales
             + "</event>"
@@ -777,7 +784,7 @@ class LHEEvent:
                 if with_attributes:
                     weights = {}
                     scales = {}
-                    attrib = element.attrib
+                    attrib = element.attrib.copy()
                     optional = [
                         p.strip() for p in particles_str if p.strip().startswith("#")
                     ]
@@ -852,21 +859,33 @@ class LHEEvent:
             except MatchingIDNotFound:
                 texlbl = sid
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
-            self._graph.node(
-                str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
-            )
+            self._graph.node(str(i), label=label, texlbl=texlbl)
         for i, p in enumerate(self.particles):
-            for mother in self.mothers(p):
-                self._graph.edge(str(self.particles.index(mother)), str(i))
+            for mother_idx in self.mother_indices(p):
+                self._graph.edge(str(mother_idx), str(i))
+
+    def mother_indices(self, particle: LHEParticle) -> list[int]:
+        """
+        Return the positional indices of the particle's mothers in ``self.particles``.
+
+        The LHE ``mother1``/``mother2`` fields are 1-based; absent mothers (0) are dropped.
+        """
+        idxs = [particle.mother1 - 1, particle.mother2 - 1]
+        out: list[int] = []
+        for idx in idxs:
+            if idx < 0:
+                continue
+            if idx >= len(self.particles):
+                err = f"Mother index {idx + 1} out of range for event with {len(self.particles)} particles."
+                raise IndexError(err)
+            out.append(idx)
+        return out
 
     def mothers(self, particle: LHEParticle) -> list[LHEParticle]:
         """
         Return a list of the particle's mothers.
         """
-        first_idx = int(particle.mother1) - 1
-        second_idx = int(particle.mother2) - 1
-
-        return [self.particles[idx] for idx in (first_idx, second_idx) if idx >= 0]
+        return [self.particles[idx] for idx in self.mother_indices(particle)]
 
     def _repr_mimebundle_(
         self,
@@ -1006,6 +1025,9 @@ class LesHouchesEvents:
                         raise ValueError(err)
                     else:
                         lhef.extra_attributes = root.attrib.copy()
+                        # Re-run post-init now that extra_attributes is populated;
+                        # construction used an empty dict so version was not set yet.
+                        lhef.__post_init__()
 
                     # We do not allow other xml tags before <header> or <init>
                     event, element = next(context)  # Get the first element in the file
