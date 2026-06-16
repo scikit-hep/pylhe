@@ -430,3 +430,35 @@ def test_event_tolhe_both_formats_error():
         ValueError, match=r"Cannot specify both rwgt and weights formats simultaneously"
     ):
         event.tolhe(rwgt=True, weights=True)
+
+
+def test_event_mother_indices_out_of_range_error():
+    """Test that IndexError is raised when a particle references a missing mother."""
+    event = pylhe.LHEEvent(
+        eventinfo=pylhe.LHEEventInfo(
+            nparticles=1, pid=1, weight=1.0, scale=100.0, aqed=0.007, aqcd=0.1
+        ),
+        particles=[
+            pylhe.LHEParticle(
+                id=11,
+                status=1,
+                mother1=2,
+                mother2=0,
+                color1=0,
+                color2=0,
+                px=0.0,
+                py=0.0,
+                pz=1.0,
+                e=1.0,
+                m=0.0,
+                lifetime=0.0,
+                spin=9.0,
+            )
+        ],
+    )
+
+    with pytest.raises(
+        IndexError,
+        match=r"Mother index 2 out of range for event with 1 particles\.",
+    ):
+        event.mother_indices(event.particles[0])
