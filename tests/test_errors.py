@@ -239,6 +239,44 @@ def test_weights_block_without_initrwgt_error():
         os.unlink(tmp_file_path)
 
 
+def test_weights_block_more_entries_than_initrwgt_error():
+    """Test that ValueError is raised when <weights> has more entries than <initrwgt> declares."""
+    too_many_weights_content = """<LesHouchesEvents version="3.0">
+<header>
+<initrwgt>
+<weightgroup name="scale_variation" combine="envelope">
+<weight id="1001"> mur=1 muf=1 </weight>
+</weightgroup>
+</initrwgt>
+</header>
+<init>
+  2212  2212  6.500000e+03  6.500000e+03  0  0  0  0  3  1
+  1.000000e+00  0.000000e+00  1.000000e+00  1
+</init>
+<event>
+  2      0 +1.0000000e+00  9.11884000e+01 -1.00000000e+00 -1.00000000e+00
+       21 -1    0    0  501  502 +0.00000000e+00 +0.00000000e+00 +4.56308892e+02 +4.56308892e+02 +0.00000000e+00 0.0000e+00 9.0000e+00
+       21 -1    0    0  502  501 -0.00000000e+00 -0.00000000e+00 -2.24036073e+02 +2.24036073e+02 +0.00000000e+00 0.0000e+00 9.0000e+00
+<weights>
+ 1.0000000e+00 2.0000000e+00
+</weights>
+</event>
+</LesHouchesEvents>"""
+
+    with NamedTemporaryFile(mode="w", suffix=".lhe", delete=False) as tmp_file:
+        tmp_file.write(too_many_weights_content)
+        tmp_file_path = tmp_file.name
+
+    try:
+        with pytest.raises(
+            ValueError,
+            match=r"<weights> block has 2 entries but <initrwgt> declares only 1",
+        ):
+            list(pylhe.LesHouchesEvents.fromfile(tmp_file_path).events)
+    finally:
+        os.unlink(tmp_file_path)
+
+
 def test_empty_wgt_block_error():
     """Test that ValueError is raised when <wgt> block has no text content."""
     # Create LHE content with valid init and event but empty wgt block

@@ -232,33 +232,19 @@ class LHEParticle:
             stacklevel=2,
         )
 
-        if self.event is None:
+        if self._event is None:
             err = "Particle is not associated to an event."
             raise ValueError(err)
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
         return [
-            self.event.particles[idx] for idx in (first_idx, second_idx) if idx >= 0
+            self._event.particles[idx] for idx in (first_idx, second_idx) if idx >= 0
         ]
 
 
-def _indent(elem: ET.Element, level: int = 0) -> None:
-    """
-    XML indentation helper from https://stackoverflow.com/a/33956544.
-    """
-    i = "\n" + level * "  "
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "  "
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-        for inner_elem in elem:
-            _indent(inner_elem, level + 1)
-        elem = inner_elem
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-    elif level and (not elem.tail or not elem.tail.strip()):
-        elem.tail = i
+def _indent(root: ET.Element, level: int = 2) -> None:
+    ET.indent(root, space=" " * level)
+    root.tail = "\n"
 
 
 @dataclass
@@ -492,7 +478,9 @@ class LHEHeader:
         return ET.tostring(root, encoding="unicode", method="xml")
 
     @classmethod
-    def _fromcontext(cls, _root: ET.Element, context: Any) -> Union["LHEHeader", None]:
+    def _fromcontext(
+        cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
+    ) -> "LHEHeader":
         initrwgtentries: list[InitRWGTEntry] = []
         extra_elements: list[ET.Element] = []
         attributes: dict[str, str] = {}
@@ -626,7 +614,9 @@ class LHEInit:
         )
 
     @classmethod
-    def _fromcontext(cls, _root: ET.Element, context: Any) -> "LHEInit":
+    def _fromcontext(
+        cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
+    ) -> "LHEInit":
         initInfo = None
         procInfo = []
         generators = []
@@ -637,26 +627,14 @@ class LHEInit:
                 and "version" in element.attrib
                 and event == "end"
             ):
-                if "name" in element.attrib:
-                    # lhe-v3 has name and version
-                    generator = LHEGenerator(
-                        name=element.attrib["name"],
-                        version=element.attrib["version"],
-                        description=""
-                        if element.text is None
-                        else element.text.strip(),
-                        extra_attributes=element.attrib.copy(),
-                    )
-                    generators.append(generator)
-                else:
-                    # lhe-v2 has version and name is in the text
-                    generator = LHEGenerator(
-                        version=element.attrib["version"],
-                        name="",
-                        description=element.text.strip() if element.text else "",
-                        extra_attributes=element.attrib.copy(),
-                    )
-                    generators.append(generator)
+                # lhe-v3 has name and version attributes; some lhe-v2 files only provide version as an attribute (text is stored in `description`)
+                generator = LHEGenerator(
+                    name=element.attrib.get("name", ""),
+                    version=element.attrib["version"],
+                    description=element.text.strip() if element.text else "",
+                    extra_attributes=element.attrib.copy(),
+                )
+                generators.append(generator)
             if (
                 element.tag == "init" and event == "end"
             ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
@@ -758,7 +736,7 @@ class LHEEvent:
     def _fromcontext(
         cls,
         root: ET.Element,
-        context: Any,
+        context: Iterator[tuple[str, ET.Element]],
         lheheader: Optional[LHEHeader] = None,
         with_attributes: bool = True,
     ) -> Iterator["LHEEvent"]:
@@ -797,8 +775,15 @@ class LHEEvent:
                             if not index_map:
                                 err = "<initrwgt> is required to parse <weights> block but not found in the header."
                                 raise ValueError(err)
-                            for i, w in enumerate(sub.text.split()):
-                                if w and index_map[i] not in weights:
+                            weight_values = sub.text.split()
+                            if len(weight_values) > len(index_map):
+                                err = (
+                                    f"event <weights> block has {len(weight_values)} entries"
+                                    f" but <initrwgt> declares only {len(index_map)}"
+                                )
+                                raise ValueError(err)
+                            for i, w in enumerate(weight_values):
+                                if index_map[i] not in weights:
                                     weights[index_map[i]] = float(w)
                         elif sub.tag == "rwgt":
                             for r in sub:
