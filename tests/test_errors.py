@@ -239,6 +239,44 @@ def test_weights_block_without_initrwgt_error():
         os.unlink(tmp_file_path)
 
 
+def test_weights_block_more_entries_than_initrwgt_error():
+    """Test that ValueError is raised when <weights> has more entries than <initrwgt> declares."""
+    too_many_weights_content = """<LesHouchesEvents version="3.0">
+<header>
+<initrwgt>
+<weightgroup name="scale_variation" combine="envelope">
+<weight id="1001"> mur=1 muf=1 </weight>
+</weightgroup>
+</initrwgt>
+</header>
+<init>
+  2212  2212  6.500000e+03  6.500000e+03  0  0  0  0  3  1
+  1.000000e+00  0.000000e+00  1.000000e+00  1
+</init>
+<event>
+  2      0 +1.0000000e+00  9.11884000e+01 -1.00000000e+00 -1.00000000e+00
+       21 -1    0    0  501  502 +0.00000000e+00 +0.00000000e+00 +4.56308892e+02 +4.56308892e+02 +0.00000000e+00 0.0000e+00 9.0000e+00
+       21 -1    0    0  502  501 -0.00000000e+00 -0.00000000e+00 -2.24036073e+02 +2.24036073e+02 +0.00000000e+00 0.0000e+00 9.0000e+00
+<weights>
+ 1.0000000e+00 2.0000000e+00
+</weights>
+</event>
+</LesHouchesEvents>"""
+
+    with NamedTemporaryFile(mode="w", suffix=".lhe", delete=False) as tmp_file:
+        tmp_file.write(too_many_weights_content)
+        tmp_file_path = tmp_file.name
+
+    try:
+        with pytest.raises(
+            ValueError,
+            match=r"<weights> block has 2 entries but <initrwgt> declares only 1",
+        ):
+            list(pylhe.LesHouchesEvents.fromfile(tmp_file_path).events)
+    finally:
+        os.unlink(tmp_file_path)
+
+
 def test_empty_wgt_block_error():
     """Test that ValueError is raised when <wgt> block has no text content."""
     # Create LHE content with valid init and event but empty wgt block
@@ -341,3 +379,86 @@ def test_fromfile_parse_error():
             ),
         ):
             pylhe.LHEFile.fromfile(f.name)
+
+
+def test_event_tolhe_both_formats_error():
+    """Test that ValueError is raised when both rwgt and weights formats are specified simultaneously."""
+    # Create a simple LHEEvent instance for testing
+    eventinfo = pylhe.LHEEventInfo(
+        nparticles=2, pid=1, weight=1.0, scale=100.0, aqed=0.007, aqcd=0.1
+    )
+
+    particles = [
+        pylhe.LHEParticle(
+            id=21,
+            status=-1,
+            mother1=0,
+            mother2=0,
+            color1=501,
+            color2=502,
+            px=0.0,
+            py=0.0,
+            pz=456.3,
+            e=456.3,
+            m=0.0,
+            lifetime=0.0,
+            spin=9.0,
+        ),
+        pylhe.LHEParticle(
+            id=21,
+            status=-1,
+            mother1=0,
+            mother2=0,
+            color1=502,
+            color2=501,
+            px=0.0,
+            py=0.0,
+            pz=-224.0,
+            e=224.0,
+            m=0.0,
+            lifetime=0.0,
+            spin=9.0,
+        ),
+    ]
+
+    event = pylhe.LHEEvent(
+        eventinfo=eventinfo, particles=particles, weights={"1001": 1.5, "1002": 0.8}
+    )
+
+    # Test that specifying both rwgt=True and weights=True raises ValueError
+    with pytest.raises(
+        ValueError, match=r"Cannot specify both rwgt and weights formats simultaneously"
+    ):
+        event.tolhe(rwgt=True, weights=True)
+
+
+def test_event_mother_indices_out_of_range_error():
+    """Test that IndexError is raised when a particle references a missing mother."""
+    event = pylhe.LHEEvent(
+        eventinfo=pylhe.LHEEventInfo(
+            nparticles=1, pid=1, weight=1.0, scale=100.0, aqed=0.007, aqcd=0.1
+        ),
+        particles=[
+            pylhe.LHEParticle(
+                id=11,
+                status=1,
+                mother1=2,
+                mother2=0,
+                color1=0,
+                color2=0,
+                px=0.0,
+                py=0.0,
+                pz=1.0,
+                e=1.0,
+                m=0.0,
+                lifetime=0.0,
+                spin=9.0,
+            )
+        ],
+    )
+
+    with pytest.raises(
+        IndexError,
+        match=r"Mother index 2 out of range for event with 1 particles\.",
+    ):
+        event.mother_indices(event.particles[0])

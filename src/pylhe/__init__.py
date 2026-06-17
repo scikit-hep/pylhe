@@ -242,33 +242,19 @@ class LHEParticle:
             stacklevel=2,
         )
 
-        if self.event is None:
+        if self._event is None:
             err = "Particle is not associated to an event."
             raise ValueError(err)
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
         return [
-            self.event.particles[idx] for idx in (first_idx, second_idx) if idx >= 0
+            self._event.particles[idx] for idx in (first_idx, second_idx) if idx >= 0
         ]
 
 
-def _indent(elem: ET.Element, level: int = 0) -> None:
-    """
-    XML indentation helper from https://stackoverflow.com/a/33956544.
-    """
-    i = "\n" + level * "  "
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "  "
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-        for inner_elem in elem:
-            _indent(inner_elem, level + 1)
-        elem = inner_elem
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-    elif level and (not elem.tail or not elem.tail.strip()):
-        elem.tail = i
+def _indent(root: ET.Element, level: int = 2) -> None:
+    ET.indent(root, space=" " * level)
+    root.tail = "\n"
 
 
 @dataclass
@@ -502,7 +488,9 @@ class LHEHeader:
         return ET.tostring(root, encoding="unicode", method="xml")
 
     @classmethod
-    def _fromcontext(cls, _root: ET.Element, context: Any) -> Union["LHEHeader", None]:
+    def _fromcontext(
+        cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
+    ) -> "LHEHeader":
         initrwgtentries: list[InitRWGTEntry] = []
         extra_elements: list[ET.Element] = []
         attributes: dict[str, str] = {}
@@ -525,7 +513,7 @@ class LHEHeader:
                                 initrwgtentries.append(
                                     LHEInitRWGTWeight(
                                         id=weight_child.attrib["id"],
-                                        extra_attributes=weight_child.attrib,
+                                        extra_attributes=weight_child.attrib.copy(),
                                         name=weight_child.text.strip()
                                         if weight_child.text
                                         else "",
@@ -543,7 +531,8 @@ class LHEHeader:
                                     ae = "weightgroup must have attribute 'type' or 'name'."
                                     raise AttributeError(ae)
                                 temp_group = LHEInitRWGTWeightGroup(
-                                    extra_attributes=weight_child.attrib, weights=[]
+                                    extra_attributes=weight_child.attrib.copy(),
+                                    weights=[],
                                 )
                                 # Iterate over all weights in this weightgroup
                                 for wc in weight_child:
@@ -554,7 +543,7 @@ class LHEHeader:
                                         temp_group.weights.append(
                                             LHEInitRWGTWeight(
                                                 id=wc.attrib["id"],
-                                                extra_attributes=wc.attrib,
+                                                extra_attributes=wc.attrib.copy(),
                                                 name=wc.text.strip() if wc.text else "",
                                             )
                                         )
@@ -635,7 +624,9 @@ class LHEInit:
         )
 
     @classmethod
-    def _fromcontext(cls, _root: ET.Element, context: Any) -> "LHEInit":
+    def _fromcontext(
+        cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
+    ) -> "LHEInit":
         initInfo = None
         procInfo = []
         generators = []
@@ -646,26 +637,14 @@ class LHEInit:
                 and "version" in element.attrib
                 and event == "end"
             ):
-                if "name" in element.attrib:
-                    # lhe-v3 has name and version
-                    generator = LHEGenerator(
-                        name=element.attrib["name"],
-                        version=element.attrib["version"],
-                        description=""
-                        if element.text is None
-                        else element.text.strip(),
-                        extra_attributes=element.attrib.copy(),
-                    )
-                    generators.append(generator)
-                else:
-                    # lhe-v2 has version and name is in the text
-                    generator = LHEGenerator(
-                        version=element.attrib["version"],
-                        name="",
-                        description=element.text.strip() if element.text else "",
-                        extra_attributes=element.attrib.copy(),
-                    )
-                    generators.append(generator)
+                # lhe-v3 has name and version attributes; some lhe-v2 files only provide version as an attribute (text is stored in `description`)
+                generator = LHEGenerator(
+                    name=element.attrib.get("name", ""),
+                    version=element.attrib["version"],
+                    description=element.text.strip() if element.text else "",
+                    extra_attributes=element.attrib.copy(),
+                )
+                generators.append(generator)
             if (
                 element.tag == "init" and event == "end"
             ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
@@ -704,7 +683,7 @@ class LHEEvent:
     """Event attributes not represented by dedicated fields"""
     optional: list[str] = field(default_factory=list)
     """Optional '#' comments stored in the event"""
-    _graph: Optional[graphviz.Digraph] = None
+    _graph: Optional[graphviz.Digraph] = field(default=None, repr=False, compare=False)
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
 
     def __post_init__(self) -> None:
@@ -743,12 +722,18 @@ class LHEEvent:
                 + "/>\n"
             )
 
+        soptional = ""
+        if self.optional:
+            soptional = "\n".join(self.optional) + "\n"
+
         return (
-            "<event>\n"
+            _open_xml_tag("event", self.attributes)
+            + "\n"
             + self.eventinfo.tolhe()
             + "\n"
             + "\n".join([p.tolhe() for p in self.particles])
             + "\n"
+            + soptional
             + sweights
             + sscales
             + "</event>"
@@ -758,7 +743,7 @@ class LHEEvent:
     def _fromcontext(
         cls,
         root: ET.Element,
-        context: Any,
+        context: Iterator[tuple[str, ET.Element]],
         lheheader: Optional[LHEHeader] = None,
         with_attributes: bool = True,
     ) -> Iterator["LHEEvent"]:
@@ -784,7 +769,7 @@ class LHEEvent:
                 if with_attributes:
                     weights = {}
                     scales = {}
-                    attrib = element.attrib
+                    attrib = element.attrib.copy()
                     optional = [
                         p.strip() for p in particles_str if p.strip().startswith("#")
                     ]
@@ -797,8 +782,15 @@ class LHEEvent:
                             if not index_map:
                                 err = "<initrwgt> is required to parse <weights> block but not found in the header."
                                 raise ValueError(err)
-                            for i, w in enumerate(sub.text.split()):
-                                if w and index_map[i] not in weights:
+                            weight_values = sub.text.split()
+                            if len(weight_values) > len(index_map):
+                                err = (
+                                    f"event <weights> block has {len(weight_values)} entries"
+                                    f" but <initrwgt> declares only {len(index_map)}"
+                                )
+                                raise ValueError(err)
+                            for i, w in enumerate(weight_values):
+                                if index_map[i] not in weights:
                                     weights[index_map[i]] = float(w)
                         elif sub.tag == "rwgt":
                             for r in sub:
@@ -859,21 +851,33 @@ class LHEEvent:
             except MatchingIDNotFound:
                 texlbl = sid
                 label = f'<<table border="0" cellspacing="0" cellborder="0"><tr><td>{texlbl}</td></tr></table>>'
-            self._graph.node(
-                str(i), label=label, attr_dict=str(p.__dict__), texlbl=texlbl
-            )
+            self._graph.node(str(i), label=label, texlbl=texlbl)
         for i, p in enumerate(self.particles):
-            for mother in self.mothers(p):
-                self._graph.edge(str(self.particles.index(mother)), str(i))
+            for mother_idx in self.mother_indices(p):
+                self._graph.edge(str(mother_idx), str(i))
+
+    def mother_indices(self, particle: LHEParticle) -> list[int]:
+        """
+        Return the positional indices of the particle's mothers in ``self.particles``.
+
+        The LHE ``mother1``/``mother2`` fields are 1-based; absent mothers (0) are dropped.
+        """
+        idxs = [particle.mother1 - 1, particle.mother2 - 1]
+        out: list[int] = []
+        for idx in idxs:
+            if idx < 0:
+                continue
+            if idx >= len(self.particles):
+                err = f"Mother index {idx + 1} out of range for event with {len(self.particles)} particles."
+                raise IndexError(err)
+            out.append(idx)
+        return out
 
     def mothers(self, particle: LHEParticle) -> list[LHEParticle]:
         """
         Return a list of the particle's mothers.
         """
-        first_idx = int(particle.mother1) - 1
-        second_idx = int(particle.mother2) - 1
-
-        return [self.particles[idx] for idx in (first_idx, second_idx) if idx >= 0]
+        return [self.particles[idx] for idx in self.mother_indices(particle)]
 
     def _repr_mimebundle_(
         self,
@@ -1011,6 +1015,9 @@ class LesHouchesEvents:
                         raise ValueError(err)
                     else:
                         lhef.extra_attributes = root.attrib.copy()
+                        # Re-run post-init now that extra_attributes is populated;
+                        # construction used an empty dict so version was not set yet.
+                        lhef.__post_init__()
 
                     # We do not allow other xml tags before <header> or <init>
                     event, element = next(context)  # Get the first element in the file
