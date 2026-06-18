@@ -175,7 +175,9 @@ def test_write_lhe():
     )
 
     assert (
-        file.tolhe(format=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightsFormat.WEIGHTS))
+        file.tolhe(
+            lheformat=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightFormat.WEIGHTS)
+        )
         == f"""<LesHouchesEvents version="3.0">
 {header}
 {init}
@@ -348,11 +350,3 @@ def test_tofile_none_format_emits_no_weight_block(tmp_path):
     content = out_path.read_text()
     assert "<rwgt>" not in content
     assert "<weights>" not in content
-
-
-def test_lheformat_is_exported():
-    """
-    Test that LHEFormat is part of the public API.
-    """
-    assert "LHEFormat" in pylhe.__all__
-    assert pylhe.LHEFormat is pylhe.LHEFormat.RWGT.__class__

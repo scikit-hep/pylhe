@@ -79,11 +79,10 @@ class LHEFileFormat(enum.Enum):
 class LHEOutputFormat:
     """Future proof, extensible output format"""
 
-    # version: LHEVersion = LHEVersion.V3 #TODO
+    # version: LHEVersion = LHEVersion.V3 # optional future TODO, but why would anyone not want to write v3?
     indent: str = "  "
     weights: LHEWeightFormat = LHEWeightFormat.RWGT
     file: LHEFileFormat = LHEFileFormat.PLAIN
-    # compression: Compression = Compression.NONE
 
     eventinfo: str = "{nparticles:3d} {pid:6d} {weight: 15.10e} {scale: 15.10e} {aqed: 15.10e} {aqcd: 15.10e}"
     particle: str = "{id:5d} {status:3d} {mother1:3d} {mother2:3d} {color1:3d} {color2:3d} {px: 15.8e} {py: 15.8e} {pz: 15.8e} {e: 15.8e} {m: 15.8e} {lifetime: 10.4e} {spin: 10.4e}"
@@ -91,7 +90,13 @@ class LHEOutputFormat:
     procinfo: str = "{xSection: 14.7e} {error: 14.7e} {unitWeight: 14.7e} {procId: 5d}"
 
 
+# User convenience presets for common formats
 default_format = LHEOutputFormat()
+"""Default output format with indentation, RWGT weight block and plain text file format."""
+gzip_format = LHEOutputFormat(file=LHEFileFormat.GZIP)
+"""Output format for gzip compressed files."""
+compact_format = LHEOutputFormat(indent="")
+"""Output format without indentation, suitable for compact output."""
 
 
 class Writeable(Protocol):
@@ -1210,7 +1215,10 @@ def _open_write_file(
 ) -> TextIO:
     path = os.fspath(filepath)
     gz_suffixes = (".gz", ".gzip") if isinstance(path, str) else (b".gz", b".gzip")
-    if any(path.endswith(s) for s in gz_suffixes) or lheformat.file == LHEFileFormat.GZIP:
+    if (
+        any(path.endswith(s) for s in gz_suffixes)
+        or lheformat.file == LHEFileFormat.GZIP
+    ):
         return gzip.open(path, "wt")
     return open(path, "w")
 
