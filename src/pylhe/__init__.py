@@ -1208,10 +1208,11 @@ def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFi
 def _open_write_file(
     filepath: PathLike, lheformat: LHEOutputFormat = default_format
 ) -> TextIO:
-    filepath_str = os.fsdecode(os.fspath(filepath))
-    if filepath_str.endswith((".gz", ".gzip")) or lheformat.file == LHEFileFormat.GZIP:
-        return gzip.open(filepath_str, "wt")
-    return open(filepath_str, "w")
+    path = os.fspath(filepath)
+    gz_suffixes = (".gz", ".gzip") if isinstance(path, str) else (b".gz", b".gzip")
+    if any(path.endswith(s) for s in gz_suffixes) or lheformat.file == LHEFileFormat.GZIP:
+        return gzip.open(path, "wt")
+    return open(path, "w")
 
 
 # we import this later to avoid circular imports
