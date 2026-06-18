@@ -498,7 +498,7 @@ class LHEInitRWGT:
         """Return a dictionary mapping weight indices to weight IDs for all weights in the <initrwgt> block."""
         return {i: w.id for i, w in enumerate(self.iter_weights())}
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:  # noqa: ARG002
+    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:
         """
         Return the init block as a string in LHE format.
 
@@ -520,7 +520,7 @@ class LHEInitRWGT:
             else:
                 weight_elem = ET.SubElement(root, "weight", attrib=e.attributes)
                 weight_elem.text = e.name
-        _indent(root)
+        _indent(root, lheformat)
         return ET.tostring(root, encoding="unicode", method="xml")
 
 
