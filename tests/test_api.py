@@ -5,9 +5,7 @@ def test_top_level_api():
     assert dir(pylhe) == [
         "LHEEvent",
         "LHEEventInfo",
-        "LHEWeightsFormat",
         "LHEFileFormat",
-        "LHEOutputFile",
         "LHEFormat",
         "LHEGenerator",
         "LHEHeader",
@@ -15,8 +13,10 @@ def test_top_level_api():
         "LHEInitInfo",
         "LHEInitRWGTWeight",
         "LHEInitRWGTWeightGroup",
+        "LHEOutputFile",
         "LHEParticle",
         "LHEProcInfo",
+        "LHEWeightsFormat",
         "__version__",
         "to_awkward",
     ]
