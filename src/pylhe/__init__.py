@@ -30,7 +30,6 @@ from particle.exceptions import MatchingIDNotFound
 from pylhe._version import version as __version__
 
 __all__ = [
-    "COMPACT_FORMAT",
     "DEFAULT_FORMAT",
     "GZIP_FORMAT",
     "RWGT_FORMAT",
