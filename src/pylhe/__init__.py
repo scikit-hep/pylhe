@@ -149,7 +149,7 @@ class LHEEventInfo:
             str: The event info as a string in LHE format.
         """
         return lheformat.eventinfo.format(
-            nparitcles=self.nparticles,
+            nparticles=self.nparticles,
             pid=self.pid,
             weight=self.weight,
             scale=self.scale,
