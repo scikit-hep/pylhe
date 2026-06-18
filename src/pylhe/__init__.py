@@ -75,7 +75,7 @@ class LHEFileFormat(enum.Enum):
     # HDF5 = "hdf5" # TODO
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class LHEOutputFormat:
     """Future proof, extensible output format"""
 
