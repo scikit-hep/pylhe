@@ -3,7 +3,6 @@ import pylhe
 
 def test_top_level_api():
     assert dir(pylhe) == [
-        "COMPACT_FORMAT",
         "DEFAULT_FORMAT",
         "GZIP_FORMAT",
         "LHEEvent",
