@@ -40,7 +40,7 @@ __all__ = [
     "LHEInitInfo",
     "LHEInitRWGTWeight",
     "LHEInitRWGTWeightGroup",
-    "LHEOuputFormat",
+    "LHEOutputFormat",
     "LHEParticle",
     "LHEProcInfo",
     "LHEWeightFormat",
