@@ -30,6 +30,13 @@ from particle.exceptions import MatchingIDNotFound
 from pylhe._version import version as __version__
 
 __all__ = [
+    "COMPACT_FORMAT",
+    "DEFAULT_FORMAT",
+    "GZIP_FORMAT",
+    "RWGT_FORMAT",
+    "RWGT_GZ_FORMAT",
+    "WEIGHTS_FORMAT",
+    "WEIGHTS_GZ_FORMAT",
     "LHEEvent",
     "LHEEventInfo",
     "LHEFile",
@@ -91,12 +98,23 @@ class LHEOutputFormat:
 
 
 # User convenience presets for common formats
-default_format = LHEOutputFormat()
+DEFAULT_FORMAT = LHEOutputFormat()
 """Default output format with indentation, RWGT weight block and plain text file format."""
-gzip_format = LHEOutputFormat(file=LHEFileFormat.GZIP)
+GZIP_FORMAT = LHEOutputFormat(file=LHEFileFormat.GZIP)
 """Output format for gzip compressed files."""
-compact_format = LHEOutputFormat(indent="")
+COMPACT_FORMAT = LHEOutputFormat(indent="")
 """Output format without indentation, suitable for compact output."""
+RWGT_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.RWGT)
+"""Output format with RWGT weight block."""
+WEIGHTS_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.WEIGHTS)
+"""Output format with WEIGHTS weight block."""
+RWGT_GZ_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.RWGT, file=LHEFileFormat.GZIP)
+"""Output format with RWGT weight block and gzip compressed file format."""
+WEIGHTS_GZ_FORMAT = LHEOutputFormat(
+    weights=LHEWeightFormat.WEIGHTS, file=LHEFileFormat.GZIP
+)
+"""Output format with WEIGHTS weight block and gzip compressed file format."""
+NONE_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.NONE)
 
 
 class Writeable(Protocol):
@@ -146,7 +164,7 @@ class LHEEventInfo:
     aqcd: float
     """QCD coupling constant alpha_QCD"""
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the event info as a string in LHE format.
 
@@ -260,7 +278,7 @@ class LHEParticle:
             spin=float(values[12]),
         )
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the particle as a string in LHE format.
 
@@ -307,7 +325,7 @@ class LHEParticle:
         ]
 
 
-def _indent(root: ET.Element, lheformat: LHEOutputFormat = default_format) -> None:
+def _indent(root: ET.Element, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> None:
     ET.indent(root, space=lheformat.indent)
     root.tail = "\n"
 
@@ -337,7 +355,7 @@ class LHEInitInfo:
     numProcesses: int
     """Number of processes"""
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the init info block as a string in LHE format.
 
@@ -390,7 +408,7 @@ class LHEProcInfo:
     procId: int
     """Process ID"""
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the process info block as a string in LHE format.
 
@@ -503,7 +521,7 @@ class LHEInitRWGT:
         """Return a dictionary mapping weight indices to weight IDs for all weights in the <initrwgt> block."""
         return {i: w.id for i, w in enumerate(self.iter_weights())}
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the init block as a string in LHE format.
 
@@ -547,7 +565,7 @@ class LHEHeader:
         """Return all the attributes of the header element"""
         return {**self.extra_attributes}
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """Return the header block as a string in LHE format."""
         root = ET.Element("header", attrib=self.attributes)
         for element in self.extra_elements:
@@ -653,7 +671,7 @@ class LHEGenerator:
         self.extra_attributes.pop("name", None)
         self.extra_attributes.pop("version", None)
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:  # noqa: ARG002
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:  # noqa: ARG002
         """
         Return the generator information as a string in LHE format.
 
@@ -675,7 +693,7 @@ class LHEInit:
     generators: list[LHEGenerator]
     """Generator information"""
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the init block as a string in LHE format.
 
@@ -762,7 +780,7 @@ class LHEEvent:
         for p in self.particles:
             p.event = self
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the event as a string in LHE format.
 
@@ -996,7 +1014,7 @@ class LesHouchesEvents:
         return {**self.extra_attributes, **attrs}
 
     def write(
-        self, output_stream: TWriteable, lheformat: LHEOutputFormat = default_format
+        self, output_stream: TWriteable, lheformat: LHEOutputFormat = DEFAULT_FORMAT
     ) -> TWriteable:
         """
         Write the LHE file to an output stream.
@@ -1012,7 +1030,7 @@ class LesHouchesEvents:
         output_stream.write("</LesHouchesEvents>")
         return output_stream
 
-    def tolhe(self, lheformat: LHEOutputFormat = default_format) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the LHE file as a string.
         """
@@ -1021,7 +1039,7 @@ class LesHouchesEvents:
     def tofile(
         self,
         filepath: PathLike,
-        lheformat: LHEOutputFormat = default_format,
+        lheformat: LHEOutputFormat = DEFAULT_FORMAT,
     ) -> None:
         """
         Write the LHE file.
@@ -1211,7 +1229,7 @@ def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFi
 
 
 def _open_write_file(
-    filepath: PathLike, lheformat: LHEOutputFormat = default_format
+    filepath: PathLike, lheformat: LHEOutputFormat = DEFAULT_FORMAT
 ) -> TextIO:
     filepath_str = os.fsdecode(os.fspath(filepath))
     if filepath_str.endswith((".gz", ".gzip")) or lheformat.file == LHEFileFormat.GZIP:

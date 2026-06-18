@@ -142,7 +142,7 @@ def test_write_lhe():
     init = file.init.tolhe()
 
     assert (
-        file.tolhe(lheformat=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightFormat.RWGT))
+        file.tolhe(lheformat=pylhe.RWGT_FORMAT)
         == f"""<LesHouchesEvents version="3.0">
 {header}
 {init}
@@ -175,9 +175,7 @@ def test_write_lhe():
     )
 
     assert (
-        file.tolhe(
-            lheformat=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightFormat.WEIGHTS)
-        )
+        file.tolhe(lheformat=pylhe.WEIGHTS_FORMAT)
         == f"""<LesHouchesEvents version="3.0">
 {header}
 {init}
@@ -259,9 +257,7 @@ def test_write_lhe_gzip(tmpdir):
     events = [next(events)]
 
     # write the file
-    file.tofile(
-        file1.strpath, lheformat=pylhe.LHEOutputFormat(file=pylhe.LHEFileFormat.GZIP)
-    )
+    file.tofile(file1.strpath, lheformat=pylhe.GZIP_FORMAT)
 
     # read it again
     init = pylhe.LesHouchesEvents.fromfile(file1.strpath).init
@@ -323,9 +319,7 @@ def test_tofile_weights_format(tmp_path):
     events = file.events
     file.events = [next(events)]
 
-    file.tofile(
-        out_path, lheformat=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightFormat.WEIGHTS)
-    )
+    file.tofile(out_path, lheformat=pylhe.WEIGHTS_FORMAT)
 
     content = out_path.read_text()
     assert "<weights>" in content

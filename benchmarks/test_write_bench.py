@@ -192,9 +192,7 @@ def _write_random_events_to_temporary_gzip(num_events: int) -> int:
             version="3.0",
         ).tofile(
             str(output_path),
-            pylhe.LHEFormat(
-                file=pylhe.LHEFileFormat.GZIP, weights=pylhe.LHEWeightFormat.RWGT
-            ),
+            pylhe.RWGT_GZ_FORMAT,
         )
         return output_path.stat().st_size
 
