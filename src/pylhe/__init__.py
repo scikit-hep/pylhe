@@ -68,6 +68,8 @@ class LHEWeightFormat(enum.Enum):
 
 
 class LHEFileFormat(enum.Enum):
+    """Selects the file format."""
+
     PLAIN = "plain"
     GZIP = "gzip"
     # HDF5 = "hdf5" # TODO
