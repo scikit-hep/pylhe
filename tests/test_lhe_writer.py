@@ -257,7 +257,9 @@ def test_write_lhe_gzip(tmpdir):
     events = [next(events)]
 
     # write the file
-    file.tofile(file1.strpath, gz=True)
+    file.tofile(
+        file1.strpath, lheformat=pylhe.LHEOutputFormat(file=pylhe.LHEFileFormat.GZIP)
+    )
 
     # read it again
     init = pylhe.LesHouchesEvents.fromfile(file1.strpath).init
@@ -319,7 +321,9 @@ def test_tofile_weights_format(tmp_path):
     events = file.events
     file.events = [next(events)]
 
-    file.tofile(out_path, format=pylhe.LHEFormat.WEIGHTS)
+    file.tofile(
+        out_path, lheformat=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightFormat.WEIGHTS)
+    )
 
     content = out_path.read_text()
     assert "<weights>" in content
@@ -337,7 +341,9 @@ def test_tofile_none_format_emits_no_weight_block(tmp_path):
     events = file.events
     file.events = [next(events)]
 
-    file.tofile(out_path, format=pylhe.LHEFormat.NONE)
+    file.tofile(
+        out_path, lheformat=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightFormat.NONE)
+    )
 
     content = out_path.read_text()
     assert "<rwgt>" not in content
