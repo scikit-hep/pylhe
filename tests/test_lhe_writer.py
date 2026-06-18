@@ -142,7 +142,7 @@ def test_write_lhe():
     init = file.init.tolhe()
 
     assert (
-        file.tolhe()
+        file.tolhe(lheformat=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightFormat.RWGT))
         == f"""<LesHouchesEvents version="3.0">
 {header}
 {init}
@@ -175,7 +175,7 @@ def test_write_lhe():
     )
 
     assert (
-        file.tolhe(format=pylhe.LHEFormat.WEIGHTS)
+        file.tolhe(format=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightsFormat.WEIGHTS))
         == f"""<LesHouchesEvents version="3.0">
 {header}
 {init}
