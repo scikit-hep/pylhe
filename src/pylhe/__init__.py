@@ -550,7 +550,7 @@ class LHEHeader:
         if self.initrwgt.entries:
             root.append(ET.fromstring(self.initrwgt.tolhe(lheformat=lheformat)))
 
-        _indent(root)
+        _indent(root, lheformat=lheformat)
         return ET.tostring(root, encoding="unicode", method="xml")
 
     @classmethod
