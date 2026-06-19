@@ -23,6 +23,7 @@ from typing import (
 from xml.sax.saxutils import quoteattr
 
 import graphviz  # type: ignore[import-untyped]
+import h5py  # type: ignore[import-untyped]
 from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 from particle.exceptions import MatchingIDNotFound
@@ -78,7 +79,7 @@ class LHEFileFormat(enum.Enum):
 
     PLAIN = "plain"
     GZIP = "gzip"
-    # HDF5 = "hdf5" # TODO - for future support of LHEH5, see https://github.com/scikit-hep/pylhe/issues/369
+    HDF5 = "hdf5"  # TODO - for future support of LHEH5, see https://github.com/scikit-hep/pylhe/issues/369
 
 
 @dataclass(frozen=True)
@@ -1203,7 +1204,9 @@ class LesHouchesEvents:
 LHEFile = LesHouchesEvents
 
 
-def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFile]:
+def _extract_fileobj(
+    filepath: PathLike,
+) -> Union[io.BufferedReader, gzip.GzipFile, h5py.File]:
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
     so that the uncompressed file can be returned.
@@ -1214,15 +1217,22 @@ def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFi
         filepath: A path-like object or str.
 
     Returns:
-        _io.BufferedReader or gzip.GzipFile: A file object containing XML data.
+        _io.BufferedReader or gzip.GzipFile or h5py.File: A file object containing XML or HDF5 data.
     """
-    with open(filepath, "rb") as gzip_file:
-        header = gzip_file.read(2)
-    gzip_magic_number = b"\x1f\x8b"
+    is_gzip = False
+    is_hdf5 = False
 
-    return (
-        gzip.GzipFile(filepath) if header == gzip_magic_number else open(filepath, "rb")
-    )
+    with open(filepath, "rb") as gzip_file:
+        is_gzip = gzip_file.read(2) == b"\x1f\x8b"
+
+    with open(filepath, "rb") as f:
+        is_hdf5 = f.read(8) == b"\x89HDF\r\n\x1a\n"
+
+    if is_gzip:
+        return gzip.GzipFile(filepath)
+    if is_hdf5:
+        return h5py.File(filepath, "r")
+    return open(filepath, "rb")
 
 
 def _open_write_file(
