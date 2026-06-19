@@ -112,6 +112,7 @@ WEIGHTS_GZ_FORMAT = LHEOutputFormat(
 )
 """Output format with WEIGHTS weight block and gzip compressed file format."""
 NO_WEIGHTS_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.NONE)
+"""Output format with no WEIGHTS weight block and (default) plain text file format.""
 
 
 class Writeable(Protocol):
