@@ -78,7 +78,7 @@ class LHEFileFormat(enum.Enum):
 
     PLAIN = "plain"
     GZIP = "gzip"
-    # HDF5 = "hdf5" # TODO
+    # HDF5 = "hdf5" # TODO - for future support of LHEH5, see https://github.com/scikit-hep/pylhe/issues/369
 
 
 @dataclass(frozen=True)
@@ -783,7 +783,7 @@ class LHEEvent:
         Return the event as a string in LHE format.
 
         Args:
-            format (LHEOutputFormat): How to serialize event.
+            format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat Enum`.
 
         Returns:
             str: The event as a string in LHE format.
@@ -1045,7 +1045,7 @@ class LesHouchesEvents:
         Args:
             filepath: Path to the output file.
             gz: Whether to gzip the output file (ignored if filepath suffix is .gz/.gzip).
-            format: How to serialize event weights (RWGT, WEIGHTS, or NONE), see the `LHEOutputFormat Enum`.
+            format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat Enum`.
         """
         # if filepath suffix is gz, write as gz
         with _open_write_file(filepath, lheformat=lheformat) as f:
