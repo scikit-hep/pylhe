@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 import h5py
 import pytest
+import skhep_testdata
 
 import pylhe
 from pylhe.lheh5 import get_particles, iter_lheh5, read_init
 
-TEST_HDF5 = Path(__file__).with_name("test.hdf5")
-TEST_HDF5_J7 = Path(__file__).with_name("j7_1.hdf5")
+TEST_HDF5 = skhep_testdata.data_path("pylhe-testfile-hpcgen.hdf5")
+TEST_HDF5_J7 = skhep_testdata.data_path("pylhe-testfile-sherpa.hdf5")
 
 
 def test_get_particles_returns_lheparticles():
