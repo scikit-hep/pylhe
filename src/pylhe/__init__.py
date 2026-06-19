@@ -1043,8 +1043,7 @@ class LesHouchesEvents:
         Write the LHE file.
 
         Args:
-            filepath: Path to the output file.
-            gz: Whether to gzip the output file (ignored if filepath suffix is .gz/.gzip).
+            filepath (PathLike): Path to the output file.
             format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat Enum`.
         """
         # if filepath suffix is gz, write as gz
