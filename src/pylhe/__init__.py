@@ -100,11 +100,11 @@ class LHEOutputFormat:
 DEFAULT_FORMAT = LHEOutputFormat()
 """Default output format with indentation, RWGT weight block and plain text file format."""
 GZIP_FORMAT = LHEOutputFormat(file=LHEFileFormat.GZIP)
-"""Output format for gzip compressed files."""
+"""Output format for gzip compressed files, with (default) RWGT weight block."""
 RWGT_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.RWGT)
-"""Output format with RWGT weight block."""
+"""Output format with RWGT weight block and (default) plain text file format."""
 WEIGHTS_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.WEIGHTS)
-"""Output format with WEIGHTS weight block."""
+"""Output format with WEIGHTS weight block and (default) plain text file format."""
 RWGT_GZ_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.RWGT, file=LHEFileFormat.GZIP)
 """Output format with RWGT weight block and gzip compressed file format."""
 WEIGHTS_GZ_FORMAT = LHEOutputFormat(
