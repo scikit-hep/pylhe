@@ -70,7 +70,7 @@ class LHEWeightFormat(enum.Enum):
 
     RWGT = "rwgt"  # <rwgt><wgt id=...>...</wgt></rwgt> block
     WEIGHTS = "weights"  # <weights>...</weights> block
-    NONE = "none"  # no weight block emitted
+    NONE = "none"  # no weights block emitted
 
 
 class LHEFileFormat(enum.Enum):
@@ -98,21 +98,21 @@ class LHEOutputFormat:
 
 # User convenience presets for common formats
 DEFAULT_FORMAT = LHEOutputFormat()
-"""Default output format with indentation, RWGT weight block and plain text file format."""
+"""Default output format with indentation, RWGT weights block and plain text file format."""
 GZIP_FORMAT = LHEOutputFormat(file=LHEFileFormat.GZIP)
-"""Output format for gzip compressed files, with (default) RWGT weight block."""
+"""Output format for gzip compressed files, with (default) RWGT weights block."""
 RWGT_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.RWGT)
-"""Output format with RWGT weight block and (default) plain text file format."""
+"""Output format with RWGT weights block and (default) plain text file format."""
 WEIGHTS_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.WEIGHTS)
-"""Output format with WEIGHTS weight block and (default) plain text file format."""
+"""Output format with WEIGHTS weights block and (default) plain text file format."""
 RWGT_GZ_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.RWGT, file=LHEFileFormat.GZIP)
-"""Output format with RWGT weight block and gzip compressed file format."""
+"""Output format with RWGT weights block and gzip compressed file format."""
 WEIGHTS_GZ_FORMAT = LHEOutputFormat(
     weights=LHEWeightFormat.WEIGHTS, file=LHEFileFormat.GZIP
 )
-"""Output format with WEIGHTS weight block and gzip compressed file format."""
+"""Output format with WEIGHTS weights block and gzip compressed file format."""
 NO_WEIGHTS_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.NONE)
-"""Output format with no WEIGHTS weight block and (default) plain text file format.""
+"""Output format with no WEIGHTS weights block and (default) plain text file format."""
 
 
 class Writeable(Protocol):
