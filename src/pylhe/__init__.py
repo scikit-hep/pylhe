@@ -28,6 +28,7 @@ from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 from particle.exceptions import MatchingIDNotFound
 
+from pylhe import lheh5
 from pylhe._version import version as __version__
 
 __all__ = [
@@ -1079,7 +1080,7 @@ class LesHouchesEvents:
     def frombuffer(
         cls,
         fileobject: Union[
-            io.BufferedReader, gzip.GzipFile, io.StringIO, TextIO, BinaryIO
+            io.BufferedReader, gzip.GzipFile, h5py.File, io.StringIO, TextIO, BinaryIO
         ],
         with_attributes: bool = True,
         generator: bool = True,
@@ -1087,6 +1088,12 @@ class LesHouchesEvents:
         """
         Read an LHE file and return an LHEFile object.
         """
+
+        if isinstance(fileobject, h5py.File):
+            return LesHouchesEvents(
+                init=lheh5.read_init(fileobject),
+                events=lheh5.read_iter_events(fileobject),
+            )
 
         def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
 
