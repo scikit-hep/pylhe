@@ -1050,7 +1050,10 @@ class LesHouchesEvents:
         """
         # if filepath suffix is gz, write as gz
         with _open_write_file(filepath, lheformat=lheformat) as f:
-            self.write(f, lheformat=lheformat)
+            if isinstance(f, h5py.File):
+                lheh5.write(self, f)
+            else:
+                self.write(f, lheformat=lheformat)
 
     @classmethod
     def fromstring(
@@ -1090,9 +1093,16 @@ class LesHouchesEvents:
         """
 
         if isinstance(fileobject, h5py.File):
+            init = lheh5.read_init(fileobject)
+
+            def _hdf5_generator() -> Iterator[LHEEvent]:
+                with fileobject as h5:
+                    yield from lheh5.read_iter_events(h5)
+
+            events = _hdf5_generator()
             return LesHouchesEvents(
-                init=lheh5.read_init(fileobject),
-                events=lheh5.read_iter_events(fileobject),
+                init=init,
+                events=events if generator else list(events),
             )
 
         def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
@@ -1244,8 +1254,13 @@ def _extract_fileobj(
 
 def _open_write_file(
     filepath: PathLike, lheformat: LHEOutputFormat = DEFAULT_FORMAT
-) -> TextIO:
+) -> Union[TextIO, h5py.File]:
     filepath_str = os.fsdecode(os.fspath(filepath))
+    if (
+        filepath_str.endswith((".h5", ".hdf5", "lheh5"))
+        or lheformat.file == LHEFileFormat.HDF5
+    ):
+        return h5py.File(filepath_str, "w")
     if filepath_str.endswith((".gz", ".gzip")) or lheformat.file == LHEFileFormat.GZIP:
         return gzip.open(filepath_str, "wt")
     return open(filepath_str, "w")

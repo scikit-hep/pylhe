@@ -44,6 +44,21 @@ _PROCINFO_COLUMNS = (
     "unitWeight",
 )
 
+_EVENT_COLUMNS = (
+    "pid",
+    "nparticles",
+    "start",
+    "trials",
+    "scale",
+    "fscale",
+    "rscale",
+    "aqed",
+    "aqcd",
+    "NOMINAL",
+)
+
+_LHEH5_VERSION = (1, 0, 0)
+
 
 def _decode_attr_values(values: Iterable[object]) -> list[str]:
     return [
@@ -98,6 +113,37 @@ def _row_float(
     raise KeyError(err)
 
 
+def _encode_attr_values(values: Iterable[str]) -> list[bytes]:
+    return [value.encode() for value in values]
+
+
+def _set_column_attrs(dataset: h5py.Dataset, columns: Iterable[str]) -> None:
+    encoded = _encode_attr_values(columns)
+    dataset_name = dataset.name.rsplit("/", maxsplit=1)[-1]
+    dataset.attrs["properties"] = encoded
+    dataset.attrs[dataset_name] = encoded
+
+
+def _event_scale(event: pylhe.LHEEvent, *names: str, default: float = 0.0) -> float:
+    for name in names:
+        value = event.scales.get(name)
+        if value is not None:
+            return float(value)
+
+    return default
+
+
+def _event_trials(event: pylhe.LHEEvent) -> float:
+    trials = event.attributes.get("trials")
+    if trials is None:
+        return 0.0
+
+    try:
+        return float(trials)
+    except ValueError:
+        return 0.0
+
+
 def _get_particles(
     particles: h5py.Dataset, start: int, n: int
 ) -> list[pylhe.LHEParticle]:
@@ -130,32 +176,31 @@ def get_particles(
 
 
 def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
-    with file as h5:
-        events = h5["events"]
-        particles = h5["particles"]
-        event_columns = _column_indices(events)
+    events = file["events"]
+    particles = file["particles"]
+    event_columns = _column_indices(events)
 
-        for event_row in events:
-            start = _row_int(event_row, event_columns, "start")
-            nparticles = _row_int(event_row, event_columns, "nparticles")
+    for event_row in events:
+        start = _row_int(event_row, event_columns, "start")
+        nparticles = _row_int(event_row, event_columns, "nparticles")
 
-            yield pylhe.LHEEvent(
-                eventinfo=pylhe.LHEEventInfo(
-                    nparticles=nparticles,
-                    pid=_row_int(event_row, event_columns, "pid"),
-                    weight=_row_float(
-                        event_row,
-                        event_columns,
-                        "weight",
-                        "NOMINAL",
-                        default=0.0,
-                    ),
-                    scale=_row_float(event_row, event_columns, "scale", default=0.0),
-                    aqed=_row_float(event_row, event_columns, "aqed", default=0.0),
-                    aqcd=_row_float(event_row, event_columns, "aqcd", default=0.0),
+        yield pylhe.LHEEvent(
+            eventinfo=pylhe.LHEEventInfo(
+                nparticles=nparticles,
+                pid=_row_int(event_row, event_columns, "pid"),
+                weight=_row_float(
+                    event_row,
+                    event_columns,
+                    "weight",
+                    "NOMINAL",
+                    default=0.0,
                 ),
-                particles=_get_particles(particles, start, nparticles),
-            )
+                scale=_row_float(event_row, event_columns, "scale", default=0.0),
+                aqed=_row_float(event_row, event_columns, "aqed", default=0.0),
+                aqcd=_row_float(event_row, event_columns, "aqcd", default=0.0),
+            ),
+            particles=_get_particles(particles, start, nparticles),
+        )
 
 
 def iter_lheh5(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
@@ -163,34 +208,145 @@ def iter_lheh5(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
 
 
 def read_init(file: h5py.File) -> pylhe.LHEInit:
-    with file as h5:
-        init = h5["init"]
-        procinfo = h5["procInfo"]
-        init_columns = _column_indices(init, default=_INIT_COLUMNS)
-        procinfo_columns = _column_indices(procinfo, default=_PROCINFO_COLUMNS)
-        init_row = init[()]
+    init = file["init"]
+    procinfo = file["procInfo"]
+    init_columns = _column_indices(init, default=_INIT_COLUMNS)
+    procinfo_columns = _column_indices(procinfo, default=_PROCINFO_COLUMNS)
+    init_row = init[()]
 
-        return pylhe.LHEInit(
-            initInfo=pylhe.LHEInitInfo(
-                beamA=_row_int(init_row, init_columns, "beamA"),
-                beamB=_row_int(init_row, init_columns, "beamB"),
-                energyA=_row_float(init_row, init_columns, "energyA"),
-                energyB=_row_float(init_row, init_columns, "energyB"),
-                PDFgroupA=_row_int(init_row, init_columns, "PDFgroupA"),
-                PDFgroupB=_row_int(init_row, init_columns, "PDFgroupB"),
-                PDFsetA=_row_int(init_row, init_columns, "PDFsetA"),
-                PDFsetB=_row_int(init_row, init_columns, "PDFsetB"),
-                weightingStrategy=_row_int(init_row, init_columns, "weightingStrategy"),
-                numProcesses=_row_int(init_row, init_columns, "numProcesses"),
-            ),
-            procInfo=[
-                pylhe.LHEProcInfo(
-                    xSection=_row_float(row, procinfo_columns, "xSection"),
-                    error=_row_float(row, procinfo_columns, "error"),
-                    unitWeight=_row_float(row, procinfo_columns, "unitWeight"),
-                    procId=_row_int(row, procinfo_columns, "procId"),
-                )
-                for row in procinfo
-            ],
-            generators=[],
+    return pylhe.LHEInit(
+        initInfo=pylhe.LHEInitInfo(
+            beamA=_row_int(init_row, init_columns, "beamA"),
+            beamB=_row_int(init_row, init_columns, "beamB"),
+            energyA=_row_float(init_row, init_columns, "energyA"),
+            energyB=_row_float(init_row, init_columns, "energyB"),
+            PDFgroupA=_row_int(init_row, init_columns, "PDFgroupA"),
+            PDFgroupB=_row_int(init_row, init_columns, "PDFgroupB"),
+            PDFsetA=_row_int(init_row, init_columns, "PDFsetA"),
+            PDFsetB=_row_int(init_row, init_columns, "PDFsetB"),
+            weightingStrategy=_row_int(init_row, init_columns, "weightingStrategy"),
+            numProcesses=_row_int(init_row, init_columns, "numProcesses"),
+        ),
+        procInfo=[
+            pylhe.LHEProcInfo(
+                xSection=_row_float(row, procinfo_columns, "xSection"),
+                error=_row_float(row, procinfo_columns, "error"),
+                unitWeight=_row_float(row, procinfo_columns, "unitWeight"),
+                procId=_row_int(row, procinfo_columns, "procId"),
+            )
+            for row in procinfo
+        ],
+        generators=[],
+    )
+
+
+def write(lhe: pylhe.LesHouchesEvents, file: h5py.File) -> None:
+    """Write a LesHouchesEvents object to an HDF5 file in LHEH5 format."""
+    events = list(lhe.events)
+    proc_info = lhe.init.procInfo
+    init_info = lhe.init.initInfo
+
+    if init_info.numProcesses != len(proc_info):
+        err = (
+            "initInfo.numProcesses does not match the number of procInfo rows: "
+            f"{init_info.numProcesses} != {len(proc_info)}"
         )
+        raise ValueError(err)
+
+    init_dataset = file.create_dataset(
+        "init",
+        data=[
+            init_info.beamA,
+            init_info.beamB,
+            init_info.energyA,
+            init_info.energyB,
+            init_info.PDFgroupA,
+            init_info.PDFgroupB,
+            init_info.PDFsetA,
+            init_info.PDFsetB,
+            init_info.weightingStrategy,
+            init_info.numProcesses,
+        ],
+        dtype="f8",
+    )
+    _set_column_attrs(init_dataset, _INIT_COLUMNS)
+
+    proc_rows = [
+        [proc.procId, 0.0, 0.0, proc.xSection, proc.error, proc.unitWeight]
+        for proc in proc_info
+    ]
+    proc_dataset = file.create_dataset(
+        "procInfo",
+        data=proc_rows or None,
+        shape=(len(proc_rows), len(_PROCINFO_COLUMNS)),
+        dtype="f8",
+    )
+    _set_column_attrs(proc_dataset, _PROCINFO_COLUMNS)
+
+    particle_rows: list[list[float]] = []
+    event_rows: list[list[float]] = []
+    start = 0
+
+    for event in events:
+        nparticles = len(event.particles)
+        if event.eventinfo.nparticles != nparticles:
+            err = (
+                "eventinfo.nparticles does not match the number of particle rows: "
+                f"{event.eventinfo.nparticles} != {nparticles}"
+            )
+            raise ValueError(err)
+
+        event_rows.append(
+            [
+                event.eventinfo.pid,
+                nparticles,
+                start,
+                _event_trials(event),
+                event.eventinfo.scale,
+                _event_scale(event, "fscale", "muf"),
+                _event_scale(event, "rscale", "mur"),
+                event.eventinfo.aqed,
+                event.eventinfo.aqcd,
+                event.eventinfo.weight,
+            ]
+        )
+
+        particle_rows.extend(
+            [
+                [
+                    particle.id,
+                    particle.status,
+                    particle.mother1,
+                    particle.mother2,
+                    particle.color1,
+                    particle.color2,
+                    particle.px,
+                    particle.py,
+                    particle.pz,
+                    particle.e,
+                    particle.m,
+                    particle.lifetime,
+                    particle.spin,
+                ]
+                for particle in event.particles
+            ]
+        )
+        start += nparticles
+
+    events_dataset = file.create_dataset(
+        "events",
+        data=event_rows or None,
+        shape=(len(event_rows), len(_EVENT_COLUMNS)),
+        dtype="f8",
+    )
+    _set_column_attrs(events_dataset, _EVENT_COLUMNS)
+
+    particles_dataset = file.create_dataset(
+        "particles",
+        data=particle_rows or None,
+        shape=(len(particle_rows), len(_PARTICLE_COLUMNS)),
+        dtype="f8",
+    )
+    _set_column_attrs(particles_dataset, _PARTICLE_COLUMNS)
+
+    file.create_dataset("version", data=_LHEH5_VERSION, dtype="i8")
