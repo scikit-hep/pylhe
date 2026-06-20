@@ -232,7 +232,7 @@ class LHEParticle:
     def __post_init__(self) -> None:
         """Initialize the event reference."""
         # we store the circular event reference in a private attribute
-        self._event: Optional[LHEEvent] = None
+        self._event: LHEEvent | None = None
 
     @property
     def event(self) -> Optional["LHEEvent"]:
@@ -407,9 +407,9 @@ class LHEProcInfo:
     """Unit weight of the process"""
     procId: int
     """Process ID"""
-    npLO: Optional[int] = None
+    npLO: int | None = None
     """LO final-state multiplicity tag for HDF5 procInfo tables"""
-    npNLO: Optional[int] = None
+    npNLO: int | None = None
     """Born-level multiplicity tag for HDF5 procInfo tables"""
 
     def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
@@ -468,11 +468,11 @@ class LHEInitRWGTWeight:
 class LHEInitRWGTWeightGroup:
     """Information about a weight group."""
 
-    name: Optional[str] = (
+    name: str | None = (
         None  # Normally this is required, i.e. not Optional, but old Madgraph-2.0.0 uses 'type' instead of 'name'...
     )
     """Name of the weight group"""
-    combine: Optional[str] = None
+    combine: str | None = None
     """Combination method of the weight group"""
     weights: list[LHEInitRWGTWeight] = field(default_factory=list)
     """List of weight information"""
@@ -778,7 +778,7 @@ class LHEEvent:
     """Event attributes not represented by dedicated fields"""
     optional: list[str] = field(default_factory=list)
     """Optional '#' comments stored in the event"""
-    _graph: Optional[graphviz.Digraph] = field(default=None, repr=False, compare=False)
+    _graph: graphviz.Digraph | None = field(default=None, repr=False, compare=False)
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
 
     def __post_init__(self) -> None:
@@ -838,7 +838,7 @@ class LHEEvent:
         cls,
         root: ET.Element,
         context: Iterator[tuple[str, ET.Element]],
-        lheheader: Optional[LHEHeader] = None,
+        lheheader: LHEHeader | None = None,
         with_attributes: bool = True,
     ) -> Iterator["LHEEvent"]:
         index_map = (
@@ -975,8 +975,8 @@ class LHEEvent:
 
     def _repr_mimebundle_(
         self,
-        include: Optional[Iterable[str]] = None,
-        exclude: Optional[Iterable[str]] = None,
+        include: Iterable[str] | None = None,
+        exclude: Iterable[str] | None = None,
         **kwargs: dict[str, Any],
     ) -> Any:
         """
@@ -995,11 +995,11 @@ class LesHouchesEvents:
     """Init block"""
     events: Iterable[LHEEvent] = field(default_factory=list)
     """Event block"""
-    header: Optional[LHEHeader] = None
+    header: LHEHeader | None = None
     """Header block"""
-    comment: Optional[str] = None
+    comment: str | None = None
     """Comment block"""
-    version: Optional[str] = None
+    version: str | None = None
     """Version of the LHE file"""
     extra_attributes: dict[str, str] = field(default_factory=dict)
     """Attributes of the root LesHouchesEvents element"""
@@ -1088,9 +1088,12 @@ class LesHouchesEvents:
     @classmethod
     def frombuffer(
         cls,
-        fileobject: Union[
-            io.BufferedReader, gzip.GzipFile, h5py.File, io.StringIO, TextIO, BinaryIO
-        ],
+        fileobject: io.BufferedReader
+        | gzip.GzipFile
+        | h5py.File
+        | io.StringIO
+        | TextIO
+        | BinaryIO,
         with_attributes: bool = True,
         generator: bool = True,
     ) -> "LHEFile":
@@ -1229,7 +1232,7 @@ LHEFile = LesHouchesEvents
 
 def _extract_fileobj(
     filepath: PathLike,
-) -> Union[io.BufferedReader, gzip.GzipFile, h5py.File]:
+) -> io.BufferedReader | gzip.GzipFile | h5py.File:
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
     so that the uncompressed file can be returned.
@@ -1260,7 +1263,7 @@ def _extract_fileobj(
 
 def _open_write_file(
     filepath: PathLike, lheformat: LHEOutputFormat = DEFAULT_FORMAT
-) -> Union[TextIO, h5py.File]:
+) -> TextIO | h5py.File:
     filepath_str = os.fsdecode(os.fspath(filepath))
     if (
         filepath_str.endswith((".h5", ".hdf5", "lheh5"))
