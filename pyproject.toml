@@ -12,7 +12,7 @@ description = "A small package to get structured data out of Les Houches Event f
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     { name = "Lukas Heinrich", email = "lukas.heinrich@cern.ch" },
     { name = "Matthew Feickert", email = "matthew.feickert@cern.ch" },
@@ -30,7 +30,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -110,7 +109,7 @@ packages = ["src/pylhe"]
 [tool.mypy]
 warn_unused_configs = true
 warn_unused_ignores = true
-python_version = "3.9"
+python_version = "3.10"
 files = "src"
 strict = true
 warn_unreachable = true
