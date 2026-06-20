@@ -85,11 +85,24 @@ def _column_indices(
     }
 
 
-def _row_int(row: Sequence[float], columns: dict[str, int], *names: str) -> int:
+def _row_has_column(row: Sequence[float], columns: dict[str, int], name: str) -> bool:
+    index = columns.get(name)
+    return index is not None and index < len(row)
+
+
+def _row_int(
+    row: Sequence[float],
+    columns: dict[str, int],
+    *names: str,
+    default: int | None = None,
+) -> int:
     for name in names:
         index = columns.get(name)
-        if index is not None:
+        if index is not None and index < len(row):
             return int(float(row[index]))
+
+    if default is not None:
+        return default
 
     err = f"None of the requested columns are available: {', '.join(names)}"
     raise KeyError(err)
@@ -103,7 +116,7 @@ def _row_float(
 ) -> float:
     for name in names:
         index = columns.get(name)
-        if index is not None:
+        if index is not None and index < len(row):
             return float(row[index])
 
     if default is not None:
@@ -183,6 +196,18 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
     for event_row in events:
         start = _row_int(event_row, event_columns, "start")
         nparticles = _row_int(event_row, event_columns, "nparticles")
+        trials = _row_float(event_row, event_columns, "trials", default=0.0)
+        fscale = _row_float(event_row, event_columns, "fscale", default=0.0)
+        rscale = _row_float(event_row, event_columns, "rscale", default=0.0)
+        attributes: dict[str, str] = {}
+        scales: dict[str, float] = {}
+
+        if trials != 0.0:
+            attributes["trials"] = str(trials)
+        if fscale != 0.0:
+            scales["fscale"] = fscale
+        if rscale != 0.0:
+            scales["rscale"] = rscale
 
         yield pylhe.LHEEvent(
             eventinfo=pylhe.LHEEventInfo(
@@ -200,6 +225,8 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
                 aqcd=_row_float(event_row, event_columns, "aqcd", default=0.0),
             ),
             particles=_get_particles(particles, start, nparticles),
+            scales=scales,
+            attributes=attributes,
         )
 
 
@@ -233,6 +260,16 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
                 error=_row_float(row, procinfo_columns, "error"),
                 unitWeight=_row_float(row, procinfo_columns, "unitWeight"),
                 procId=_row_int(row, procinfo_columns, "procId"),
+                npLO=(
+                    _row_int(row, procinfo_columns, "npLO")
+                    if _row_has_column(row, procinfo_columns, "npLO")
+                    else None
+                ),
+                npNLO=(
+                    _row_int(row, procinfo_columns, "npNLO")
+                    if _row_has_column(row, procinfo_columns, "npNLO")
+                    else None
+                ),
             )
             for row in procinfo
         ],
@@ -272,7 +309,14 @@ def write(lhe: pylhe.LesHouchesEvents, file: h5py.File) -> None:
     _set_column_attrs(init_dataset, _INIT_COLUMNS)
 
     proc_rows = [
-        [proc.procId, 0.0, 0.0, proc.xSection, proc.error, proc.unitWeight]
+        [
+            proc.procId,
+            0.0 if proc.npLO is None else proc.npLO,
+            0.0 if proc.npNLO is None else proc.npNLO,
+            proc.xSection,
+            proc.error,
+            proc.unitWeight,
+        ]
         for proc in proc_info
     ]
     proc_dataset = file.create_dataset(

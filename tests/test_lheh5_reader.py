@@ -7,12 +7,9 @@ import skhep_testdata
 import pylhe
 from pylhe.lheh5 import get_particles, iter_lheh5, read_init
 
-TEST_HDF5 = skhep_testdata.data_path("pylhe-testfile-hpcgen.hdf5")
-TEST_HDF5_J7 = skhep_testdata.data_path("pylhe-testfile-sherpa.hdf5")
-
 
 def test_get_particles_returns_lheparticles():
-    with h5py.File(TEST_HDF5, "r") as h5:
+    with h5py.File(skhep_testdata.data_path("pylhe-testfile-hpcgen.hdf5"), "r") as h5:
         particles = get_particles(h5["particles"], 0, 4)
 
     assert len(particles) == 4
@@ -27,7 +24,7 @@ def test_get_particles_returns_lheparticles():
 
 
 def test_iter_lheh5_reads_nominal_weight_and_particles():
-    with h5py.File(TEST_HDF5_J7, "r") as h5:
+    with h5py.File(skhep_testdata.data_path("pylhe-testfile-sherpa.hdf5"), "r") as h5:
         event_iter = iter_lheh5(h5)
         first_event = next(event_iter)
         second_event = next(event_iter)
@@ -45,7 +42,7 @@ def test_iter_lheh5_reads_nominal_weight_and_particles():
 
 
 def test_read_init_matches_lheinit_specification():
-    with h5py.File(TEST_HDF5, "r") as h5:
+    with h5py.File(skhep_testdata.data_path("pylhe-testfile-hpcgen.hdf5"), "r") as h5:
         init = read_init(h5)
 
     assert isinstance(init, pylhe.LHEInit)

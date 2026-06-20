@@ -407,6 +407,10 @@ class LHEProcInfo:
     """Unit weight of the process"""
     procId: int
     """Process ID"""
+    npLO: Optional[int] = None
+    """LO final-state multiplicity tag for HDF5 procInfo tables"""
+    npNLO: Optional[int] = None
+    """Born-level multiplicity tag for HDF5 procInfo tables"""
 
     def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
@@ -433,6 +437,8 @@ class LHEProcInfo:
             error=float(values[1]),
             unitWeight=float(values[2]),
             procId=int(float(values[3])),
+            npLO=None,
+            npNLO=None,
         )
 
 
