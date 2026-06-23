@@ -57,7 +57,7 @@ _EVENT_COLUMNS = (
     "NOMINAL",
 )
 
-_LHEH5_VERSION = (1, 0, 0)
+_LHEH5_VERSION = (2, 0, 0)
 
 
 def _decode_attr_values(values: Iterable[object]) -> list[str]:

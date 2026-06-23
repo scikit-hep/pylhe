@@ -23,7 +23,9 @@ def _column_names(dataset: h5py.Dataset) -> tuple[str, ...]:
     return ()
 
 
-def _assert_hdf5_core_equal(source_path, roundtrip_path) -> None:
+def _assert_hdf5_core_equal(
+    source_path, roundtrip_path, *, compare_version: bool = True
+) -> None:
     with (
         h5py.File(source_path, "r") as source,
         h5py.File(roundtrip_path, "r") as result,
@@ -35,10 +37,23 @@ def _assert_hdf5_core_equal(source_path, roundtrip_path) -> None:
             result_dataset = result[dataset_name]
 
             assert source_dataset.shape == result_dataset.shape
-            assert source_dataset[()].tolist() == result_dataset[()].tolist()
+            if dataset_name != "version" or compare_version:
+                assert source_dataset[()].tolist() == result_dataset[()].tolist()
 
             if isinstance(source_dataset, h5py.Dataset) and dataset_name != "version":
                 assert _column_names(source_dataset) == _column_names(result_dataset)
+
+
+def _copy_hdf5_with_version(source_path, target_path, version) -> None:
+    with (
+        h5py.File(source_path, "r") as source,
+        h5py.File(target_path, "w") as target,
+    ):
+        for dataset_name in source:
+            source.copy(dataset_name, target)
+
+        del target["version"]
+        target.create_dataset("version", data=version, dtype="i8")
 
 
 def _make_lhe() -> pylhe.LesHouchesEvents:
@@ -184,7 +199,7 @@ def test_lheh5_write_roundtrip(tmp_path):
 
     with h5py.File(path, "r") as h5:
         assert set(h5.keys()) == {"events", "init", "particles", "procInfo", "version"}
-        assert tuple(h5["version"][()]) == (1, 0, 0)
+        assert tuple(h5["version"][()]) == (2, 0, 0)
         assert tuple(h5["events"].attrs["properties"]) == (
             "pid",
             "nparticles",
@@ -207,13 +222,19 @@ def test_lheh5_write_roundtrip(tmp_path):
 
 
 def test_lheh5_hpcgen_roundtrip(tmp_path):
-    source_path = skhep_testdata.data_path("pylhe-testfile-hpcgen.hdf5")
+    fixture_path = skhep_testdata.data_path("pylhe-testfile-hpcgen.hdf5")
+    source_path = tmp_path / "hpcgen-v1.hdf5"
     roundtrip_path = tmp_path / "hpcgen-roundtrip.hdf5"
+
+    _copy_hdf5_with_version(fixture_path, source_path, version=(1, 0, 0))
 
     loaded = pylhe.LesHouchesEvents.fromfile(source_path, generator=False)
     loaded.tofile(roundtrip_path)
 
-    _assert_hdf5_core_equal(source_path, roundtrip_path)
+    _assert_hdf5_core_equal(source_path, roundtrip_path, compare_version=False)
+
+    with h5py.File(roundtrip_path, "r") as h5:
+        assert tuple(h5["version"][()]) == (2, 0, 0)
 
 
 def test_lheh5_write_rejects_inconsistent_particle_count(tmp_path):
