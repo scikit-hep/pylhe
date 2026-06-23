@@ -80,7 +80,7 @@ class LHEFileFormat(enum.Enum):
 
     PLAIN = "plain"
     GZIP = "gzip"
-    HDF5 = "hdf5"  # TODO - for future support of LHEH5, see https://github.com/scikit-hep/pylhe/issues/369
+    HDF5 = "hdf5"  # HDF5-based LHEH5 (consolidated) format
 
 
 @dataclass(frozen=True)
