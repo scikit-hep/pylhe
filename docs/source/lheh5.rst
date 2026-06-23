@@ -379,6 +379,6 @@ The 2024 paper also adds the explicit ``version`` dataset and the optional
 while ordinary leading-order and hard-remainder events can be described by the
 core ``init``, ``procInfo``, ``events``, and ``particles`` content alone.
 
-``pylhe`` does not currently implement LHEH5 parsing or writing, but the
-summary above documents the published format proposals and their relationship
-to the ordinary LHE structure.
+``pylhe`` implements reading and writing of the core consolidated LHEH5 datasets
+(``/version``, ``/init``, ``/procInfo``, ``/events``, ``/particles``) via
+:py:meth:`pylhe.LesHouchesEvents.fromfile` and :py:meth:`pylhe.LesHouchesEvents.tofile`.
