@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Weights and weightgroups are now no longer stored in `LHEInit.weightgroup` but in `LHEHeader.initrwgt.entities`. They are thus part of the `<header>` instead of `<init>` as demanded by LHE specification.
+- Weights and weightgroups are now no longer stored in `LHEInit.weightgroup` but in `LHEHeader.initrwgt.entries`. They are thus part of the `<header>` instead of `<init>` as demanded by LHE specification.
 - `LHEInit` no longer has `LHEVersion`. Instead, the version is stored `LesHoucheEvents.version`.
 - `LHEParticle.mothers()` is now deprecated in favour of `LHEEvent.mothers(particle)`.
 - LHE data block formats can now be modified as part of `LHEOutputFormat`.
