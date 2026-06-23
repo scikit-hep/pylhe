@@ -3,17 +3,26 @@ import pylhe
 
 def test_top_level_api():
     assert dir(pylhe) == [
+        "DEFAULT_FORMAT",
+        "GZIP_FORMAT",
         "LHEEvent",
         "LHEEventInfo",
         "LHEFile",
+        "LHEFileFormat",
         "LHEGenerator",
         "LHEHeader",
         "LHEInit",
         "LHEInitInfo",
         "LHEInitRWGTWeight",
         "LHEInitRWGTWeightGroup",
+        "LHEOutputFormat",
         "LHEParticle",
         "LHEProcInfo",
+        "LHEWeightFormat",
+        "RWGT_FORMAT",
+        "RWGT_GZ_FORMAT",
+        "WEIGHTS_FORMAT",
+        "WEIGHTS_GZ_FORMAT",
         "__version__",
         "to_awkward",
     ]

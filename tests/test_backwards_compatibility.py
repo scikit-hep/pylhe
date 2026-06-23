@@ -19,7 +19,14 @@ def test_mothers_backwards_compatibility():
     event = lhefile.events[0]
     assert len(event.particles) > 3
     assert len(event.mothers(event.particles[3])) == 2
-    assert event.particles[3].mothers() == event.mothers(event.particles[3])
+    with pytest.warns(
+        DeprecationWarning, match=r"LHEParticle\.mothers\(\)"
+    ) as warning_list:
+        result = event.particles[3].mothers()
+    assert result == event.mothers(event.particles[3])
+    # mothers() must emit exactly one DeprecationWarning (not extras from self.event access)
+    assert len(warning_list) == 1
+    assert "LHEParticle.mothers()" in str(warning_list[0].message)
 
 
 def test_mothers_backwards_compatibility_requires_parent_event():

@@ -1,3 +1,5 @@
+import gzip
+
 import skhep_testdata
 
 import pylhe
@@ -140,7 +142,7 @@ def test_write_lhe():
     init = file.init.tolhe()
 
     assert (
-        file.tolhe(True, False)
+        file.tolhe(lheformat=pylhe.RWGT_FORMAT)
         == f"""<LesHouchesEvents version="3.0">
 {header}
 {init}
@@ -173,7 +175,7 @@ def test_write_lhe():
     )
 
     assert (
-        file.tolhe(rwgt=False, weights=True)
+        file.tolhe(lheformat=pylhe.WEIGHTS_FORMAT)
         == f"""<LesHouchesEvents version="3.0">
 {header}
 {init}
@@ -255,7 +257,90 @@ def test_write_lhe_gzip(tmpdir):
     events = [next(events)]
 
     # write the file
-    file.tofile(file1.strpath, gz=True)
+    file.tofile(file1.strpath, lheformat=pylhe.GZIP_FORMAT)
 
     # read it again
     init = pylhe.LesHouchesEvents.fromfile(file1.strpath).init
+
+
+def test_tofile_accepts_pathlib_path(tmp_path):
+    """
+    Test that tofile() accepts a pathlib.Path object (not just str).
+    Previously raised AttributeError because _open_write_file called
+    filepath.endswith(...) which does not exist on PosixPath/WindowsPath.
+    """
+    out_path = tmp_path / "test_output.lhe"
+
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    events = file.events
+    file.events = [next(events)]
+
+    # Must not raise AttributeError
+    file.tofile(out_path)
+
+    # Verify the output is valid and readable
+    result = pylhe.LHEFile.fromfile(out_path)
+    assert result.init is not None
+    assert len(list(result.events)) == 1
+
+
+def test_tofile_accepts_pathlib_path_gz(tmp_path):
+    """
+    Test that tofile() accepts a pathlib.Path with a .gz suffix and writes
+    valid gzip-compressed output.
+    """
+    out_path = tmp_path / "test_output.lhe.gz"
+
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    events = file.events
+    file.events = [next(events)]
+
+    # Must not raise AttributeError
+    file.tofile(out_path)
+
+    # Verify the file is actually gzip-compressed
+    with gzip.open(out_path, "rt") as f:
+        content = f.read()
+    assert "<LesHouchesEvents" in content
+
+    # Verify the output is valid and readable via pylhe
+    result = pylhe.LHEFile.fromfile(out_path)
+    assert result.init is not None
+    assert len(list(result.events)) == 1
+
+
+def test_tofile_weights_format(tmp_path):
+    """
+    Test that tofile(format=LHEFormat.WEIGHTS) writes a <weights> block.
+    """
+    out_path = tmp_path / "weights.lhe"
+
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    events = file.events
+    file.events = [next(events)]
+
+    file.tofile(out_path, lheformat=pylhe.WEIGHTS_FORMAT)
+
+    content = out_path.read_text()
+    assert "<weights>" in content
+    assert "</weights>" in content
+    assert "<rwgt>" not in content
+
+
+def test_tofile_none_format_emits_no_weight_block(tmp_path):
+    """
+    Test that format=LHEFormat.NONE emits no weight block at all.
+    """
+    out_path = tmp_path / "none.lhe"
+
+    file = pylhe.LHEFile.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    events = file.events
+    file.events = [next(events)]
+
+    file.tofile(
+        out_path, lheformat=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightFormat.NONE)
+    )
+
+    content = out_path.read_text()
+    assert "<rwgt>" not in content
+    assert "<weights>" not in content

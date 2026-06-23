@@ -2,6 +2,7 @@
 Python interface to read Les Houches Event (LHE) files.
 """
 
+import enum
 import gzip
 import io
 import os
@@ -29,17 +30,26 @@ from particle.exceptions import MatchingIDNotFound
 from pylhe._version import version as __version__
 
 __all__ = [
+    "DEFAULT_FORMAT",
+    "GZIP_FORMAT",
+    "RWGT_FORMAT",
+    "RWGT_GZ_FORMAT",
+    "WEIGHTS_FORMAT",
+    "WEIGHTS_GZ_FORMAT",
     "LHEEvent",
     "LHEEventInfo",
     "LHEFile",
+    "LHEFileFormat",
     "LHEGenerator",
     "LHEHeader",
     "LHEInit",
     "LHEInitInfo",
     "LHEInitRWGTWeight",
     "LHEInitRWGTWeightGroup",
+    "LHEOutputFormat",
     "LHEParticle",
     "LHEProcInfo",
+    "LHEWeightFormat",
     "__version__",
     "to_awkward",
 ]
@@ -53,6 +63,56 @@ def __dir__() -> list[str]:
 _PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(str, str))
 
 PathLike = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
+
+
+class LHEWeightFormat(enum.Enum):
+    """Selects how event weights are serialized in LHE output."""
+
+    RWGT = "rwgt"  # <rwgt><wgt id=...>...</wgt></rwgt> block
+    WEIGHTS = "weights"  # <weights>...</weights> block
+    NONE = "none"  # no weights block emitted
+
+
+class LHEFileFormat(enum.Enum):
+    """Selects the file format."""
+
+    PLAIN = "plain"
+    GZIP = "gzip"
+    # HDF5 = "hdf5" # TODO - for future support of LHEH5, see https://github.com/scikit-hep/pylhe/issues/369
+
+
+@dataclass(frozen=True)
+class LHEOutputFormat:
+    """Future proof, extensible output format"""
+
+    # version: LHEVersion = LHEVersion.V3 # optional future TODO, but why would anyone not want to write v3?
+    indent: str = "  "
+    weights: LHEWeightFormat = LHEWeightFormat.RWGT
+    file: LHEFileFormat = LHEFileFormat.PLAIN
+
+    eventinfo: str = "{nparticles:3d} {pid:6d} {weight: 15.10e} {scale: 15.10e} {aqed: 15.10e} {aqcd: 15.10e}"
+    particle: str = "{id:5d} {status:3d} {mother1:3d} {mother2:3d} {color1:3d} {color2:3d} {px: 15.8e} {py: 15.8e} {pz: 15.8e} {e: 15.8e} {m: 15.8e} {lifetime: 10.4e} {spin: 10.4e}"
+    initinfo: str = " {beamA: 6d} {beamB: 6d} {energyA: 14.7e} {energyB: 14.7e} {PDFgroupA: 5d} {PDFgroupB: 5d} {PDFsetA: 5d} {PDFsetB: 5d} {weightingStrategy: 5d} {numProcesses: 5d}"
+    procinfo: str = "{xSection: 14.7e} {error: 14.7e} {unitWeight: 14.7e} {procId: 5d}"
+
+
+# User convenience presets for common formats
+DEFAULT_FORMAT = LHEOutputFormat()
+"""Default output format with indentation, RWGT weights block and plain text file format."""
+GZIP_FORMAT = LHEOutputFormat(file=LHEFileFormat.GZIP)
+"""Output format for gzip compressed files, with (default) RWGT weights block."""
+RWGT_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.RWGT)
+"""Output format with RWGT weights block and (default) plain text file format."""
+WEIGHTS_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.WEIGHTS)
+"""Output format with WEIGHTS weights block and (default) plain text file format."""
+RWGT_GZ_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.RWGT, file=LHEFileFormat.GZIP)
+"""Output format with RWGT weights block and gzip compressed file format."""
+WEIGHTS_GZ_FORMAT = LHEOutputFormat(
+    weights=LHEWeightFormat.WEIGHTS, file=LHEFileFormat.GZIP
+)
+"""Output format with WEIGHTS weights block and gzip compressed file format."""
+NO_WEIGHTS_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.NONE)
+"""Output format with no WEIGHTS weights block and (default) plain text file format."""
 
 
 class Writeable(Protocol):
@@ -102,14 +162,21 @@ class LHEEventInfo:
     aqcd: float
     """QCD coupling constant alpha_QCD"""
 
-    def tolhe(self) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the event info as a string in LHE format.
 
         Returns:
             str: The event info as a string in LHE format.
         """
-        return f"{self.nparticles:3d} {self.pid:6d} {self.weight: 15.10e} {self.scale: 15.10e} {self.aqed: 15.10e} {self.aqcd: 15.10e}"
+        return lheformat.eventinfo.format(
+            nparticles=self.nparticles,
+            pid=self.pid,
+            weight=self.weight,
+            scale=self.scale,
+            aqed=self.aqed,
+            aqcd=self.aqcd,
+        )
 
     @classmethod
     def fromstring(cls, string: str) -> "LHEEventInfo":
@@ -209,14 +276,28 @@ class LHEParticle:
             spin=float(values[12]),
         )
 
-    def tolhe(self) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the particle as a string in LHE format.
 
         Returns:
             str: The particle as a string in LHE format.
         """
-        return f"{self.id:5d} {self.status:3d} {self.mother1:3d} {self.mother2:3d} {self.color1:3d} {self.color2:3d} {self.px: 15.8e} {self.py: 15.8e} {self.pz: 15.8e} {self.e: 15.8e} {self.m: 15.8e} {self.lifetime: 10.4e} {self.spin: 10.4e}"
+        return lheformat.particle.format(
+            id=self.id,
+            status=self.status,
+            mother1=self.mother1,
+            mother2=self.mother2,
+            color1=self.color1,
+            color2=self.color2,
+            px=self.px,
+            py=self.py,
+            pz=self.pz,
+            e=self.e,
+            m=self.m,
+            lifetime=self.lifetime,
+            spin=self.spin,
+        )
 
     def mothers(self) -> list["LHEParticle"]:
         """
@@ -232,33 +313,19 @@ class LHEParticle:
             stacklevel=2,
         )
 
-        if self.event is None:
+        if self._event is None:
             err = "Particle is not associated to an event."
             raise ValueError(err)
         first_idx = int(self.mother1) - 1
         second_idx = int(self.mother2) - 1
         return [
-            self.event.particles[idx] for idx in (first_idx, second_idx) if idx >= 0
+            self._event.particles[idx] for idx in (first_idx, second_idx) if idx >= 0
         ]
 
 
-def _indent(elem: ET.Element, level: int = 0) -> None:
-    """
-    XML indentation helper from https://stackoverflow.com/a/33956544.
-    """
-    i = "\n" + level * "  "
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "  "
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-        for inner_elem in elem:
-            _indent(inner_elem, level + 1)
-        elem = inner_elem
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-    elif level and (not elem.tail or not elem.tail.strip()):
-        elem.tail = i
+def _indent(root: ET.Element, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> None:
+    ET.indent(root, space=lheformat.indent)
+    root.tail = "\n"
 
 
 @dataclass
@@ -286,14 +353,25 @@ class LHEInitInfo:
     numProcesses: int
     """Number of processes"""
 
-    def tolhe(self) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the init info block as a string in LHE format.
 
         Returns:
             str: The init info block as a string in LHE format.
         """
-        return f" {self.beamA: 6d} {self.beamB: 6d} {self.energyA: 14.7e} {self.energyB: 14.7e} {self.PDFgroupA: 5d} {self.PDFgroupB: 5d} {self.PDFsetA: 5d} {self.PDFsetB: 5d} {self.weightingStrategy: 5d} {self.numProcesses: 5d}"
+        return lheformat.initinfo.format(
+            beamA=self.beamA,
+            beamB=self.beamB,
+            energyA=self.energyA,
+            energyB=self.energyB,
+            PDFgroupA=self.PDFgroupA,
+            PDFgroupB=self.PDFgroupB,
+            PDFsetA=self.PDFsetA,
+            PDFsetB=self.PDFsetB,
+            weightingStrategy=self.weightingStrategy,
+            numProcesses=self.numProcesses,
+        )
 
     @classmethod
     def fromstring(cls, string: str) -> "LHEInitInfo":
@@ -328,14 +406,19 @@ class LHEProcInfo:
     procId: int
     """Process ID"""
 
-    def tolhe(self) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the process info block as a string in LHE format.
 
         Returns:
             str: The process info block as a string in LHE format.
         """
-        return f"{self.xSection: 14.7e} {self.error: 14.7e} {self.unitWeight: 14.7e} {self.procId: 5d}"
+        return lheformat.procinfo.format(
+            xSection=self.xSection,
+            error=self.error,
+            unitWeight=self.unitWeight,
+            procId=self.procId,
+        )
 
     @classmethod
     def fromstring(cls, string: str) -> "LHEProcInfo":
@@ -436,7 +519,7 @@ class LHEInitRWGT:
         """Return a dictionary mapping weight indices to weight IDs for all weights in the <initrwgt> block."""
         return {i: w.id for i, w in enumerate(self.iter_weights())}
 
-    def tolhe(self) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the init block as a string in LHE format.
 
@@ -458,7 +541,7 @@ class LHEInitRWGT:
             else:
                 weight_elem = ET.SubElement(root, "weight", attrib=e.attributes)
                 weight_elem.text = e.name
-        _indent(root)
+        _indent(root, lheformat)
         return ET.tostring(root, encoding="unicode", method="xml")
 
 
@@ -480,19 +563,21 @@ class LHEHeader:
         """Return all the attributes of the header element"""
         return {**self.extra_attributes}
 
-    def tolhe(self) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """Return the header block as a string in LHE format."""
         root = ET.Element("header", attrib=self.attributes)
         for element in self.extra_elements:
             root.append(_copy_xml_element(element))
         if self.initrwgt.entries:
-            root.append(ET.fromstring(self.initrwgt.tolhe()))
+            root.append(ET.fromstring(self.initrwgt.tolhe(lheformat=lheformat)))
 
-        _indent(root)
+        _indent(root, lheformat=lheformat)
         return ET.tostring(root, encoding="unicode", method="xml")
 
     @classmethod
-    def _fromcontext(cls, _root: ET.Element, context: Any) -> Union["LHEHeader", None]:
+    def _fromcontext(
+        cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
+    ) -> "LHEHeader":
         initrwgtentries: list[InitRWGTEntry] = []
         extra_elements: list[ET.Element] = []
         attributes: dict[str, str] = {}
@@ -584,7 +669,7 @@ class LHEGenerator:
         self.extra_attributes.pop("name", None)
         self.extra_attributes.pop("version", None)
 
-    def tolhe(self) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:  # noqa: ARG002
         """
         Return the generator information as a string in LHE format.
 
@@ -606,7 +691,7 @@ class LHEInit:
     generators: list[LHEGenerator]
     """Generator information"""
 
-    def tolhe(self) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the init block as a string in LHE format.
 
@@ -615,18 +700,20 @@ class LHEInit:
         """
         return (
             "<init>\n"
-            + self.initInfo.tolhe()
+            + self.initInfo.tolhe(lheformat=lheformat)
             + "\n"
             + "\n".join(
-                [p.tolhe() for p in self.procInfo]
-                + [g.tolhe() for g in self.generators]
+                [p.tolhe(lheformat=lheformat) for p in self.procInfo]
+                + [g.tolhe(lheformat=lheformat) for g in self.generators]
             )
             + "\n"
             + "</init>"
         )
 
     @classmethod
-    def _fromcontext(cls, _root: ET.Element, context: Any) -> "LHEInit":
+    def _fromcontext(
+        cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
+    ) -> "LHEInit":
         initInfo = None
         procInfo = []
         generators = []
@@ -637,26 +724,14 @@ class LHEInit:
                 and "version" in element.attrib
                 and event == "end"
             ):
-                if "name" in element.attrib:
-                    # lhe-v3 has name and version
-                    generator = LHEGenerator(
-                        name=element.attrib["name"],
-                        version=element.attrib["version"],
-                        description=""
-                        if element.text is None
-                        else element.text.strip(),
-                        extra_attributes=element.attrib.copy(),
-                    )
-                    generators.append(generator)
-                else:
-                    # lhe-v2 has version and name is in the text
-                    generator = LHEGenerator(
-                        version=element.attrib["version"],
-                        name="",
-                        description=element.text.strip() if element.text else "",
-                        extra_attributes=element.attrib.copy(),
-                    )
-                    generators.append(generator)
+                # lhe-v3 has name and version attributes; some lhe-v2 files only provide version as an attribute (text is stored in `description`)
+                generator = LHEGenerator(
+                    name=element.attrib.get("name", ""),
+                    version=element.attrib["version"],
+                    description=element.text.strip() if element.text else "",
+                    extra_attributes=element.attrib.copy(),
+                )
+                generators.append(generator)
             if (
                 element.tag == "init" and event == "end"
             ):  # text is None before end-tag if event == "start", if there are sub-elements (e.g. MadGraph stores a <generator> tag there)
@@ -703,27 +778,23 @@ class LHEEvent:
         for p in self.particles:
             p.event = self
 
-    def tolhe(self, rwgt: bool = True, weights: bool = False) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the event as a string in LHE format.
 
         Args:
-            rwgt (bool): Include the weights in the 'rwgt' format.
-            weights (bool): Include the weights in the 'weights' format.
+            format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat Enum`.
 
         Returns:
             str: The event as a string in LHE format.
         """
-        if rwgt and weights:
-            err = "Cannot specify both rwgt and weights formats simultaneously."
-            raise ValueError(err)
         sweights = ""
-        if rwgt and self.weights:
+        if lheformat.weights is LHEWeightFormat.RWGT and self.weights:
             sweights = "<rwgt>\n"
             for k, v in self.weights.items():
                 sweights += f" <wgt id='{k}'>{v:11.4e}</wgt>\n"
             sweights += "</rwgt>\n"
-        if weights and self.weights:
+        elif lheformat.weights is LHEWeightFormat.WEIGHTS and self.weights:
             sweights = "<weights>\n"
             for v in self.weights.values():
                 sweights += f"{v:11.4e}\n"
@@ -744,9 +815,9 @@ class LHEEvent:
         return (
             _open_xml_tag("event", self.attributes)
             + "\n"
-            + self.eventinfo.tolhe()
+            + self.eventinfo.tolhe(lheformat=lheformat)
             + "\n"
-            + "\n".join([p.tolhe() for p in self.particles])
+            + "\n".join([p.tolhe(lheformat=lheformat) for p in self.particles])
             + "\n"
             + soptional
             + sweights
@@ -758,7 +829,7 @@ class LHEEvent:
     def _fromcontext(
         cls,
         root: ET.Element,
-        context: Any,
+        context: Iterator[tuple[str, ET.Element]],
         lheheader: Optional[LHEHeader] = None,
         with_attributes: bool = True,
     ) -> Iterator["LHEEvent"]:
@@ -797,8 +868,15 @@ class LHEEvent:
                             if not index_map:
                                 err = "<initrwgt> is required to parse <weights> block but not found in the header."
                                 raise ValueError(err)
-                            for i, w in enumerate(sub.text.split()):
-                                if w and index_map[i] not in weights:
+                            weight_values = sub.text.split()
+                            if len(weight_values) > len(index_map):
+                                err = (
+                                    f"event <weights> block has {len(weight_values)} entries"
+                                    f" but <initrwgt> declares only {len(index_map)}"
+                                )
+                                raise ValueError(err)
+                            for i, w in enumerate(weight_values):
+                                if index_map[i] not in weights:
                                     weights[index_map[i]] = float(w)
                         elif sub.tag == "rwgt":
                             for r in sub:
@@ -934,7 +1012,7 @@ class LesHouchesEvents:
         return {**self.extra_attributes, **attrs}
 
     def write(
-        self, output_stream: TWriteable, rwgt: bool = True, weights: bool = False
+        self, output_stream: TWriteable, lheformat: LHEOutputFormat = DEFAULT_FORMAT
     ) -> TWriteable:
         """
         Write the LHE file to an output stream.
@@ -943,38 +1021,34 @@ class LesHouchesEvents:
         if self.comment is not None:
             output_stream.write(f"<!-- {self.comment} -->\n")
         if self.header is not None:
-            output_stream.write(self.header.tolhe() + "\n")
-        output_stream.write(self.init.tolhe() + "\n")
+            output_stream.write(self.header.tolhe(lheformat=lheformat) + "\n")
+        output_stream.write(self.init.tolhe(lheformat=lheformat) + "\n")
         for e in self.events:
-            output_stream.write(e.tolhe(rwgt=rwgt, weights=weights) + "\n")
+            output_stream.write(e.tolhe(lheformat=lheformat) + "\n")
         output_stream.write("</LesHouchesEvents>")
         return output_stream
 
-    def tolhe(self, rwgt: bool = True, weights: bool = False) -> str:
+    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
         """
         Return the LHE file as a string.
         """
-        return self.write(io.StringIO(), rwgt=rwgt, weights=weights).getvalue()
+        return self.write(io.StringIO(), lheformat=lheformat).getvalue()
 
     def tofile(
         self,
-        filepath: str,
-        gz: bool = False,
-        rwgt: bool = True,
-        weights: bool = False,
+        filepath: PathLike,
+        lheformat: LHEOutputFormat = DEFAULT_FORMAT,
     ) -> None:
         """
         Write the LHE file.
 
         Args:
-            filepath: Path to the output file.
-            gz: Whether to gzip the output file (ignored if filepath suffix is .gz/.gzip).
-            rwgt: Whether to include weights in 'rwgt' format.
-            weights: Whether to include weights in 'weights' format.
+            filepath (PathLike): Path to the output file.
+            format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat Enum`.
         """
         # if filepath suffix is gz, write as gz
-        with _open_write_file(filepath, gz=gz) as f:
-            self.write(f, rwgt=rwgt, weights=weights)
+        with _open_write_file(filepath, lheformat=lheformat) as f:
+            self.write(f, lheformat=lheformat)
 
     @classmethod
     def fromstring(
@@ -1151,10 +1225,13 @@ def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFi
     )
 
 
-def _open_write_file(filepath: str, gz: bool = False) -> TextIO:
-    if filepath.endswith((".gz", ".gzip")) or gz:
-        return gzip.open(filepath, "wt")
-    return open(filepath, "w")
+def _open_write_file(
+    filepath: PathLike, lheformat: LHEOutputFormat = DEFAULT_FORMAT
+) -> TextIO:
+    filepath_str = os.fsdecode(os.fspath(filepath))
+    if filepath_str.endswith((".gz", ".gzip")) or lheformat.file == LHEFileFormat.GZIP:
+        return gzip.open(filepath_str, "wt")
+    return open(filepath_str, "w")
 
 
 # we import this later to avoid circular imports
