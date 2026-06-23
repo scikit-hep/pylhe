@@ -21,14 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Weights and weightgroups are now no longer stored in `LHEInit.weightgroup` but in `LHEHeader.initrwgt.entries`. They are thus part of the `<header>` instead of `<init>` as demanded by LHE specification.
-- `LHEInit` no longer has `LHEVersion`. Instead, the version is stored `LesHoucheEvents.version`.
+- `LHEInit` no longer has `LHEVersion`. Instead, the version is stored in `LesHoucheEvents.version`.
 - `LHEParticle.mothers()` is now deprecated in favour of `LHEEvent.mothers(particle)`.
 - LHE data block formats can now be modified as part of `LHEOutputFormat`.
 
 ### Removed
 
 - The following old deprecated functions were removed: `read_lhe_file`, `read_lhe_init`, `read_lhe`, `read_lhe_with_attributes`, `read_num_events`, `write_lhe_file_string`, `write_lhe_string`, `write_lhe_file_path`, `write_lhe_file`
-- `DictCompatibility` is removed and thereby also `fieldnames`.
+- `DictCompatibility` is removed and thereby also `fieldnames`,
 - `LHEWeightGroup` and `LHEWeightInfo` are removed.
 - No more python 3.9
 
