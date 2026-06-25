@@ -1,3 +1,17 @@
+"""
+LHEH5 format reader for reading LHE files in HDF5 format.
+
+References:
+    - Stefan Hoeche, Stefan Prestel, and Holger Schulz,
+      "Simulation of vector boson plus many jet final states at the high
+      luminosity LHC", arXiv:1905.05120
+      (https://arxiv.org/pdf/1905.05120)
+    - Enrico Bothmann et al.,
+      "Efficient precision simulation of processes with many-jet final states
+      at the LHC", arXiv:2309.13154
+      (https://arxiv.org/pdf/2309.13154)
+"""
+
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Sequence
