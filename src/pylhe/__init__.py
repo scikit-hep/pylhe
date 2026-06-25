@@ -40,7 +40,6 @@ __all__ = [
     "LHEEvent",
     "LHEEventInfo",
     "LHEFile",
-    "LHEFileFormat",
     "LHEGenerator",
     "LHEHDF5Format",
     "LHEHeader",
@@ -74,14 +73,6 @@ class LHEWeightFormat(enum.Enum):
     RWGT = "rwgt"  # <rwgt><wgt id=...>...</wgt></rwgt> block
     WEIGHTS = "weights"  # <weights>...</weights> block
     NONE = "none"  # no weights block emitted
-
-
-class LHEFileFormat(enum.Enum):
-    """Selects the file format."""
-
-    PLAIN = "plain"
-    GZIP = "gzip"
-    HDF5 = "hdf5"  # HDF5-based LHEH5 (consolidated) format
 
 
 @dataclass(frozen=True)
