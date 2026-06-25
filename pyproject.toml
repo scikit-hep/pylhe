@@ -43,7 +43,7 @@ dependencies = [
     "graphviz>=0.19",
     "particle>=0.25",
     "vector>=1.5.2",
-    "h5py",
+    "h5py>=3.0",
 ]
 
 [project.optional-dependencies]
