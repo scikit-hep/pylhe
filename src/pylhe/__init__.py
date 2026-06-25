@@ -2,6 +2,8 @@
 Python interface to read Les Houches Event (LHE) files.
 """
 
+from __future__ import annotations
+
 import enum
 import gzip
 import io
@@ -189,7 +191,7 @@ class LHEEventInfo:
         )
 
     @classmethod
-    def fromstring(cls, string: str) -> "LHEEventInfo":
+    def fromstring(cls, string: str) -> LHEEventInfo:
         """
         Create an `LHEEventInfo` instance from a string in LHE format.
         """
@@ -243,7 +245,7 @@ class LHEParticle:
         self._event: LHEEvent | None = None
 
     @property
-    def event(self) -> "LHEEvent" | None:
+    def event(self) -> LHEEvent | None:
         """
         Reference to the parent event, set when the particle is added to an event.
 
@@ -259,13 +261,13 @@ class LHEParticle:
         return self._event
 
     @event.setter
-    def event(self, value: "LHEEvent" | None) -> None:
+    def event(self, value: LHEEvent | None) -> None:
         """Set the parent event reference."""
         # Previously it was just event so we still allow that for backward compatibility
         self._event = value
 
     @classmethod
-    def fromstring(cls, string: str) -> "LHEParticle":
+    def fromstring(cls, string: str) -> LHEParticle:
         """
         Create an `LHEParticle` instance from a string in LHE format.
         """
@@ -309,7 +311,7 @@ class LHEParticle:
             spin=self.spin,
         )
 
-    def mothers(self) -> list["LHEParticle"]:
+    def mothers(self) -> list[LHEParticle]:
         """
         Return a list of the particle's mothers.
 
@@ -384,7 +386,7 @@ class LHEInitInfo:
         )
 
     @classmethod
-    def fromstring(cls, string: str) -> "LHEInitInfo":
+    def fromstring(cls, string: str) -> LHEInitInfo:
         """
         Create an `LHEInitInfo` instance from a string in LHE format.
         """
@@ -435,7 +437,7 @@ class LHEProcInfo:
         )
 
     @classmethod
-    def fromstring(cls, string: str) -> "LHEProcInfo":
+    def fromstring(cls, string: str) -> LHEProcInfo:
         """
         Create an `LHEProcInfo` instance from a string in LHE format.
         """
@@ -593,7 +595,7 @@ class LHEHeader:
     @classmethod
     def _fromcontext(
         cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
-    ) -> "LHEHeader":
+    ) -> LHEHeader:
         initrwgtentries: list[InitRWGTEntry] = []
         extra_elements: list[ET.Element] = []
         attributes: dict[str, str] = {}
@@ -729,7 +731,7 @@ class LHEInit:
     @classmethod
     def _fromcontext(
         cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
-    ) -> "LHEInit":
+    ) -> LHEInit:
         initInfo = None
         procInfo = []
         generators = []
@@ -848,7 +850,7 @@ class LHEEvent:
         context: Iterator[tuple[str, ET.Element]],
         lheheader: LHEHeader | None = None,
         with_attributes: bool = True,
-    ) -> Iterator["LHEEvent"]:
+    ) -> Iterator[LHEEvent]:
         index_map = (
             lheheader.initrwgt.index_to_id() if with_attributes and lheheader else {}
         )
@@ -1076,7 +1078,7 @@ class LesHouchesEvents:
     @classmethod
     def fromstring(
         cls, string: str, with_attributes: bool = True, generator: bool = True
-    ) -> "LHEFile":
+    ) -> LHEFile:
         """
         Create an LHEFile instance from a string in LHE format.
         """
@@ -1087,7 +1089,7 @@ class LesHouchesEvents:
     @classmethod
     def fromfile(
         cls, filepath: PathLike, with_attributes: bool = True, generator: bool = True
-    ) -> "LHEFile":
+    ) -> LHEFile:
         """
         Read an LHE file and return an LHEFile object.
         """
@@ -1108,7 +1110,7 @@ class LesHouchesEvents:
         | BinaryIO,
         with_attributes: bool = True,
         generator: bool = True,
-    ) -> "LHEFile":
+    ) -> LHEFile:
         """
         Read an LHE file and return an LHEFile object.
         """
