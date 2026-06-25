@@ -5,6 +5,8 @@ def test_top_level_api():
     assert dir(pylhe) == [
         "DEFAULT_FORMAT",
         "GZ_FORMAT",
+        "HDF5_FORMAT",
+        "HDF5_GZ_FORMAT",
         "LHEEvent",
         "LHEEventInfo",
         "LHEFile",

@@ -34,6 +34,8 @@ from pylhe._version import version as __version__
 __all__ = [
     "DEFAULT_FORMAT",
     "GZ_FORMAT",
+    "HDF5_FORMAT",
+    "HDF5_GZ_FORMAT",
     "RWGT_FORMAT",
     "RWGT_GZ_FORMAT",
     "WEIGHTS_FORMAT",
