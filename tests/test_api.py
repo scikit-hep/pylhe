@@ -8,7 +8,6 @@ def test_top_level_api():
         "LHEEvent",
         "LHEEventInfo",
         "LHEFile",
-        "LHEFileFormat",
         "LHEGenerator",
         "LHEHDF5Format",
         "LHEHeader",

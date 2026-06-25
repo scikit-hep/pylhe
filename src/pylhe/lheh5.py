@@ -200,9 +200,10 @@ def _event_trials(event: pylhe.LHEEvent) -> float:
         return 0.0
 
 
-def _get_particles(
+def get_particles(
     particles: h5py.Dataset, start: int, n: int
 ) -> list[pylhe.LHEParticle]:
+    """Get a list of LHEParticle objects from a particles dataset."""
     particle_columns = _column_indices(particles, default=_PARTICLE_COLUMNS)
 
     return [
@@ -225,13 +226,8 @@ def _get_particles(
     ]
 
 
-def get_particles(
-    particles: h5py.Dataset, start: int, n: int
-) -> list[pylhe.LHEParticle]:
-    return _get_particles(particles, start, n)
-
-
 def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
+    """Read events from an HDF5 file in LHEH5 format."""
     events = file["events"]
     particles = file["particles"]
     event_columns = _column_indices(events)
@@ -267,17 +263,14 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
                 aqed=_row_float(event_row, event_columns, "aqed", default=0.0),
                 aqcd=_row_float(event_row, event_columns, "aqcd", default=0.0),
             ),
-            particles=_get_particles(particles, start, nparticles),
+            particles=get_particles(particles, start, nparticles),
             scales=scales,
             attributes=attributes,
         )
 
 
-def iter_lheh5(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
-    yield from read_iter_events(file)
-
-
 def read_init(file: h5py.File) -> pylhe.LHEInit:
+    """Read the init and procInfo datasets from an HDF5 file in LHEH5 format."""
     init = file["init"]
     procinfo = file["procInfo"]
     init_columns = _column_indices(init, default=_INIT_COLUMNS)
@@ -451,10 +444,3 @@ def write(
     _flush_pending_rows()
 
     file.create_dataset("version", data=_LHEH5_VERSION, dtype="i8")
-
-
-def _open_write_file(filepath: pylhe.PathLike) -> h5py.File:
-    """
-    Open a file for writing, determining the format based on the file extension or provided LHEOutputFormat.
-    """
-    return h5py.File(filepath, "w")

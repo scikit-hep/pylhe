@@ -5,7 +5,7 @@ import pytest
 import skhep_testdata
 
 import pylhe
-from pylhe.lheh5 import get_particles, iter_lheh5, read_init
+from pylhe.lheh5 import get_particles, read_init, read_iter_events
 
 
 def test_get_particles_returns_lheparticles():
@@ -23,9 +23,9 @@ def test_get_particles_returns_lheparticles():
     assert particles[2].e == pytest.approx(55.07043451)
 
 
-def test_iter_lheh5_reads_nominal_weight_and_particles():
+def test_read_iter_events_reads_nominal_weight_and_particles():
     with h5py.File(skhep_testdata.data_path("pylhe-testfile-sherpa.hdf5"), "r") as h5:
-        event_iter = iter_lheh5(h5)
+        event_iter = read_iter_events(h5)
         first_event = next(event_iter)
         second_event = next(event_iter)
 
