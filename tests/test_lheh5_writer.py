@@ -364,3 +364,26 @@ def test_lheh5_write_rejects_inconsistent_particle_count(tmp_path):
         pytest.raises(ValueError, match=r"eventinfo.nparticles does not match"),
     ):
         pylhe.lheh5.write(lhe, h5, lheformat=pylhe.HDF5_FORMAT)
+
+
+def test_lheh5_write_rejects_inconsistent_num_processes(tmp_path):
+    path = tmp_path / "invalid-procinfo.hdf5"
+    lhe = pylhe.LesHouchesEvents(
+        init=pylhe.LHEInit(
+            initInfo=pylhe.LHEInitInfo(11, -11, 100.0, 100.0, 0, 0, 0, 0, 1, 2),
+            procInfo=[
+                pylhe.LHEProcInfo(xSection=1.0, error=0.1, unitWeight=1.0, procId=1)
+            ],
+            generators=[],
+        ),
+        events=[],
+    )
+
+    with (
+        h5py.File(path, "w") as h5,
+        pytest.raises(
+            ValueError,
+            match=r"initInfo.numProcesses does not match the number of procInfo rows",
+        ),
+    ):
+        pylhe.lheh5.write(lhe, h5, lheformat=pylhe.HDF5_FORMAT)

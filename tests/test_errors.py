@@ -4,6 +4,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from tempfile import NamedTemporaryFile
 
+import h5py
 import pytest
 
 import pylhe
@@ -69,6 +70,51 @@ def test_missing_init_block_error_with_file():
             pylhe.LesHouchesEvents.fromfile(tmp_file_path)
     finally:
         os.unlink(tmp_file_path)
+
+
+def test_lheh5_row_int_raises_for_missing_columns():
+    with pytest.raises(
+        KeyError, match=r"None of the requested columns are available: pid, start"
+    ):
+        pylhe.lheh5._row_int([], {}, "pid", "start")
+
+
+def test_lheh5_row_float_raises_for_missing_columns():
+    with pytest.raises(
+        KeyError, match=r"None of the requested columns are available: scale, aqed"
+    ):
+        pylhe.lheh5._row_float([], {}, "scale", "aqed")
+
+
+def test_lheh5_event_trials_returns_zero_for_missing_or_invalid_trials():
+    missing_trials_event = pylhe.LHEEvent(
+        eventinfo=pylhe.LHEEventInfo(0, 0, 0.0, 0.0, 0.0, 0.0),
+        particles=[],
+    )
+    invalid_trials_event = pylhe.LHEEvent(
+        eventinfo=pylhe.LHEEventInfo(0, 0, 0.0, 0.0, 0.0, 0.0),
+        particles=[],
+        attributes={"trials": "not-a-float"},
+    )
+
+    assert pylhe.lheh5._event_trials(missing_trials_event) == 0.0
+    assert pylhe.lheh5._event_trials(invalid_trials_event) == 0.0
+
+
+def test_lheh5_append_rows_returns_early_for_empty_rows(tmp_path):
+    path = tmp_path / "empty-append.hdf5"
+
+    with h5py.File(path, "w") as h5:
+        dataset = h5.create_dataset(
+            "rows",
+            shape=(0, 2),
+            maxshape=(None, 2),
+            dtype="f8",
+            chunks=(2, 2),
+        )
+        pylhe.lheh5._append_rows(dataset, [])
+
+        assert dataset.shape == (0, 2)
 
 
 def test_missing_init_block_error_with_only_events():
