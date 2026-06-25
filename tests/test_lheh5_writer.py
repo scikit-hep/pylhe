@@ -297,4 +297,4 @@ def test_lheh5_write_rejects_inconsistent_particle_count(tmp_path):
         h5py.File(path, "w") as h5,
         pytest.raises(ValueError, match=r"eventinfo.nparticles does not match"),
     ):
-        pylhe.lheh5.write(lhe, h5)
+        pylhe.lheh5.write(lhe, h5, lheformat=pylhe.HDF5_FORMAT)
