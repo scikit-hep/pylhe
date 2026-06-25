@@ -86,6 +86,33 @@ def test_lheh5_row_float_raises_for_missing_columns():
         pylhe.lheh5._row_float([], {}, "scale", "aqed")
 
 
+def test_lheh5_row_int_returns_default_for_missing_columns():
+    assert pylhe.lheh5._row_int([], {}, "pid", "start", default=7) == 7
+
+
+def test_lheh5_row_float_returns_default_for_missing_columns():
+    assert pylhe.lheh5._row_float([], {}, "scale", "aqed", default=3.5) == 3.5
+
+
+def test_lheh5_column_names_returns_default_when_attrs_missing(tmp_path):
+    path = tmp_path / "missing-column-names.hdf5"
+
+    with h5py.File(path, "w") as h5:
+        dataset = h5.create_dataset("rows", data=[[1.0, 2.0]], dtype="f8")
+
+        assert pylhe.lheh5._column_names(dataset, default=("a", "b")) == ["a", "b"]
+
+
+def test_lheh5_event_scale_returns_default_when_names_missing():
+    event = pylhe.LHEEvent(
+        eventinfo=pylhe.LHEEventInfo(0, 0, 0.0, 0.0, 0.0, 0.0),
+        particles=[],
+        scales={"other": 12.0},
+    )
+
+    assert pylhe.lheh5._event_scale(event, "fscale", "muf", default=9.5) == 9.5
+
+
 def test_lheh5_event_trials_returns_zero_for_missing_or_invalid_trials():
     missing_trials_event = pylhe.LHEEvent(
         eventinfo=pylhe.LHEEventInfo(0, 0, 0.0, 0.0, 0.0, 0.0),
