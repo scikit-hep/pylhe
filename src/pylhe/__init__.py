@@ -1078,7 +1078,7 @@ class LesHouchesEvents:
             lheformat = _parse_lheformat_from_filepath(filepath)
         if isinstance(lheformat, LHEHDF5Format):
             with lheh5._open_write_file(filepath) as f:
-                lheh5.write(self, filepath, lheformat=lheformat)
+                lheh5.write(self, f, lheformat=lheformat)
         else:
             with _open_write_file(filepath, lheformat=lheformat) as f:
                 self.write(f, lheformat=lheformat)
