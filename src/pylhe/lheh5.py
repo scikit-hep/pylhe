@@ -277,7 +277,9 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
     )
 
 
-def write(lhe: pylhe.LesHouchesEvents, file: h5py.File) -> None:
+def write(
+    lhe: pylhe.LesHouchesEvents, file: h5py.File, lheformat: pylhe.LHEHDF5Format
+) -> None:
     """Write a LesHouchesEvents object to an HDF5 file in LHEH5 format."""
     events = list(lhe.events)
     proc_info = lhe.init.procInfo
@@ -377,11 +379,22 @@ def write(lhe: pylhe.LesHouchesEvents, file: h5py.File) -> None:
         )
         start += nparticles
 
+    compression_args = {}
+    if lheformat.compress:
+        compression_args = {
+            "compression": "gzip",
+            "compression_opts": 4,
+            "shuffle": True,
+        }
+
     events_dataset = file.create_dataset(
         "events",
         data=event_rows or None,
         shape=(len(event_rows), len(_EVENT_COLUMNS)),
         dtype="f8",
+        # Optional parameters for better compression and performance
+        chunks=True,
+        **compression_args,
     )
     _set_column_attrs(events_dataset, _EVENT_COLUMNS)
 
@@ -390,7 +403,17 @@ def write(lhe: pylhe.LesHouchesEvents, file: h5py.File) -> None:
         data=particle_rows or None,
         shape=(len(particle_rows), len(_PARTICLE_COLUMNS)),
         dtype="f8",
+        # Optional parameters for better compression and performance
+        chunks=True,
+        **compression_args,
     )
     _set_column_attrs(particles_dataset, _PARTICLE_COLUMNS)
 
     file.create_dataset("version", data=_LHEH5_VERSION, dtype="i8")
+
+
+def _open_write_file(filepath: pylhe.PathLike) -> h5py.File:
+    """
+    Open a file for writing, determining the format based on the file extension or provided LHEOutputFormat.
+    """
+    return h5py.File(filepath, "w")
