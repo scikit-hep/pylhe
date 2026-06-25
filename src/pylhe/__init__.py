@@ -100,9 +100,16 @@ class LHEXMLFormat:
 class LHEHDF5Format:
     """Selects the HDF5 format."""
 
-    # version
-    compress: bool = False
-    """compress datasets internally via gzip"""
+    compression: str | None = None
+    """Dataset compression filter passed to h5py, e.g. ``\"gzip\"``."""
+    compression_opts: int | None = None
+    """Optional compression level/options passed to h5py."""
+    shuffle: bool = False
+    """Whether to enable the HDF5 shuffle filter."""
+    event_chunk_rows: int = 1024
+    """Chunk size in rows for the events dataset."""
+    particle_chunk_rows: int = 8192
+    """Chunk size in rows for the particles dataset."""
 
 
 LHEOutputFormat = LHEXMLFormat | LHEHDF5Format
@@ -125,8 +132,8 @@ NO_WEIGHTS_FORMAT = LHEXMLFormat(weights=LHEWeightFormat.NONE)
 """Output format with no WEIGHTS weights block and (default) plain text file format."""
 HDF5_FORMAT = LHEHDF5Format()
 """Output format for HDF5-based LHEH5 files."""
-HDF5_GZ_FORMAT = LHEHDF5Format(compress=True)
-"""Output format for HDF5-based LHEH5 files, with optional gzip compression of datasets."""
+HDF5_GZ_FORMAT = LHEHDF5Format(compression="gzip", compression_opts=4, shuffle=True)
+"""Output format for HDF5-based LHEH5 files with gzip-compressed datasets."""
 
 
 class Writeable(Protocol):

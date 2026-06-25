@@ -72,8 +72,6 @@ _EVENT_COLUMNS = (
 )
 
 _LHEH5_VERSION = (2, 0, 0)
-_EVENT_CHUNK_ROWS = 1024
-_PARTICLE_CHUNK_ROWS = 8192
 
 
 def _decode_attr_values(values: Iterable[object]) -> list[str]:
@@ -153,15 +151,19 @@ def _set_column_attrs(dataset: h5py.Dataset, columns: Iterable[str]) -> None:
     dataset.attrs[dataset_name] = encoded
 
 
-def _compression_args(lheformat: pylhe.LHEHDF5Format) -> dict[str, object]:
-    if not lheformat.compress:
-        return {}
+def _dataset_write_args(
+    lheformat: pylhe.LHEHDF5Format, *, chunk_rows: int, ncolumns: int
+) -> dict[str, object]:
+    args: dict[str, object] = {"chunks": (chunk_rows, ncolumns)}
 
-    return {
-        "compression": "gzip",
-        "compression_opts": 4,
-        "shuffle": True,
-    }
+    if lheformat.compression is not None:
+        args["compression"] = lheformat.compression
+    if lheformat.compression_opts is not None:
+        args["compression_opts"] = lheformat.compression_opts
+    if lheformat.shuffle:
+        args["shuffle"] = True
+
+    return args
 
 
 def _create_row_dataset(
@@ -169,16 +171,14 @@ def _create_row_dataset(
     name: str,
     columns: tuple[str, ...],
     *,
-    chunk_rows: int,
-    compression_args: dict[str, object],
+    write_args: dict[str, object],
 ) -> h5py.Dataset:
     dataset = file.create_dataset(
         name,
         shape=(0, len(columns)),
         maxshape=(None, len(columns)),
         dtype="f8",
-        chunks=(chunk_rows, len(columns)),
-        **compression_args,
+        **write_args,
     )
     _set_column_attrs(dataset, columns)
     return dataset
@@ -378,20 +378,27 @@ def write(
     )
     _set_column_attrs(proc_dataset, _PROCINFO_COLUMNS)
 
-    compression_args = _compression_args(lheformat)
+    events_write_args = _dataset_write_args(
+        lheformat,
+        chunk_rows=lheformat.event_chunk_rows,
+        ncolumns=len(_EVENT_COLUMNS),
+    )
     events_dataset = _create_row_dataset(
         file,
         "events",
         _EVENT_COLUMNS,
-        chunk_rows=_EVENT_CHUNK_ROWS,
-        compression_args=compression_args,
+        write_args=events_write_args,
+    )
+    particles_write_args = _dataset_write_args(
+        lheformat,
+        chunk_rows=lheformat.particle_chunk_rows,
+        ncolumns=len(_PARTICLE_COLUMNS),
     )
     particles_dataset = _create_row_dataset(
         file,
         "particles",
         _PARTICLE_COLUMNS,
-        chunk_rows=_PARTICLE_CHUNK_ROWS,
-        compression_args=compression_args,
+        write_args=particles_write_args,
     )
 
     particle_rows: list[list[float]] = []
@@ -450,8 +457,8 @@ def write(
         )
         start += nparticles
         if (
-            len(event_rows) >= _EVENT_CHUNK_ROWS
-            or len(particle_rows) >= _PARTICLE_CHUNK_ROWS
+            len(event_rows) >= lheformat.event_chunk_rows
+            or len(particle_rows) >= lheformat.particle_chunk_rows
         ):
             _flush_pending_rows()
 

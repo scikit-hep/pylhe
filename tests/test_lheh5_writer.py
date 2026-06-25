@@ -202,6 +202,8 @@ def test_lheh5_write_roundtrip(tmp_path):
     with h5py.File(path, "r") as h5:
         assert set(h5.keys()) == {"events", "init", "particles", "procInfo", "version"}
         assert tuple(h5["version"][()]) == (2, 0, 0)
+        assert h5["events"].compression is None
+        assert h5["particles"].compression is None
         assert tuple(h5["events"].attrs["properties"]) == (
             "pid",
             "nparticles",
@@ -240,7 +242,14 @@ def test_lheh5_hpcgen_roundtrip(tmp_path):
 
 
 def test_lheh5_write_streams_generator_across_multiple_flushes(tmp_path):
-    total_events = pylhe.lheh5._EVENT_CHUNK_ROWS + 5
+    lheformat = pylhe.LHEHDF5Format(
+        compression="gzip",
+        compression_opts=4,
+        shuffle=True,
+        event_chunk_rows=3,
+        particle_chunk_rows=5,
+    )
+    total_events = lheformat.event_chunk_rows + 5
     template = _make_lhe()
     template_events = list(template.events)
     yielded = 0
@@ -258,11 +267,23 @@ def test_lheh5_write_streams_generator_across_multiple_flushes(tmp_path):
     streamed = pylhe.LesHouchesEvents(init=template.init, events=event_iter())
     path = tmp_path / "streamed.hdf5"
 
-    streamed.tofile(path, lheformat=pylhe.HDF5_GZ_FORMAT)
+    streamed.tofile(path, lheformat=lheformat)
 
     assert yielded == total_events
 
     with h5py.File(path, "r") as h5:
+        assert h5["events"].compression == "gzip"
+        assert h5["particles"].compression == "gzip"
+        assert h5["events"].shuffle
+        assert h5["particles"].shuffle
+        assert h5["events"].chunks == (
+            lheformat.event_chunk_rows,
+            len(pylhe.lheh5._EVENT_COLUMNS),
+        )
+        assert h5["particles"].chunks == (
+            lheformat.particle_chunk_rows,
+            len(pylhe.lheh5._PARTICLE_COLUMNS),
+        )
         assert h5["events"].shape == (total_events, len(pylhe.lheh5._EVENT_COLUMNS))
         assert h5["particles"].shape == (
             sum(event.eventinfo.nparticles for event in template_events)
