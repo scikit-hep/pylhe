@@ -58,6 +58,8 @@ _EVENT_COLUMNS = (
 )
 
 _LHEH5_VERSION = (2, 0, 0)
+_EVENT_CHUNK_ROWS = 1024
+_PARTICLE_CHUNK_ROWS = 8192
 
 
 def _decode_attr_values(values: Iterable[object]) -> list[str]:
@@ -135,6 +137,47 @@ def _set_column_attrs(dataset: h5py.Dataset, columns: Iterable[str]) -> None:
     dataset_name = dataset.name.rsplit("/", maxsplit=1)[-1]
     dataset.attrs["properties"] = encoded
     dataset.attrs[dataset_name] = encoded
+
+
+def _compression_args(lheformat: pylhe.LHEHDF5Format) -> dict[str, object]:
+    if not lheformat.compress:
+        return {}
+
+    return {
+        "compression": "gzip",
+        "compression_opts": 4,
+        "shuffle": True,
+    }
+
+
+def _create_row_dataset(
+    file: h5py.File,
+    name: str,
+    columns: tuple[str, ...],
+    *,
+    chunk_rows: int,
+    compression_args: dict[str, object],
+) -> h5py.Dataset:
+    dataset = file.create_dataset(
+        name,
+        shape=(0, len(columns)),
+        maxshape=(None, len(columns)),
+        dtype="f8",
+        chunks=(chunk_rows, len(columns)),
+        **compression_args,
+    )
+    _set_column_attrs(dataset, columns)
+    return dataset
+
+
+def _append_rows(dataset: h5py.Dataset, rows: list[list[float]]) -> None:
+    if not rows:
+        return
+
+    start = dataset.shape[0]
+    stop = start + len(rows)
+    dataset.resize((stop, dataset.shape[1]))
+    dataset[start:stop] = rows
 
 
 def _event_scale(event: pylhe.LHEEvent, *names: str, default: float = 0.0) -> float:
@@ -281,7 +324,6 @@ def write(
     lhe: pylhe.LesHouchesEvents, file: h5py.File, lheformat: pylhe.LHEHDF5Format
 ) -> None:
     """Write a LesHouchesEvents object to an HDF5 file in LHEH5 format."""
-    events = list(lhe.events)
     proc_info = lhe.init.procInfo
     init_info = lhe.init.initInfo
 
@@ -329,11 +371,33 @@ def write(
     )
     _set_column_attrs(proc_dataset, _PROCINFO_COLUMNS)
 
+    compression_args = _compression_args(lheformat)
+    events_dataset = _create_row_dataset(
+        file,
+        "events",
+        _EVENT_COLUMNS,
+        chunk_rows=_EVENT_CHUNK_ROWS,
+        compression_args=compression_args,
+    )
+    particles_dataset = _create_row_dataset(
+        file,
+        "particles",
+        _PARTICLE_COLUMNS,
+        chunk_rows=_PARTICLE_CHUNK_ROWS,
+        compression_args=compression_args,
+    )
+
     particle_rows: list[list[float]] = []
     event_rows: list[list[float]] = []
     start = 0
 
-    for event in events:
+    def _flush_pending_rows() -> None:
+        _append_rows(events_dataset, event_rows)
+        _append_rows(particles_dataset, particle_rows)
+        event_rows.clear()
+        particle_rows.clear()
+
+    for event in lhe.events:
         nparticles = len(event.particles)
         if event.eventinfo.nparticles != nparticles:
             err = (
@@ -378,36 +442,13 @@ def write(
             ]
         )
         start += nparticles
+        if (
+            len(event_rows) >= _EVENT_CHUNK_ROWS
+            or len(particle_rows) >= _PARTICLE_CHUNK_ROWS
+        ):
+            _flush_pending_rows()
 
-    compression_args = {}
-    if lheformat.compress:
-        compression_args = {
-            "compression": "gzip",
-            "compression_opts": 4,
-            "shuffle": True,
-        }
-
-    events_dataset = file.create_dataset(
-        "events",
-        data=event_rows or None,
-        shape=(len(event_rows), len(_EVENT_COLUMNS)),
-        dtype="f8",
-        # Optional parameters for better compression and performance
-        chunks=True,
-        **compression_args,
-    )
-    _set_column_attrs(events_dataset, _EVENT_COLUMNS)
-
-    particles_dataset = file.create_dataset(
-        "particles",
-        data=particle_rows or None,
-        shape=(len(particle_rows), len(_PARTICLE_COLUMNS)),
-        dtype="f8",
-        # Optional parameters for better compression and performance
-        chunks=True,
-        **compression_args,
-    )
-    _set_column_attrs(particles_dataset, _PARTICLE_COLUMNS)
+    _flush_pending_rows()
 
     file.create_dataset("version", data=_LHEH5_VERSION, dtype="i8")
 

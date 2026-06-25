@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copy import deepcopy
+
 import h5py
 import pytest
 import skhep_testdata
@@ -235,6 +237,49 @@ def test_lheh5_hpcgen_roundtrip(tmp_path):
 
     with h5py.File(roundtrip_path, "r") as h5:
         assert tuple(h5["version"][()]) == (2, 0, 0)
+
+
+def test_lheh5_write_streams_generator_across_multiple_flushes(tmp_path):
+    total_events = pylhe.lheh5._EVENT_CHUNK_ROWS + 5
+    template = _make_lhe()
+    template_events = list(template.events)
+    yielded = 0
+
+    def event_iter():
+        nonlocal yielded
+
+        for index in range(total_events):
+            event = deepcopy(template_events[index % len(template_events)])
+            event.eventinfo.pid = 1000 + index
+            event.attributes["trials"] = str(float(index))
+            yielded += 1
+            yield event
+
+    streamed = pylhe.LesHouchesEvents(init=template.init, events=event_iter())
+    path = tmp_path / "streamed.hdf5"
+
+    streamed.tofile(path, lheformat=pylhe.HDF5_GZ_FORMAT)
+
+    assert yielded == total_events
+
+    with h5py.File(path, "r") as h5:
+        assert h5["events"].shape == (total_events, len(pylhe.lheh5._EVENT_COLUMNS))
+        assert h5["particles"].shape == (
+            sum(event.eventinfo.nparticles for event in template_events)
+            * (total_events // len(template_events))
+            + sum(
+                template_events[index].eventinfo.nparticles
+                for index in range(total_events % len(template_events))
+            ),
+            len(pylhe.lheh5._PARTICLE_COLUMNS),
+        )
+
+    loaded = pylhe.LesHouchesEvents.fromfile(path, generator=False)
+    loaded_events = list(loaded.events)
+
+    assert len(loaded_events) == total_events
+    assert loaded_events[0].eventinfo.pid == 1000
+    assert loaded_events[-1].eventinfo.pid == 1000 + total_events - 1
 
 
 def test_lheh5_write_rejects_inconsistent_particle_count(tmp_path):
