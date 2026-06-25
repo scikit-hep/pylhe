@@ -14,7 +14,6 @@ from dataclasses import dataclass, field
 from typing import (
     Any,
     BinaryIO,
-    Optional,
     Protocol,
     TextIO,
     TypeVar,
@@ -244,7 +243,7 @@ class LHEParticle:
         self._event: LHEEvent | None = None
 
     @property
-    def event(self) -> Optional["LHEEvent"]:
+    def event(self) -> "LHEEvent" | None:
         """
         Reference to the parent event, set when the particle is added to an event.
 
@@ -260,7 +259,7 @@ class LHEParticle:
         return self._event
 
     @event.setter
-    def event(self, value: Optional["LHEEvent"]) -> None:
+    def event(self, value: "LHEEvent" | None) -> None:
         """Set the parent event reference."""
         # Previously it was just event so we still allow that for backward compatibility
         self._event = value
