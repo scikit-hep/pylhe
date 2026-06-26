@@ -269,17 +269,17 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
     for event_row in events:
         start = _row_int(event_row, event_columns, "start")
         nparticles = _row_int(event_row, event_columns, "nparticles")
-        trials = _row_float(event_row, event_columns, "trials", default=0.0)
-        fscale = _row_float(event_row, event_columns, "fscale", default=0.0)
-        rscale = _row_float(event_row, event_columns, "rscale", default=0.0)
+        trials = _row_float(event_row, event_columns, "trials", default=float("nan"))
+        fscale = _row_float(event_row, event_columns, "fscale", default=float("nan"))
+        rscale = _row_float(event_row, event_columns, "rscale", default=float("nan"))
         attributes: dict[str, str] = {}
         scales: dict[str, float] = {}
 
-        if trials != 0.0:
+        if not math.isnan(trials):
             attributes["trials"] = str(trials)
-        if fscale != 0.0:
+        if not math.isnan(fscale):
             scales["fscale"] = fscale
-        if rscale != 0.0:
+        if not math.isnan(rscale):
             scales["rscale"] = rscale
 
         yield pylhe.LHEEvent(
@@ -293,9 +293,11 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
                     "NOMINAL",
                     default=0.0,
                 ),
-                scale=_row_float(event_row, event_columns, "scale", default=0.0),
-                aqed=_row_float(event_row, event_columns, "aqed", default=0.0),
-                aqcd=_row_float(event_row, event_columns, "aqcd", default=0.0),
+                scale=_row_float(
+                    event_row, event_columns, "scale", default=float("nan")
+                ),
+                aqed=_row_float(event_row, event_columns, "aqed", default=float("nan")),
+                aqcd=_row_float(event_row, event_columns, "aqcd", default=float("nan")),
             ),
             particles=get_particles(particles, start, nparticles),
             scales=scales,

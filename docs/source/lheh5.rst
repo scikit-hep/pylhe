@@ -62,8 +62,8 @@ A typical consolidated LHEH5 file contains the following datasets:
    /procInfo
    /events
    /particles
-   /ctevents      # optional, for MC@NLO S-events
-   /ctparticles   # optional, for MC@NLO S-events
+   /ctevents      # optional, for MC@NLO S-events, not in pylhe
+   /ctparticles   # optional, for MC@NLO S-events, not in pylhe
 
 .. list-table::
    :header-rows: 1
