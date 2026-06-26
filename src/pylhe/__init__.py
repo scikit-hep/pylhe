@@ -438,6 +438,18 @@ class LHEProcInfo:
         Returns:
             str: The process info block as a string in LHE format.
         """
+        if self.npLO is not None:
+            warnings.warn(
+                "LHEH5 field npLO has not equivalent in LHE format and will be ignored.",
+                UserWarning,
+                stacklevel=2,
+            )
+        if self.npNLO is not None:
+            warnings.warn(
+                "LHEH5 field npNLO has not equivalent in LHE format and will be ignored.",
+                UserWarning,
+                stacklevel=2,
+            )
         return lheformat.procinfo.format(
             xSection=self.xSection,
             error=self.error,

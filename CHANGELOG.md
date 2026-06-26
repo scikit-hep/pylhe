@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Only determined .lhe.gz compression from file extension when no LHEOutputFormat is provided. Otherwise, the compression is determined by the LHEOutputFormat.
 - Weights and weightgroups are now no longer stored in `LHEInit.weightgroup` but in `LHEHeader.initrwgt.entries`. They are thus part of the `<header>` instead of `<init>` as demanded by LHE specification.
 - `LHEInit` no longer has `LHEVersion`. Instead, the version is stored in `LesHoucheEvents.version`.
 - `LHEParticle.mothers()` is now deprecated in favour of `LHEEvent.mothers(particle)`.

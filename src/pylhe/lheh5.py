@@ -14,6 +14,7 @@ References:
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable, Iterator, Sequence
 
 import h5py  # type: ignore[import-untyped]
@@ -120,6 +121,24 @@ def _row_int(
 
     err = f"None of the requested columns are available: {', '.join(names)}"
     raise KeyError(err)
+
+
+def _row_int_or_none(
+    row: Sequence[float],
+    columns: dict[str, int],
+    *names: str,
+    default: int | None = None,
+) -> int | None:
+    for name in names:
+        index = columns.get(name)
+        if index is not None and index < len(row):
+            float_value = float(row[index])
+            # check if is nan
+            if math.isnan(float_value):
+                return None
+            return int(float_value)
+
+    return default
 
 
 def _row_float(
@@ -244,7 +263,7 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
     """Read events from an HDF5 file in LHEH5 format."""
     events = file["events"]
     particles = file["particles"]
-    event_columns = _column_indices(events)
+    event_columns = _column_indices(events, default=_EVENT_COLUMNS)
 
     for event_row in events:
         start = _row_int(event_row, event_columns, "start")
@@ -310,16 +329,8 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
                 error=_row_float(row, procinfo_columns, "error"),
                 unitWeight=_row_float(row, procinfo_columns, "unitWeight"),
                 procId=_row_int(row, procinfo_columns, "procId"),
-                npLO=(
-                    _row_int(row, procinfo_columns, "npLO")
-                    if _row_has_column(row, procinfo_columns, "npLO")
-                    else None
-                ),
-                npNLO=(
-                    _row_int(row, procinfo_columns, "npNLO")
-                    if _row_has_column(row, procinfo_columns, "npNLO")
-                    else None
-                ),
+                npLO=(_row_int_or_none(row, procinfo_columns, "npLO")),
+                npNLO=(_row_int_or_none(row, procinfo_columns, "npNLO")),
             )
             for row in procinfo
         ],
@@ -362,8 +373,8 @@ def write(
     proc_rows = [
         [
             proc.procId,
-            0.0 if proc.npLO is None else proc.npLO,
-            0.0 if proc.npNLO is None else proc.npNLO,
+            float("nan") if proc.npLO is None else proc.npLO,
+            float("nan") if proc.npNLO is None else proc.npNLO,
             proc.xSection,
             proc.error,
             proc.unitWeight,
