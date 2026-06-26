@@ -90,6 +90,14 @@ def test_lheh5_row_int_returns_default_for_missing_columns():
     assert pylhe.lheh5._row_int([], {}, "pid", "start", default=7) == 7
 
 
+def test_lheh5_row_int_or_none_returns_none_for_nan():
+    assert pylhe.lheh5._row_int_or_none([float("nan")], {"npLO": 0}, "npLO") is None
+
+
+def test_lheh5_row_int_or_none_returns_default_for_missing_columns():
+    assert pylhe.lheh5._row_int_or_none([], {}, "npLO", default=7) == 7
+
+
 def test_lheh5_row_float_returns_default_for_missing_columns():
     assert pylhe.lheh5._row_float([], {}, "scale", "aqed", default=3.5) == 3.5
 

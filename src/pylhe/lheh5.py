@@ -100,11 +100,6 @@ def _column_indices(
     }
 
 
-def _row_has_column(row: Sequence[float], columns: dict[str, int], name: str) -> bool:
-    index = columns.get(name)
-    return index is not None and index < len(row)
-
-
 def _row_int(
     row: Sequence[float],
     columns: dict[str, int],
