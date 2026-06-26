@@ -1086,7 +1086,7 @@ class LesHouchesEvents:
             filepath (PathLike): Path to the output file.
             format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat`.
         """
-        # if filepath suffix is gz, write as gz
+        # autodetect default format from suffix if not provided
         if lheformat is None:
             lheformat = _parse_lheformat_from_filepath(filepath)
         if isinstance(lheformat, LHEHDF5Format):
@@ -1244,6 +1244,8 @@ class LesHouchesEvents:
         """
         try:
             with _extract_fileobj(filepath) as fileobj:
+                if isinstance(fileobj, h5py.File):
+                    return lheh5.count_events(fileobj)
                 context = ET.iterparse(fileobj, events=["start", "end"])
                 _, root = next(context)  # Get the root element
                 count = 0

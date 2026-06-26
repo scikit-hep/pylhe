@@ -41,6 +41,19 @@ def test_read_iter_events_reads_nominal_weight_and_particles():
     assert second_event.particles[2].m == pytest.approx(125.0)
 
 
+def test_count_events_matches_hdf5_events_dataset_length():
+    path = skhep_testdata.data_path("pylhe-testfile-sherpa.hdf5")
+
+    with h5py.File(path, "r") as h5:
+        expected = len(h5["events"])
+
+    assert pylhe.LesHouchesEvents.count_events(path) == expected
+    assert pylhe.LHEFile.count_events(path) == expected
+    assert pylhe.LHEFile.count_events(path) == sum(
+        1 for _ in pylhe.LHEFile.fromfile(path).events
+    )
+
+
 def test_read_init_matches_lheinit_specification():
     with h5py.File(skhep_testdata.data_path("pylhe-testfile-hpcgen.hdf5"), "r") as h5:
         init = read_init(h5)
