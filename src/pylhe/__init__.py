@@ -188,7 +188,7 @@ class LHEEventInfo:
         Return the event info as a string in LHE XML format.
 
         Returns:
-            str: The event info as a string in LHE format.
+            str: The event info as a string in LHE XML format.
         """
         return lheformat.eventinfo.format(
             nparticles=self.nparticles,
@@ -299,10 +299,10 @@ class LHEParticle:
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the particle as a string in LHE format.
+        Return the particle as a string in LHE XML format.
 
         Returns:
-            str: The particle as a string in LHE format.
+            str: The particle as a string in LHE XML format.
         """
         return lheformat.particle.format(
             id=self.id,
@@ -376,10 +376,10 @@ class LHEInitInfo:
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the init info block as a string in LHE format.
+        Return the init info block as a string in LHE XML format.
 
         Returns:
-            str: The init info block as a string in LHE format.
+            str: The init info block as a string in LHE XML format.
         """
         return lheformat.initinfo.format(
             beamA=self.beamA,
@@ -433,10 +433,10 @@ class LHEProcInfo:
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the process info block as a string in LHE format.
+        Return the process info block as a string in LHE XML format.
 
         Returns:
-            str: The process info block as a string in LHE format.
+            str: The process info block as a string in LHE XML format.
         """
         if self.npLO is not None:
             warnings.warn(
@@ -560,10 +560,10 @@ class LHEInitRWGT:
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the init block as a string in LHE format.
+        Return the init block as a string in LHE XML format.
 
         Returns:
-            str: The init block as a string in LHE format.
+            str: The init block as a string in LHE XML format.
         """
         # weightgroups to xml
         root = ET.Element("initrwgt")
@@ -603,7 +603,7 @@ class LHEHeader:
         return {**self.extra_attributes}
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
-        """Return the header block as a string in LHE format."""
+        """Return the header block as a string in LHE XML format."""
         root = ET.Element("header", attrib=self.attributes)
         for element in self.extra_elements:
             root.append(_copy_xml_element(element))
@@ -710,10 +710,10 @@ class LHEGenerator:
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:  # noqa: ARG002
         """
-        Return the generator information as a string in LHE format.
+        Return the generator information as a string in LHE XML format.
 
         Returns:
-            str: The generator information as a string in LHE format.
+            str: The generator information as a string in LHE XML format.
         """
         opening_tag = _open_xml_tag("generator", self.attributes)
         return f"{opening_tag}{self.description}</generator>"
@@ -732,10 +732,10 @@ class LHEInit:
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the init block as a string in LHE format.
+        Return the init block as a string in LHE XML format.
 
         Returns:
-            str: The init block as a string in LHE format.
+            str: The init block as a string in LHE XML format.
         """
         return (
             "<init>\n"
@@ -819,13 +819,13 @@ class LHEEvent:
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the event as a string in LHE format.
+        Return the event as a string in LHE XML format.
 
         Args:
-            format (LHEXMLFormat): How to serialize the event, see the `LHEXMLFormat` class.
+            lheformat (LHEXMLFormat): How to serialize the event, see the `LHEXMLFormat` class.
 
         Returns:
-            str: The event as a string in LHE format.
+            str: The event as a string in LHE XML format.
         """
         sweights = ""
         if lheformat.weights is LHEWeightFormat.RWGT and self.weights:
@@ -1055,6 +1055,14 @@ class LesHouchesEvents:
     ) -> TWriteable:
         """
         Write the LHE file to an output stream.
+
+        Args:
+            output_stream (TWriteable): Output stream to write the LHE file to.
+            lheformat (LHEXMLFormat): How to serialize the event, see the `LHEXMLFormat` class.
+
+        Returns:
+            TWriteable: The output stream with the LHE file written to it.
+
         """
         output_stream.write(_open_xml_tag("LesHouchesEvents", self.attributes) + "\n")
         if self.comment is not None:
@@ -1070,6 +1078,9 @@ class LesHouchesEvents:
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
         Return the LHE file as a string.
+
+        Args:
+            lheformat (LHEXMLFormat): How to serialize the event, see the `LHEXMLFormat` class.
         """
         return self.write(io.StringIO(), lheformat=lheformat).getvalue()
 
@@ -1084,7 +1095,7 @@ class LesHouchesEvents:
 
         Args:
             filepath (PathLike): Path to the output file.
-            format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat` class.
+            lheformat (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat` class.
         """
         # autodetect default format from suffix if not provided
         if lheformat is None:
@@ -1102,6 +1113,12 @@ class LesHouchesEvents:
     ) -> LHEFile:
         """
         Create an LHEFile instance from a string in LHE format.
+
+        Args:
+            string (str): String containing the LHE file content.
+            with_attributes (bool): Whether to parse attributes from the LHE file. Default is True.
+            generator (bool): Whether to return a generator for events. Default is True.
+
         """
         return cls.frombuffer(
             io.StringIO(string), with_attributes=with_attributes, generator=generator
@@ -1113,6 +1130,12 @@ class LesHouchesEvents:
     ) -> LHEFile:
         """
         Read an LHE file and return an LHEFile object.
+
+        Args:
+            filepath (PathLike): Path to the LHE file.
+            with_attributes (bool): Whether to parse attributes from the LHE file. Default is True.
+            generator (bool): Whether to return a generator for events. Default is True.
+
         """
         return cls.frombuffer(
             _extract_fileobj(filepath),
@@ -1321,7 +1344,11 @@ def _parse_lheformat_from_filepath(
 
 def _open_write_file(filepath: PathLike, lheformat: LHEXMLFormat) -> TextIO:
     """
-    Open a file for writing, determining the format based on the file extension or provided LHEOutputFormat.
+    Open a file for writing, determining the format based on the file extension or provided LHEXMLFormat.
+
+    Args:
+        filepath: A path-like object or str.
+        lheformat: The LHEXMLFormat to use for writing.
     """
     if lheformat.compress:
         return gzip.open(filepath, "wt")
