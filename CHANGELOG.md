@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support LHEH5 HDF5 files.
+- Support LHEH5 HDF5 files for reading and writing.
 - CHANGELOG.md file to track updates relevant to library consumers.
 - New dataclass `LHEHeader`.
 - Added `<scales>` to `LHEEvent`.

@@ -17,7 +17,8 @@ targets.
 
 .. seealso::
 
-   `External LHEH5 format note <https://spice-mc.gitlab.io/pepper/reference/lheh5_format.html>`_.
+   `External LHEH5 format note <https://spice-mc.gitlab.io/pepper/reference/lheh5_format.html>`_
+   part of the Pepper parton-level event generator documentation.
 
 
 Column Labels

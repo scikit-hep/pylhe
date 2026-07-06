@@ -185,7 +185,7 @@ class LHEEventInfo:
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the event info as a string in LHE format.
+        Return the event info as a string in LHE XML format.
 
         Returns:
             str: The event info as a string in LHE format.
@@ -440,13 +440,13 @@ class LHEProcInfo:
         """
         if self.npLO is not None:
             warnings.warn(
-                "LHEH5 field npLO has not equivalent in LHE format and will be ignored.",
+                "LHEH5 field npLO has no equivalent in the LHE XML format and will be ignored.",
                 UserWarning,
                 stacklevel=2,
             )
         if self.npNLO is not None:
             warnings.warn(
-                "LHEH5 field npNLO has not equivalent in LHE format and will be ignored.",
+                "LHEH5 field npNLO has no equivalent in the LHE XML format and will be ignored.",
                 UserWarning,
                 stacklevel=2,
             )
@@ -822,7 +822,7 @@ class LHEEvent:
         Return the event as a string in LHE format.
 
         Args:
-            format (LHEXMLFormat): How to serialize the event, see the `LHEXMLFormat Enum`.
+            format (LHEXMLFormat): How to serialize the event, see the `LHEXMLFormat` class.
 
         Returns:
             str: The event as a string in LHE format.
@@ -1084,7 +1084,7 @@ class LesHouchesEvents:
 
         Args:
             filepath (PathLike): Path to the output file.
-            format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat`.
+            format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat` class.
         """
         # autodetect default format from suffix if not provided
         if lheformat is None:
