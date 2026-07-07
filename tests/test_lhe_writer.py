@@ -257,7 +257,7 @@ def test_write_lhe_gzip(tmpdir):
     events = [next(events)]
 
     # write the file
-    file.tofile(file1.strpath, lheformat=pylhe.GZIP_FORMAT)
+    file.tofile(file1.strpath, lheformat=pylhe.GZ_FORMAT)
 
     # read it again
     init = pylhe.LesHouchesEvents.fromfile(file1.strpath).init
@@ -338,7 +338,7 @@ def test_tofile_none_format_emits_no_weight_block(tmp_path):
     file.events = [next(events)]
 
     file.tofile(
-        out_path, lheformat=pylhe.LHEOutputFormat(weights=pylhe.LHEWeightFormat.NONE)
+        out_path, lheformat=pylhe.LHEXMLFormat(weights=pylhe.LHEWeightFormat.NONE)
     )
 
     content = out_path.read_text()

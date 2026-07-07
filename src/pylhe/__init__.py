@@ -2,6 +2,8 @@
 Python interface to read Les Houches Event (LHE) files.
 """
 
+from __future__ import annotations
+
 import enum
 import gzip
 import io
@@ -14,24 +16,26 @@ from dataclasses import dataclass, field
 from typing import (
     Any,
     BinaryIO,
-    Optional,
     Protocol,
     TextIO,
     TypeVar,
-    Union,
 )
 from xml.sax.saxutils import quoteattr
 
 import graphviz  # type: ignore[import-untyped]
+import h5py  # type: ignore[import-untyped]
 from particle import latex_to_html_name
 from particle.converters.bimap import DirectionalMaps
 from particle.exceptions import MatchingIDNotFound
 
+from pylhe import lheh5
 from pylhe._version import version as __version__
 
 __all__ = [
     "DEFAULT_FORMAT",
-    "GZIP_FORMAT",
+    "GZ_FORMAT",
+    "HDF5_FORMAT",
+    "HDF5_GZ_FORMAT",
     "RWGT_FORMAT",
     "RWGT_GZ_FORMAT",
     "WEIGHTS_FORMAT",
@@ -39,8 +43,8 @@ __all__ = [
     "LHEEvent",
     "LHEEventInfo",
     "LHEFile",
-    "LHEFileFormat",
     "LHEGenerator",
+    "LHEHDF5Format",
     "LHEHeader",
     "LHEInit",
     "LHEInitInfo",
@@ -50,6 +54,7 @@ __all__ = [
     "LHEParticle",
     "LHEProcInfo",
     "LHEWeightFormat",
+    "LHEXMLFormat",
     "__version__",
     "to_awkward",
 ]
@@ -62,7 +67,7 @@ def __dir__() -> list[str]:
 # retrieve mapping of PDG ID to particle name as LaTeX string
 _PDGID2LaTeXNameMap, _ = DirectionalMaps("PDGID", "LATEXNAME", converters=(str, str))
 
-PathLike = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
+PathLike = str | bytes | os.PathLike[str] | os.PathLike[bytes]
 
 
 class LHEWeightFormat(enum.Enum):
@@ -73,22 +78,17 @@ class LHEWeightFormat(enum.Enum):
     NONE = "none"  # no weights block emitted
 
 
-class LHEFileFormat(enum.Enum):
-    """Selects the file format."""
-
-    PLAIN = "plain"
-    GZIP = "gzip"
-    # HDF5 = "hdf5" # TODO - for future support of LHEH5, see https://github.com/scikit-hep/pylhe/issues/369
-
-
 @dataclass(frozen=True)
-class LHEOutputFormat:
-    """Future proof, extensible output format"""
+class LHEXMLFormat:
+    """Selects the XML format."""
 
     # version: LHEVersion = LHEVersion.V3 # optional future TODO, but why would anyone not want to write v3?
     indent: str = "  "
+    """indentation string for XML output"""
+    compress: bool = False
+    """compress as gzip"""
+
     weights: LHEWeightFormat = LHEWeightFormat.RWGT
-    file: LHEFileFormat = LHEFileFormat.PLAIN
 
     eventinfo: str = "{nparticles:3d} {pid:6d} {weight: 15.10e} {scale: 15.10e} {aqed: 15.10e} {aqcd: 15.10e}"
     particle: str = "{id:5d} {status:3d} {mother1:3d} {mother2:3d} {color1:3d} {color2:3d} {px: 15.8e} {py: 15.8e} {pz: 15.8e} {e: 15.8e} {m: 15.8e} {lifetime: 10.4e} {spin: 10.4e}"
@@ -96,23 +96,44 @@ class LHEOutputFormat:
     procinfo: str = "{xSection: 14.7e} {error: 14.7e} {unitWeight: 14.7e} {procId: 5d}"
 
 
+@dataclass(frozen=True)
+class LHEHDF5Format:
+    """Selects the HDF5 format."""
+
+    compression: str | None = None
+    """Dataset compression filter passed to h5py, e.g. ``\"gzip\"``."""
+    compression_opts: int | None = None
+    """Optional compression level/options passed to h5py."""
+    shuffle: bool = False
+    """Whether to enable the HDF5 shuffle filter."""
+    event_chunk_rows: int = 1024
+    """Chunk size in rows for the events dataset."""
+    particle_chunk_rows: int = 8192
+    """Chunk size in rows for the particles dataset."""
+
+
+LHEOutputFormat = LHEXMLFormat | LHEHDF5Format
+
+
 # User convenience presets for common formats
-DEFAULT_FORMAT = LHEOutputFormat()
+DEFAULT_FORMAT = LHEXMLFormat()
 """Default output format with indentation, RWGT weights block and plain text file format."""
-GZIP_FORMAT = LHEOutputFormat(file=LHEFileFormat.GZIP)
+GZ_FORMAT = LHEXMLFormat(compress=True)
 """Output format for gzip compressed files, with (default) RWGT weights block."""
-RWGT_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.RWGT)
+RWGT_FORMAT = LHEXMLFormat(weights=LHEWeightFormat.RWGT)
 """Output format with RWGT weights block and (default) plain text file format."""
-WEIGHTS_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.WEIGHTS)
+WEIGHTS_FORMAT = LHEXMLFormat(weights=LHEWeightFormat.WEIGHTS)
 """Output format with WEIGHTS weights block and (default) plain text file format."""
-RWGT_GZ_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.RWGT, file=LHEFileFormat.GZIP)
+RWGT_GZ_FORMAT = LHEXMLFormat(weights=LHEWeightFormat.RWGT, compress=True)
 """Output format with RWGT weights block and gzip compressed file format."""
-WEIGHTS_GZ_FORMAT = LHEOutputFormat(
-    weights=LHEWeightFormat.WEIGHTS, file=LHEFileFormat.GZIP
-)
+WEIGHTS_GZ_FORMAT = LHEXMLFormat(weights=LHEWeightFormat.WEIGHTS, compress=True)
 """Output format with WEIGHTS weights block and gzip compressed file format."""
-NO_WEIGHTS_FORMAT = LHEOutputFormat(weights=LHEWeightFormat.NONE)
+NO_WEIGHTS_FORMAT = LHEXMLFormat(weights=LHEWeightFormat.NONE)
 """Output format with no WEIGHTS weights block and (default) plain text file format."""
+HDF5_FORMAT = LHEHDF5Format()
+"""Output format for HDF5-based LHEH5 files."""
+HDF5_GZ_FORMAT = LHEHDF5Format(compression="gzip", compression_opts=4, shuffle=True)
+"""Output format for HDF5-based LHEH5 files with gzip-compressed datasets."""
 
 
 class Writeable(Protocol):
@@ -162,12 +183,12 @@ class LHEEventInfo:
     aqcd: float
     """QCD coupling constant alpha_QCD"""
 
-    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the event info as a string in LHE format.
+        Return the event info as a string in LHE XML format.
 
         Returns:
-            str: The event info as a string in LHE format.
+            str: The event info as a string in LHE XML format.
         """
         return lheformat.eventinfo.format(
             nparticles=self.nparticles,
@@ -179,7 +200,7 @@ class LHEEventInfo:
         )
 
     @classmethod
-    def fromstring(cls, string: str) -> "LHEEventInfo":
+    def fromstring(cls, string: str) -> LHEEventInfo:
         """
         Create an `LHEEventInfo` instance from a string in LHE format.
         """
@@ -230,10 +251,10 @@ class LHEParticle:
     def __post_init__(self) -> None:
         """Initialize the event reference."""
         # we store the circular event reference in a private attribute
-        self._event: Optional[LHEEvent] = None
+        self._event: LHEEvent | None = None
 
     @property
-    def event(self) -> Optional["LHEEvent"]:
+    def event(self) -> LHEEvent | None:
         """
         Reference to the parent event, set when the particle is added to an event.
 
@@ -249,13 +270,13 @@ class LHEParticle:
         return self._event
 
     @event.setter
-    def event(self, value: Optional["LHEEvent"]) -> None:
+    def event(self, value: LHEEvent | None) -> None:
         """Set the parent event reference."""
         # Previously it was just event so we still allow that for backward compatibility
         self._event = value
 
     @classmethod
-    def fromstring(cls, string: str) -> "LHEParticle":
+    def fromstring(cls, string: str) -> LHEParticle:
         """
         Create an `LHEParticle` instance from a string in LHE format.
         """
@@ -276,12 +297,12 @@ class LHEParticle:
             spin=float(values[12]),
         )
 
-    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the particle as a string in LHE format.
+        Return the particle as a string in LHE XML format.
 
         Returns:
-            str: The particle as a string in LHE format.
+            str: The particle as a string in LHE XML format.
         """
         return lheformat.particle.format(
             id=self.id,
@@ -299,7 +320,7 @@ class LHEParticle:
             spin=self.spin,
         )
 
-    def mothers(self) -> list["LHEParticle"]:
+    def mothers(self) -> list[LHEParticle]:
         """
         Return a list of the particle's mothers.
 
@@ -323,7 +344,7 @@ class LHEParticle:
         ]
 
 
-def _indent(root: ET.Element, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> None:
+def _indent(root: ET.Element, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> None:
     ET.indent(root, space=lheformat.indent)
     root.tail = "\n"
 
@@ -353,12 +374,12 @@ class LHEInitInfo:
     numProcesses: int
     """Number of processes"""
 
-    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the init info block as a string in LHE format.
+        Return the init info block as a string in LHE XML format.
 
         Returns:
-            str: The init info block as a string in LHE format.
+            str: The init info block as a string in LHE XML format.
         """
         return lheformat.initinfo.format(
             beamA=self.beamA,
@@ -374,7 +395,7 @@ class LHEInitInfo:
         )
 
     @classmethod
-    def fromstring(cls, string: str) -> "LHEInitInfo":
+    def fromstring(cls, string: str) -> LHEInitInfo:
         """
         Create an `LHEInitInfo` instance from a string in LHE format.
         """
@@ -405,14 +426,30 @@ class LHEProcInfo:
     """Unit weight of the process"""
     procId: int
     """Process ID"""
+    npLO: int | None = None
+    """LO final-state multiplicity tag for HDF5 procInfo tables"""
+    npNLO: int | None = None
+    """Born-level multiplicity tag for HDF5 procInfo tables"""
 
-    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the process info block as a string in LHE format.
+        Return the process info block as a string in LHE XML format.
 
         Returns:
-            str: The process info block as a string in LHE format.
+            str: The process info block as a string in LHE XML format.
         """
+        if self.npLO is not None:
+            warnings.warn(
+                "LHEH5 field npLO has no equivalent in the LHE XML format and will be ignored.",
+                UserWarning,
+                stacklevel=2,
+            )
+        if self.npNLO is not None:
+            warnings.warn(
+                "LHEH5 field npNLO has no equivalent in the LHE XML format and will be ignored.",
+                UserWarning,
+                stacklevel=2,
+            )
         return lheformat.procinfo.format(
             xSection=self.xSection,
             error=self.error,
@@ -421,7 +458,7 @@ class LHEProcInfo:
         )
 
     @classmethod
-    def fromstring(cls, string: str) -> "LHEProcInfo":
+    def fromstring(cls, string: str) -> LHEProcInfo:
         """
         Create an `LHEProcInfo` instance from a string in LHE format.
         """
@@ -431,6 +468,8 @@ class LHEProcInfo:
             error=float(values[1]),
             unitWeight=float(values[2]),
             procId=int(float(values[3])),
+            npLO=None,
+            npNLO=None,
         )
 
 
@@ -460,11 +499,11 @@ class LHEInitRWGTWeight:
 class LHEInitRWGTWeightGroup:
     """Information about a weight group."""
 
-    name: Optional[str] = (
+    name: str | None = (
         None  # Normally this is required, i.e. not Optional, but old Madgraph-2.0.0 uses 'type' instead of 'name'...
     )
     """Name of the weight group"""
-    combine: Optional[str] = None
+    combine: str | None = None
     """Combination method of the weight group"""
     weights: list[LHEInitRWGTWeight] = field(default_factory=list)
     """List of weight information"""
@@ -492,7 +531,7 @@ class LHEInitRWGTWeightGroup:
             self.combine = combine
 
 
-InitRWGTEntry = Union[LHEInitRWGTWeight, LHEInitRWGTWeightGroup]
+InitRWGTEntry = LHEInitRWGTWeight | LHEInitRWGTWeightGroup
 
 
 @dataclass
@@ -519,12 +558,12 @@ class LHEInitRWGT:
         """Return a dictionary mapping weight indices to weight IDs for all weights in the <initrwgt> block."""
         return {i: w.id for i, w in enumerate(self.iter_weights())}
 
-    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the init block as a string in LHE format.
+        Return the init block as a string in LHE XML format.
 
         Returns:
-            str: The init block as a string in LHE format.
+            str: The init block as a string in LHE XML format.
         """
         # weightgroups to xml
         root = ET.Element("initrwgt")
@@ -563,8 +602,8 @@ class LHEHeader:
         """Return all the attributes of the header element"""
         return {**self.extra_attributes}
 
-    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
-        """Return the header block as a string in LHE format."""
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
+        """Return the header block as a string in LHE XML format."""
         root = ET.Element("header", attrib=self.attributes)
         for element in self.extra_elements:
             root.append(_copy_xml_element(element))
@@ -577,7 +616,7 @@ class LHEHeader:
     @classmethod
     def _fromcontext(
         cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
-    ) -> "LHEHeader":
+    ) -> LHEHeader:
         initrwgtentries: list[InitRWGTEntry] = []
         extra_elements: list[ET.Element] = []
         attributes: dict[str, str] = {}
@@ -669,12 +708,12 @@ class LHEGenerator:
         self.extra_attributes.pop("name", None)
         self.extra_attributes.pop("version", None)
 
-    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:  # noqa: ARG002
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:  # noqa: ARG002
         """
-        Return the generator information as a string in LHE format.
+        Return the generator information as a string in LHE XML format.
 
         Returns:
-            str: The generator information as a string in LHE format.
+            str: The generator information as a string in LHE XML format.
         """
         opening_tag = _open_xml_tag("generator", self.attributes)
         return f"{opening_tag}{self.description}</generator>"
@@ -691,12 +730,12 @@ class LHEInit:
     generators: list[LHEGenerator]
     """Generator information"""
 
-    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the init block as a string in LHE format.
+        Return the init block as a string in LHE XML format.
 
         Returns:
-            str: The init block as a string in LHE format.
+            str: The init block as a string in LHE XML format.
         """
         return (
             "<init>\n"
@@ -713,7 +752,7 @@ class LHEInit:
     @classmethod
     def _fromcontext(
         cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
-    ) -> "LHEInit":
+    ) -> LHEInit:
         initInfo = None
         procInfo = []
         generators = []
@@ -770,7 +809,7 @@ class LHEEvent:
     """Event attributes not represented by dedicated fields"""
     optional: list[str] = field(default_factory=list)
     """Optional '#' comments stored in the event"""
-    _graph: Optional[graphviz.Digraph] = field(default=None, repr=False, compare=False)
+    _graph: graphviz.Digraph | None = field(default=None, repr=False, compare=False)
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
 
     def __post_init__(self) -> None:
@@ -778,15 +817,15 @@ class LHEEvent:
         for p in self.particles:
             p.event = self
 
-    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
-        Return the event as a string in LHE format.
+        Return the event as a string in LHE XML format.
 
         Args:
-            format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat Enum`.
+            lheformat (LHEXMLFormat): How to serialize the event, see the `LHEXMLFormat` class.
 
         Returns:
-            str: The event as a string in LHE format.
+            str: The event as a string in LHE XML format.
         """
         sweights = ""
         if lheformat.weights is LHEWeightFormat.RWGT and self.weights:
@@ -830,9 +869,9 @@ class LHEEvent:
         cls,
         root: ET.Element,
         context: Iterator[tuple[str, ET.Element]],
-        lheheader: Optional[LHEHeader] = None,
+        lheheader: LHEHeader | None = None,
         with_attributes: bool = True,
-    ) -> Iterator["LHEEvent"]:
+    ) -> Iterator[LHEEvent]:
         index_map = (
             lheheader.initrwgt.index_to_id() if with_attributes and lheheader else {}
         )
@@ -967,8 +1006,8 @@ class LHEEvent:
 
     def _repr_mimebundle_(
         self,
-        include: Optional[Iterable[str]] = None,
-        exclude: Optional[Iterable[str]] = None,
+        include: Iterable[str] | None = None,
+        exclude: Iterable[str] | None = None,
         **kwargs: dict[str, Any],
     ) -> Any:
         """
@@ -987,11 +1026,11 @@ class LesHouchesEvents:
     """Init block"""
     events: Iterable[LHEEvent] = field(default_factory=list)
     """Event block"""
-    header: Optional[LHEHeader] = None
+    header: LHEHeader | None = None
     """Header block"""
-    comment: Optional[str] = None
+    comment: str | None = None
     """Comment block"""
-    version: Optional[str] = None
+    version: str | None = None
     """Version of the LHE file"""
     extra_attributes: dict[str, str] = field(default_factory=dict)
     """Attributes of the root LesHouchesEvents element"""
@@ -1012,10 +1051,18 @@ class LesHouchesEvents:
         return {**self.extra_attributes, **attrs}
 
     def write(
-        self, output_stream: TWriteable, lheformat: LHEOutputFormat = DEFAULT_FORMAT
+        self, output_stream: TWriteable, lheformat: LHEXMLFormat = DEFAULT_FORMAT
     ) -> TWriteable:
         """
         Write the LHE file to an output stream.
+
+        Args:
+            output_stream (TWriteable): Output stream to write the LHE file to.
+            lheformat (LHEXMLFormat): How to serialize the event, see the `LHEXMLFormat` class.
+
+        Returns:
+            TWriteable: The output stream with the LHE file written to it.
+
         """
         output_stream.write(_open_xml_tag("LesHouchesEvents", self.attributes) + "\n")
         if self.comment is not None:
@@ -1028,34 +1075,50 @@ class LesHouchesEvents:
         output_stream.write("</LesHouchesEvents>")
         return output_stream
 
-    def tolhe(self, lheformat: LHEOutputFormat = DEFAULT_FORMAT) -> str:
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
         Return the LHE file as a string.
+
+        Args:
+            lheformat (LHEXMLFormat): How to serialize the event, see the `LHEXMLFormat` class.
         """
         return self.write(io.StringIO(), lheformat=lheformat).getvalue()
 
     def tofile(
         self,
         filepath: PathLike,
-        lheformat: LHEOutputFormat = DEFAULT_FORMAT,
+        lheformat: LHEOutputFormat
+        | None = None,  # default format is None because we do file name suffix detection in _open_write_file
     ) -> None:
         """
         Write the LHE file.
 
         Args:
             filepath (PathLike): Path to the output file.
-            format (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat Enum`.
+            lheformat (LHEOutputFormat): How to serialize the event, see the `LHEOutputFormat` class.
         """
-        # if filepath suffix is gz, write as gz
-        with _open_write_file(filepath, lheformat=lheformat) as f:
-            self.write(f, lheformat=lheformat)
+        # autodetect default format from suffix if not provided
+        if lheformat is None:
+            lheformat = _parse_lheformat_from_filepath(filepath)
+        if isinstance(lheformat, LHEHDF5Format):
+            with h5py.File(filepath, "w") as f:
+                lheh5.write(self, f, lheformat=lheformat)
+        else:
+            with _open_write_file(filepath, lheformat=lheformat) as f:
+                self.write(f, lheformat=lheformat)
 
     @classmethod
     def fromstring(
         cls, string: str, with_attributes: bool = True, generator: bool = True
-    ) -> "LHEFile":
+    ) -> LHEFile:
         """
         Create an LHEFile instance from a string in LHE format.
+
+        Args:
+            string (str): String containing the LHE file content.
+            with_attributes (bool): Whether to parse attributes from the LHE file. Default is True.
+            generator (bool): Whether to return a generator for events. Default is True.
+
         """
         return cls.frombuffer(
             io.StringIO(string), with_attributes=with_attributes, generator=generator
@@ -1064,9 +1127,15 @@ class LesHouchesEvents:
     @classmethod
     def fromfile(
         cls, filepath: PathLike, with_attributes: bool = True, generator: bool = True
-    ) -> "LHEFile":
+    ) -> LHEFile:
         """
         Read an LHE file and return an LHEFile object.
+
+        Args:
+            filepath (PathLike): Path to the LHE file.
+            with_attributes (bool): Whether to parse attributes from the LHE file. Default is True.
+            generator (bool): Whether to return a generator for events. Default is True.
+
         """
         return cls.frombuffer(
             _extract_fileobj(filepath),
@@ -1077,15 +1146,31 @@ class LesHouchesEvents:
     @classmethod
     def frombuffer(
         cls,
-        fileobject: Union[
-            io.BufferedReader, gzip.GzipFile, io.StringIO, TextIO, BinaryIO
-        ],
+        fileobject: io.BufferedReader
+        | gzip.GzipFile
+        | h5py.File
+        | io.StringIO
+        | TextIO
+        | BinaryIO,
         with_attributes: bool = True,
         generator: bool = True,
-    ) -> "LHEFile":
+    ) -> LHEFile:
         """
         Read an LHE file and return an LHEFile object.
         """
+
+        if isinstance(fileobject, h5py.File):
+            init = lheh5.read_init(fileobject)
+
+            def _hdf5_generator() -> Iterator[LHEEvent]:
+                with fileobject as h5:
+                    yield from lheh5.read_iter_events(h5)
+
+            events = _hdf5_generator()
+            return LesHouchesEvents(
+                init=init,
+                events=events if generator else list(events),
+            )
 
         def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
 
@@ -1182,6 +1267,8 @@ class LesHouchesEvents:
         """
         try:
             with _extract_fileobj(filepath) as fileobj:
+                if isinstance(fileobj, h5py.File):
+                    return lheh5.count_events(fileobj)
                 context = ET.iterparse(fileobj, events=["start", "end"])
                 _, root = next(context)  # Get the root element
                 count = 0
@@ -1203,7 +1290,9 @@ class LesHouchesEvents:
 LHEFile = LesHouchesEvents
 
 
-def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFile]:
+def _extract_fileobj(
+    filepath: PathLike,
+) -> io.BufferedReader | gzip.GzipFile | h5py.File:
     """
     Checks to see if a file is compressed, and if so, extract it with gzip
     so that the uncompressed file can be returned.
@@ -1214,24 +1303,58 @@ def _extract_fileobj(filepath: PathLike) -> Union[io.BufferedReader, gzip.GzipFi
         filepath: A path-like object or str.
 
     Returns:
-        _io.BufferedReader or gzip.GzipFile: A file object containing XML data.
+        _io.BufferedReader or gzip.GzipFile or h5py.File: A file object containing XML or HDF5 data.
     """
+    is_gzip = False
+    is_hdf5 = False
+
     with open(filepath, "rb") as gzip_file:
-        header = gzip_file.read(2)
-    gzip_magic_number = b"\x1f\x8b"
+        # GZIP magic number per RFC 1952 section 2.3.1
+        is_gzip = gzip_file.read(2) == b"\x1f\x8b"
 
-    return (
-        gzip.GzipFile(filepath) if header == gzip_magic_number else open(filepath, "rb")
-    )
+    with open(filepath, "rb") as f:
+        # HDF magic number per The HDF5 Field Guide II.A.
+        is_hdf5 = f.read(8) == b"\x89HDF\r\n\x1a\n"
+
+    if is_gzip:
+        return gzip.GzipFile(filepath)
+    if is_hdf5:
+        return h5py.File(filepath, "r")
+    return open(filepath, "rb")
 
 
-def _open_write_file(
-    filepath: PathLike, lheformat: LHEOutputFormat = DEFAULT_FORMAT
-) -> TextIO:
+def _parse_lheformat_from_filepath(
+    filepath: PathLike,
+) -> LHEOutputFormat:
+    """
+    Determine the LHEOutputFormat based on the file extension.
+
+    Args:
+        filepath: A path-like object or str.
+
+    Returns:
+        LHEOutputFormat: The determined output format.
+    """
     filepath_str = os.fsdecode(os.fspath(filepath))
-    if filepath_str.endswith((".gz", ".gzip")) or lheformat.file == LHEFileFormat.GZIP:
-        return gzip.open(filepath_str, "wt")
-    return open(filepath_str, "w")
+    # TODO think about potential .hdf5.gz
+    if filepath_str.endswith((".h5", ".hdf5", "lheh5")):
+        return HDF5_FORMAT
+    if filepath_str.endswith((".gz", ".gzip")):
+        return GZ_FORMAT
+    return DEFAULT_FORMAT
+
+
+def _open_write_file(filepath: PathLike, lheformat: LHEXMLFormat) -> TextIO:
+    """
+    Open a file for writing, determining the format based on the file extension or provided LHEXMLFormat.
+
+    Args:
+        filepath: A path-like object or str.
+        lheformat: The LHEXMLFormat to use for writing.
+    """
+    if lheformat.compress:
+        return gzip.open(filepath, "wt")
+    return open(filepath, "w")
 
 
 # we import this later to avoid circular imports
