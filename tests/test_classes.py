@@ -186,6 +186,8 @@ def test_LHEProcInfo_fromstring():
         "error": 0.089185414,
         "unitWeight": 50.109093,
         "procId": 66.0,
+        "npLO": None,
+        "npNLO": None,
     }
     assert dataclasses.asdict(LHEProcInfo.fromstring(data)) == result
 
@@ -202,16 +204,22 @@ def test_LHEProcInfo_backwards_compatibility():
     assert proc_info.error == pytest.approx(0.089185414)
     assert proc_info.unitWeight == pytest.approx(50.109093)
     assert proc_info.procId == pytest.approx(66.0)
+    assert proc_info.npLO is None
+    assert proc_info.npNLO is None
 
     proc_info.xSection = 60.0
     proc_info.error = 0.1
     proc_info.unitWeight = 60.0
     proc_info.procId = 67.0
+    proc_info.npLO = 1
+    proc_info.npNLO = 2
 
     assert proc_info.xSection == pytest.approx(60.0)
     assert proc_info.error == pytest.approx(0.1)
     assert proc_info.unitWeight == pytest.approx(60.0)
     assert proc_info.procId == pytest.approx(67.0)
+    assert proc_info.npLO == 1
+    assert proc_info.npNLO == 2
 
 
 def test_LHEInitRWGTWeight_init_with_id_argument():
