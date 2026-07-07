@@ -1,6 +1,8 @@
 """
 LHEH5 format reader for reading LHE files in HDF5 format.
 
+Note: We do not support ctparticles and ctevents datasets as of now.
+
 References:
     - Stefan Hoeche, Stefan Prestel, and Holger Schulz,
       "Simulation of vector boson plus many jet final states at the high luminosity LHC",
@@ -27,6 +29,10 @@ from pylhe import (
     LHEParticle,
     LHEProcInfo,
 )
+
+_LHEH5_VERSION = (2, 0, 0)
+
+# Below column names are used for reading and writing datasets in LHEH5 format v2.
 
 _PARTICLE_COLUMNS = (
     "id",
@@ -78,8 +84,6 @@ _EVENT_COLUMNS = (
     "aqcd",
     "NOMINAL",
 )
-
-_LHEH5_VERSION = (2, 0, 0)
 
 
 def _decode_attr_values(values: Iterable[object]) -> list[str]:
