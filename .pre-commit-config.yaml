@@ -39,7 +39,7 @@ repos:
     - id: mypy
       files: src
       args: [--show-error-codes]
-      additional_dependencies: [particle, awkward, vector, graphviz]
+      additional_dependencies: [particle, awkward, vector, graphviz, h5py]
 
 - repo: https://github.com/pre-commit/pygrep-hooks
   rev: v1.10.0

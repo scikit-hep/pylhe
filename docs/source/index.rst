@@ -16,6 +16,7 @@
    :caption: Format Reference:
 
    lhe.rst
+   lheh5.rst
    bibliography.rst
 
 .. autosummary::

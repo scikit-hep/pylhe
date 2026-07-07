@@ -3,7 +3,6 @@
 """
 
 from collections.abc import Iterable
-from typing import Union
 
 import awkward as ak  # type: ignore[import-untyped]
 import vector
@@ -17,7 +16,7 @@ def __dir__() -> list[str]:
     return __all__
 
 
-def to_awkward(event_iterable: Union[Iterable[LHEEvent], LHEFile]) -> ak.Array:
+def to_awkward(event_iterable: Iterable[LHEEvent] | LHEFile) -> ak.Array:
     """Convert an iterable of LHEEvent instances to an Awkward-Array.
 
     Uses Awkward's ArrayBuilder to construct the array by iterating over the events.

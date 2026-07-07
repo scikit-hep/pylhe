@@ -146,7 +146,7 @@ file = pylhe.LHEFile(
 )
 
 # write to file, compressed if gz/gzip suffix
-file.tofile("myevents.lhe.gz", lheformat=pylhe.LHEFormat(file=pylhe.LHEFileFormat.GZIP))
+file.tofile("myevents.lhe.gz", lheformat=pylhe.LHEXMLFormat(compress=True))
 ```
 
 
