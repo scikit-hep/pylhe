@@ -1309,9 +1309,11 @@ def _extract_fileobj(
     is_hdf5 = False
 
     with open(filepath, "rb") as gzip_file:
+        # GZIP magic number per RFC 1952 section 2.3.1
         is_gzip = gzip_file.read(2) == b"\x1f\x8b"
 
     with open(filepath, "rb") as f:
+        # HDF magic number per The HDF5 Field Guide II.A.
         is_hdf5 = f.read(8) == b"\x89HDF\r\n\x1a\n"
 
     if is_gzip:

@@ -17,7 +17,16 @@ from collections.abc import Iterable, Iterator, Sequence
 
 import h5py  # type: ignore[import-untyped]
 
-import pylhe
+from pylhe import (
+    LesHouchesEvents,
+    LHEEvent,
+    LHEEventInfo,
+    LHEHDF5Format,
+    LHEInit,
+    LHEInitInfo,
+    LHEParticle,
+    LHEProcInfo,
+)
 
 _PARTICLE_COLUMNS = (
     "id",
@@ -164,7 +173,7 @@ def _set_column_attrs(dataset: h5py.Dataset, columns: Iterable[str]) -> None:
 
 
 def _dataset_write_args(
-    lheformat: pylhe.LHEHDF5Format, *, chunk_rows: int, ncolumns: int
+    lheformat: LHEHDF5Format, *, chunk_rows: int, ncolumns: int
 ) -> dict[str, object]:
     args: dict[str, object] = {"chunks": (chunk_rows, ncolumns)}
 
@@ -206,7 +215,7 @@ def _append_rows(dataset: h5py.Dataset, rows: list[list[float]]) -> None:
     dataset[start:stop] = rows
 
 
-def _event_scale(event: pylhe.LHEEvent, *names: str, default: float = 0.0) -> float:
+def _event_scale(event: LHEEvent, *names: str, default: float = 0.0) -> float:
     for name in names:
         value = event.scales.get(name)
         if value is not None:
@@ -215,7 +224,7 @@ def _event_scale(event: pylhe.LHEEvent, *names: str, default: float = 0.0) -> fl
     return default
 
 
-def _event_trials(event: pylhe.LHEEvent) -> float:
+def _event_trials(event: LHEEvent) -> float:
     trials = event.attributes.get("trials")
     if trials is None:
         return 0.0
@@ -226,14 +235,12 @@ def _event_trials(event: pylhe.LHEEvent) -> float:
         return 0.0
 
 
-def get_particles(
-    particles: h5py.Dataset, start: int, n: int
-) -> list[pylhe.LHEParticle]:
+def get_particles(particles: h5py.Dataset, start: int, n: int) -> list[LHEParticle]:
     """Get a list of LHEParticle objects from a particles dataset."""
     particle_columns = _column_indices(particles, default=_PARTICLE_COLUMNS)
 
     return [
-        pylhe.LHEParticle(
+        LHEParticle(
             id=_row_int(row, particle_columns, "id"),
             status=_row_int(row, particle_columns, "status"),
             mother1=_row_int(row, particle_columns, "mother1"),
@@ -258,7 +265,7 @@ def count_events(file: h5py.File) -> int:
     return len(events)
 
 
-def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
+def read_iter_events(file: h5py.File) -> Iterator[LHEEvent]:
     """Read events from an HDF5 file in LHEH5 format."""
     events = file["events"]
     particles = file["particles"]
@@ -280,8 +287,8 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
         if not math.isnan(rscale):
             scales["rscale"] = rscale
 
-        yield pylhe.LHEEvent(
-            eventinfo=pylhe.LHEEventInfo(
+        yield LHEEvent(
+            eventinfo=LHEEventInfo(
                 nparticles=nparticles,
                 pid=_row_int(event_row, event_columns, "pid"),
                 weight=_row_float(
@@ -303,7 +310,7 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
         )
 
 
-def read_init(file: h5py.File) -> pylhe.LHEInit:
+def read_init(file: h5py.File) -> LHEInit:
     """Read the init and procInfo datasets from an HDF5 file in LHEH5 format."""
     init = file["init"]
     procinfo = file["procInfo"]
@@ -311,8 +318,8 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
     procinfo_columns = _column_indices(procinfo, default=_PROCINFO_COLUMNS)
     init_row = init[()]
 
-    return pylhe.LHEInit(
-        initInfo=pylhe.LHEInitInfo(
+    return LHEInit(
+        initInfo=LHEInitInfo(
             beamA=_row_int(init_row, init_columns, "beamA"),
             beamB=_row_int(init_row, init_columns, "beamB"),
             energyA=_row_float(init_row, init_columns, "energyA"),
@@ -325,7 +332,7 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
             numProcesses=_row_int(init_row, init_columns, "numProcesses"),
         ),
         procInfo=[
-            pylhe.LHEProcInfo(
+            LHEProcInfo(
                 xSection=_row_float(row, procinfo_columns, "xSection"),
                 error=_row_float(row, procinfo_columns, "error"),
                 unitWeight=_row_float(row, procinfo_columns, "unitWeight"),
@@ -339,9 +346,7 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
     )
 
 
-def write(
-    lhe: pylhe.LesHouchesEvents, file: h5py.File, lheformat: pylhe.LHEHDF5Format
-) -> None:
+def write(lhe: LesHouchesEvents, file: h5py.File, lheformat: LHEHDF5Format) -> None:
     """Write a LesHouchesEvents object to an HDF5 file in LHEH5 format."""
     proc_info = lhe.init.procInfo
     init_info = lhe.init.initInfo
