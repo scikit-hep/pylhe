@@ -27,7 +27,7 @@ repos:
         - tomli
 
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.15.15"
+    rev: "v0.15.20"
     hooks:
     - id: ruff-check
       args: ["--fix", "--show-fixes"]
@@ -39,7 +39,7 @@ repos:
     - id: mypy
       files: src
       args: [--show-error-codes]
-      additional_dependencies: [particle, awkward, vector, graphviz]
+      additional_dependencies: [particle, awkward, vector, graphviz, h5py]
 
 - repo: https://github.com/pre-commit/pygrep-hooks
   rev: v1.10.0

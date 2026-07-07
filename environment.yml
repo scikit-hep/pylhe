@@ -5,6 +5,6 @@ dependencies:
   - hist>=2
   # needed by parquet cache
   - pyarrow
-  - scikit-hep-testdata>=0.5.5
+  - scikit-hep-testdata>=0.6.6
   - pip:
     - .
