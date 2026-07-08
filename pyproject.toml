@@ -41,8 +41,8 @@ classifiers = [
 dependencies = [
     "awkward>=2.7",
     "graphviz>=0.19",
-    "particle>=0.25",
-    "vector>=1.5.2",
+    "particle>=0.26",
+    "vector>=1.6.3",
     "h5py>=3.0",
 ]
 
