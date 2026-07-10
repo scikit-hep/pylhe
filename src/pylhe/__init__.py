@@ -78,7 +78,7 @@ class LHEWeightFormat(enum.Enum):
     NONE = "none"  # no weights block emitted
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class LHEXMLFormat:
     """Selects the XML format."""
 
@@ -96,7 +96,7 @@ class LHEXMLFormat:
     procinfo: str = "{xSection: 14.7e} {error: 14.7e} {unitWeight: 14.7e} {procId: 5d}"
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class LHEHDF5Format:
     """Selects the HDF5 format."""
 
@@ -164,7 +164,7 @@ def _copy_xml_element(element: ET.Element) -> ET.Element:
     return copied
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEEventInfo:
     """
     Store the event information in the LHE format.
@@ -215,7 +215,7 @@ class LHEEventInfo:
         )
 
 
-@dataclass
+@dataclass  # (slots=True) # We cannot use slots here because we have a circular reference to LHEEvent, which is not yet defined at this point...
 class LHEParticle:
     """
     Represents a single particle in the LHE format.
@@ -349,7 +349,7 @@ def _indent(root: ET.Element, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> None:
     root.tail = "\n"
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEInitInfo:
     """Store the first line of the <init> block as a dataclass."""
 
@@ -414,7 +414,7 @@ class LHEInitInfo:
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEProcInfo:
     """Store the process info block as a dataclass."""
 
@@ -473,7 +473,7 @@ class LHEProcInfo:
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEInitRWGTWeight:
     """Information about a single weight inside or outside of a weight group."""
 
@@ -495,7 +495,7 @@ class LHEInitRWGTWeight:
         return {**self.extra_attributes, "id": self.id}
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEInitRWGTWeightGroup:
     """Information about a weight group."""
 
@@ -534,7 +534,7 @@ class LHEInitRWGTWeightGroup:
 InitRWGTEntry = LHEInitRWGTWeight | LHEInitRWGTWeightGroup
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEInitRWGT:
     """
     Represents the <initrwgt> block of an LHE file as a dataclass.
@@ -584,7 +584,7 @@ class LHEInitRWGT:
         return ET.tostring(root, encoding="unicode", method="xml")
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEHeader:
     """
     Represents the header block of an LHE file as a dataclass.
@@ -684,7 +684,7 @@ class LHEHeader:
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEGenerator:
     """Information about a generator."""
 
@@ -719,7 +719,7 @@ class LHEGenerator:
         return f"{opening_tag}{self.description}</generator>"
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEInit:
     """Store the <init> block as a dataclass."""
 
@@ -791,7 +791,7 @@ class LHEInit:
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEEvent:
     """
     Store a single event in the LHE format.
@@ -1016,7 +1016,7 @@ class LHEEvent:
         return self.graph._repr_mimebundle_(include=include, exclude=exclude, **kwargs)
 
 
-@dataclass
+@dataclass(slots=True)
 class LesHouchesEvents:
     """
     Represents an LHE file as a dataclass.
