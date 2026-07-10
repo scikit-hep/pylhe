@@ -1,4 +1,4 @@
-#  These tests solely exist to get 100% coverage also on already deprecated functions.
+# Regression tests for compatibility and previously-removed/legacy behaviors.
 import skhep_testdata
 
 import pylhe
