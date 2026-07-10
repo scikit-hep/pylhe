@@ -1,5 +1,4 @@
 #  These tests solely exist to get 100% coverage also on already deprecated functions.
-import pytest
 import skhep_testdata
 
 import pylhe
@@ -19,38 +18,3 @@ def test_mothers_backwards_compatibility():
     event = lhefile.events[0]
     assert len(event.particles) > 3
     assert len(event.mothers(event.particles[3])) == 2
-    with pytest.warns(
-        DeprecationWarning, match=r"LHEParticle\.mothers\(\)"
-    ) as warning_list:
-        result = event.particles[3].mothers()
-    assert result == event.mothers(event.particles[3])
-    # mothers() must emit exactly one DeprecationWarning (not extras from self.event access)
-    assert len(warning_list) == 1
-    assert "LHEParticle.mothers()" in str(warning_list[0].message)
-
-
-def test_mothers_backwards_compatibility_requires_parent_event():
-    particle = pylhe.LHEParticle(
-        id=1,
-        status=1,
-        mother1=1,
-        mother2=2,
-        color1=501,
-        color2=0,
-        px=0.0,
-        py=0.0,
-        pz=1.0,
-        e=1.0,
-        m=0.0,
-        lifetime=0.0,
-        spin=9.0,
-    )
-
-    with (
-        pytest.warns(
-            DeprecationWarning,
-            match=r"Access by `LHEParticle\.mothers\(\)` is deprecated",
-        ),
-        pytest.raises(ValueError, match=r"Particle is not associated to an event\."),
-    ):
-        particle.mothers()

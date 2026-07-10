@@ -215,7 +215,7 @@ class LHEEventInfo:
         )
 
 
-@dataclass  # (slots=True) # We cannot use slots here because we have a circular reference to LHEEvent, which is not yet defined at this point...
+@dataclass(slots=True)
 class LHEParticle:
     """
     Represents a single particle in the LHE format.
@@ -247,33 +247,6 @@ class LHEParticle:
     """Lifetime of the particle"""
     spin: float
     """Spin of the particle"""
-
-    def __post_init__(self) -> None:
-        """Initialize the event reference."""
-        # we store the circular event reference in a private attribute
-        self._event: LHEEvent | None = None
-
-    @property
-    def event(self) -> LHEEvent | None:
-        """
-        Reference to the parent event, set when the particle is added to an event.
-
-        .. deprecated:: 2.0.0
-            Access by `particle.event` is deprecated and will be removed in a future version.
-        """
-        warnings.warn(
-            "Access by `particle.event` is deprecated and will be removed in a future version.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        # Previously it was just event so we still allow that for backward compatibility
-        return self._event
-
-    @event.setter
-    def event(self, value: LHEEvent | None) -> None:
-        """Set the parent event reference."""
-        # Previously it was just event so we still allow that for backward compatibility
-        self._event = value
 
     @classmethod
     def fromstring(cls, string: str) -> LHEParticle:
@@ -319,29 +292,6 @@ class LHEParticle:
             lifetime=self.lifetime,
             spin=self.spin,
         )
-
-    def mothers(self) -> list[LHEParticle]:
-        """
-        Return a list of the particle's mothers.
-
-        .. deprecated:: 2.0.0
-                Accessing mothers via `LHEParticle.mothers()` is deprecated and will be removed in a future version. Use `LHEEvent.mothers(LHEParticle)` method, `LHEParticle.mother1` and `LHEParticle.mother2` instead.
-        """
-        warnings.warn(
-            "Access by `LHEParticle.mothers()` is deprecated and will be removed in a future version. "
-            "Use `LHEEvent.mothers(LHEParticle)` method, `LHEParticle.mother1` and `LHEParticle.mother2` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        if self._event is None:
-            err = "Particle is not associated to an event."
-            raise ValueError(err)
-        first_idx = int(self.mother1) - 1
-        second_idx = int(self.mother2) - 1
-        return [
-            self._event.particles[idx] for idx in (first_idx, second_idx) if idx >= 0
-        ]
 
 
 def _indent(root: ET.Element, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> None:
@@ -811,11 +761,6 @@ class LHEEvent:
     """Optional '#' comments stored in the event"""
     _graph: graphviz.Digraph | None = field(default=None, repr=False, compare=False)
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
-
-    def __post_init__(self) -> None:
-        """Set up a bidirectional relationship between event and particles."""
-        for p in self.particles:
-            p.event = self
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
