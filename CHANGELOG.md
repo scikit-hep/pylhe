@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-07-13
+
 ### Added
 
 - Support LHEH5 HDF5 files for reading and writing.
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `LHE*` dataclasses are now slotted, meaning no `__dict__` is created and no `dataclass[key]` access is allowed. Also, no `dataclass.mynewfield` access is allowed for fields that are not defined in the dataclass.
 - Only determined .lhe.gz compression from file extension when no LHEOutputFormat is provided. Otherwise, the compression is determined by the LHEOutputFormat.
 - Weights and weightgroups are now no longer stored in `LHEInit.weightgroup` but in `LHEHeader.initrwgt.entries`. They are thus part of the `<header>` instead of `<init>` as demanded by LHE specification.
 - `LHEInit` no longer has `LHEVersion`. Instead, the version is stored in `LesHouchesEvents.version`.
@@ -43,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Raise an error when weight format is requested to be both `rwgt` and `weights` simultaneously.
 
-[unreleased]: https://github.com/scikit-hep/pylhe/compare/v1.0.4...HEAD
+[unreleased]: https://github.com/scikit-hep/pylhe/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/scikit-hep/pylhe/compare/v1.0.4...v2.0.0
 [1.0.4]: https://github.com/scikit-hep/pylhe/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/scikit-hep/pylhe/compare/v1.0.2...v1.0.3
