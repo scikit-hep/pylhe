@@ -78,7 +78,7 @@ class LHEWeightFormat(enum.Enum):
     NONE = "none"  # no weights block emitted
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class LHEXMLFormat:
     """Selects the XML format."""
 
@@ -96,7 +96,7 @@ class LHEXMLFormat:
     procinfo: str = "{xSection: 14.7e} {error: 14.7e} {unitWeight: 14.7e} {procId: 5d}"
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class LHEHDF5Format:
     """Selects the HDF5 format."""
 
@@ -164,7 +164,7 @@ def _copy_xml_element(element: ET.Element) -> ET.Element:
     return copied
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEEventInfo:
     """
     Store the event information in the LHE format.
@@ -215,7 +215,7 @@ class LHEEventInfo:
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEParticle:
     """
     Represents a single particle in the LHE format.
@@ -247,33 +247,6 @@ class LHEParticle:
     """Lifetime of the particle"""
     spin: float
     """Spin of the particle"""
-
-    def __post_init__(self) -> None:
-        """Initialize the event reference."""
-        # we store the circular event reference in a private attribute
-        self._event: LHEEvent | None = None
-
-    @property
-    def event(self) -> LHEEvent | None:
-        """
-        Reference to the parent event, set when the particle is added to an event.
-
-        .. deprecated:: 2.0.0
-            Access by `particle.event` is deprecated and will be removed in a future version.
-        """
-        warnings.warn(
-            "Access by `particle.event` is deprecated and will be removed in a future version.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        # Previously it was just event so we still allow that for backward compatibility
-        return self._event
-
-    @event.setter
-    def event(self, value: LHEEvent | None) -> None:
-        """Set the parent event reference."""
-        # Previously it was just event so we still allow that for backward compatibility
-        self._event = value
 
     @classmethod
     def fromstring(cls, string: str) -> LHEParticle:
@@ -320,36 +293,13 @@ class LHEParticle:
             spin=self.spin,
         )
 
-    def mothers(self) -> list[LHEParticle]:
-        """
-        Return a list of the particle's mothers.
-
-        .. deprecated:: 2.0.0
-                Accessing mothers via `LHEParticle.mothers()` is deprecated and will be removed in a future version. Use `LHEEvent.mothers(LHEParticle)` method, `LHEParticle.mother1` and `LHEParticle.mother2` instead.
-        """
-        warnings.warn(
-            "Access by `LHEParticle.mothers()` is deprecated and will be removed in a future version. "
-            "Use `LHEEvent.mothers(LHEParticle)` method, `LHEParticle.mother1` and `LHEParticle.mother2` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        if self._event is None:
-            err = "Particle is not associated to an event."
-            raise ValueError(err)
-        first_idx = int(self.mother1) - 1
-        second_idx = int(self.mother2) - 1
-        return [
-            self._event.particles[idx] for idx in (first_idx, second_idx) if idx >= 0
-        ]
-
 
 def _indent(root: ET.Element, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> None:
     ET.indent(root, space=lheformat.indent)
     root.tail = "\n"
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEInitInfo:
     """Store the first line of the <init> block as a dataclass."""
 
@@ -414,7 +364,7 @@ class LHEInitInfo:
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEProcInfo:
     """Store the process info block as a dataclass."""
 
@@ -473,7 +423,7 @@ class LHEProcInfo:
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEInitRWGTWeight:
     """Information about a single weight inside or outside of a weight group."""
 
@@ -495,7 +445,7 @@ class LHEInitRWGTWeight:
         return {**self.extra_attributes, "id": self.id}
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEInitRWGTWeightGroup:
     """Information about a weight group."""
 
@@ -534,7 +484,7 @@ class LHEInitRWGTWeightGroup:
 InitRWGTEntry = LHEInitRWGTWeight | LHEInitRWGTWeightGroup
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEInitRWGT:
     """
     Represents the <initrwgt> block of an LHE file as a dataclass.
@@ -584,7 +534,7 @@ class LHEInitRWGT:
         return ET.tostring(root, encoding="unicode", method="xml")
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEHeader:
     """
     Represents the header block of an LHE file as a dataclass.
@@ -684,7 +634,7 @@ class LHEHeader:
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEGenerator:
     """Information about a generator."""
 
@@ -719,7 +669,7 @@ class LHEGenerator:
         return f"{opening_tag}{self.description}</generator>"
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEInit:
     """Store the <init> block as a dataclass."""
 
@@ -791,7 +741,7 @@ class LHEInit:
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class LHEEvent:
     """
     Store a single event in the LHE format.
@@ -811,11 +761,6 @@ class LHEEvent:
     """Optional '#' comments stored in the event"""
     _graph: graphviz.Digraph | None = field(default=None, repr=False, compare=False)
     """Stores the graph representation of the event generated after first access of the property `lheevent.graph`"""
-
-    def __post_init__(self) -> None:
-        """Set up a bidirectional relationship between event and particles."""
-        for p in self.particles:
-            p.event = self
 
     def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
@@ -1016,7 +961,7 @@ class LHEEvent:
         return self.graph._repr_mimebundle_(include=include, exclude=exclude, **kwargs)
 
 
-@dataclass
+@dataclass(slots=True)
 class LesHouchesEvents:
     """
     Represents an LHE file as a dataclass.

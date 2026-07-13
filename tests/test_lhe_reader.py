@@ -540,11 +540,6 @@ def test_event_at_position_5():
     assert fifth_particle.e == pytest.approx(1.6240971553e00)
     assert fifth_particle.m == pytest.approx(1.3800000000e-01)
 
-    # Test that all particles have proper parent-child relationships
-    for particle in target_event.particles:
-        assert hasattr(particle, "event")
-        assert particle.event is target_event
-
 
 # Inline LHE document used for round-trip fidelity tests.
 # Covers: root version attribute, event attributes, and `#` comment lines.

@@ -27,9 +27,6 @@ def test_LHEEvent():
 
     assert len(event.particles) == 9
 
-    for p in event.particles:
-        assert p.event == event
-
     assert event._graph is None
 
 
