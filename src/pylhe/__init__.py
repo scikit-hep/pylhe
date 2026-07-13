@@ -975,7 +975,9 @@ class LesHouchesEvents:
     """Header block"""
     comment: str | None = None
     """Comment block"""
-    version: str | None = None
+    version: str | None = (
+        None  # Technically, the version should not be optional, but required here
+    )
     """Version of the LHE file"""
     extra_attributes: dict[str, str] = field(default_factory=dict)
     """Attributes of the root LesHouchesEvents element"""
@@ -1009,7 +1011,15 @@ class LesHouchesEvents:
             TWriteable: The output stream with the LHE file written to it.
 
         """
-        output_stream.write(_open_xml_tag("LesHouchesEvents", self.attributes) + "\n")
+        write_attributes = self.attributes.copy()
+        if write_attributes.get("version") != "3.0":
+            warnings.warn(
+                f"Writing LHE file with version {write_attributes.get('version')} but pylhe always writes LHE v3.0 files.",
+                UserWarning,
+                stacklevel=2,
+            )
+            write_attributes["version"] = "3.0"
+        output_stream.write(_open_xml_tag("LesHouchesEvents", write_attributes) + "\n")
         if self.comment is not None:
             output_stream.write(f"<!-- {self.comment} -->\n")
         if self.header is not None:
@@ -1115,6 +1125,7 @@ class LesHouchesEvents:
             return LesHouchesEvents(
                 init=init,
                 events=events if generator else list(events),
+                version="3.0",  # We set version 3.0 here since LHEH5 V2 has scales
             )
 
         def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
