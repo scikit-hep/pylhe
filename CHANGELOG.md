@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `LHEOutputFormat` class to replace the `rwgt` and `weights` bool.
 - New `LHEEvent.mother_indices()` and `LHEEvent.mothers(particle)` helpers.
 - `to_awkward()` now accepts an `LHEFile` / `LesHouchesEvents` object directly.
+- `LHEXMLFormat` now has a `version` attribute to select the LHE version for output (V1, V3).
 
 ### Changed
 
