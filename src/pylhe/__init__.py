@@ -705,7 +705,7 @@ class LHEInit:
         Returns:
             str: The init block as a string in LHE XML format.
         """
-        agenerators = ""
+        agenerators = []
         match lheformat.version:
             case LHEVersion.V3:
                 agenerators = [g.tolhe(lheformat=lheformat) for g in self.generators]
