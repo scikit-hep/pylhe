@@ -274,7 +274,10 @@ def test_write_lhe_gzip_v1(tmpdir):
     events = [next(events)]
 
     # write the file
-    file.tofile(file1.strpath, lheformat=pylhe.GZ_FORMAT, version=pylhe.LHEVersion.V1)
+    file.tofile(
+        file1.strpath,
+        lheformat=pylhe.LHEXMLFormat(version=pylhe.LHEVersion.V1, compress=True),
+    )
 
     # read it again
     init = pylhe.LesHouchesEvents.fromfile(file1.strpath).init
