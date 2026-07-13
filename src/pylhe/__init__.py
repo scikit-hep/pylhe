@@ -1144,7 +1144,7 @@ class LesHouchesEvents:
             return LesHouchesEvents(
                 init=init,
                 events=events if generator else list(events),
-                version="3.0",  # We set version 3.0 here since LHEH5 V2 has scales
+                version=None,  # We leave the version as None since HDF5 versioning is unrelated to LHE XML versioning.
             )
 
         def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
