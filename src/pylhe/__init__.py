@@ -998,9 +998,7 @@ class LesHouchesEvents:
     """Header block"""
     comment: str | None = None
     """Comment block"""
-    version: str | None = (
-        None  # Technically, the version should not be optional, but required here for backwards compatibility with old LHE files that do not have a version attribute
-    )
+    version: str | None = None  # None for undefined or LHEH5
     """Version of the LHE file"""
     extra_attributes: dict[str, str] = field(default_factory=dict)
     """Attributes of the root LesHouchesEvents element"""
