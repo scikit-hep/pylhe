@@ -705,18 +705,15 @@ class LHEInit:
         Returns:
             str: The init block as a string in LHE XML format.
         """
-        agenerators = []
-        match lheformat.version:
-            case LHEVersion.V3:
-                agenerators = [g.tolhe(lheformat=lheformat) for g in self.generators]
-            case LHEVersion.V1:
-                agenerators = []
         return (
             "<init>\n"
             + self.initInfo.tolhe(lheformat=lheformat)
             + "\n"
             + "\n".join(
-                [p.tolhe(lheformat=lheformat) for p in self.procInfo] + agenerators
+                [p.tolhe(lheformat=lheformat) for p in self.procInfo]
+                + [
+                    s for g in self.generators if (s := g.tolhe(lheformat=lheformat))
+                ]  # We remove empty strings here since otherwise empty lines would be added to the init block, which is not allowed
             )
             + "\n"
             + "</init>"
