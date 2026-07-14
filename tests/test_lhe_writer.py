@@ -263,6 +263,26 @@ def test_write_lhe_gzip(tmpdir):
     init = pylhe.LesHouchesEvents.fromfile(file1.strpath).init
 
 
+def test_write_lhe_gzip_v1(tmpdir):
+    file1 = tmpdir.join("test1.lhe.gz")
+
+    file = pylhe.LesHouchesEvents.fromfile(TEST_FILE_LHE_v3, with_attributes=True)
+    init = file.init
+    assert init is not None
+    events = file.events
+    # single test event
+    events = [next(events)]
+
+    # write the file
+    file.tofile(
+        file1.strpath,
+        lheformat=pylhe.LHEXMLFormat(version=pylhe.LHEVersion.V1, compress=True),
+    )
+
+    # read it again
+    init = pylhe.LesHouchesEvents.fromfile(file1.strpath).init
+
+
 def test_tofile_accepts_pathlib_path(tmp_path):
     """
     Test that tofile() accepts a pathlib.Path object (not just str).

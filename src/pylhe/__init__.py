@@ -78,11 +78,24 @@ class LHEWeightFormat(enum.Enum):
     NONE = "none"  # no weights block emitted
 
 
+class LHEVersion(enum.Enum):
+    """
+    Selects the LHE XML version.
+
+    Note:
+        Version 2 is not supported as of now since most attributes have been removed in Version 3, which is the present default.
+    """
+
+    V1 = "1.0"  # Only comment, <header>, <init> and <event> blocks
+    # V2 = "2.0" # Not supported as of now since most attributes have been removed in V3 again...
+    V3 = "3.0"  # Also <scales>, <initrwgt>, <rwgt>, <weights> and <generator> blocks
+
+
 @dataclass(slots=True, frozen=True)
 class LHEXMLFormat:
     """Selects the XML format."""
 
-    # version: LHEVersion = LHEVersion.V3 # optional future TODO, but why would anyone not want to write v3?
+    version: LHEVersion = LHEVersion.V3
     indent: str = "  "
     """indentation string for XML output"""
     compress: bool = False
@@ -515,23 +528,27 @@ class LHEInitRWGT:
         Returns:
             str: The init block as a string in LHE XML format.
         """
-        # weightgroups to xml
-        root = ET.Element("initrwgt")
-        for e in self.entries:
-            if isinstance(e, LHEInitRWGTWeightGroup):
-                weightgroup_elem = ET.SubElement(
-                    root, "weightgroup", attrib=e.attributes
-                )
-                for value in e.weights:
-                    weight_elem = ET.SubElement(
-                        weightgroup_elem, "weight", attrib=value.attributes
-                    )
-                    weight_elem.text = value.name
-            else:
-                weight_elem = ET.SubElement(root, "weight", attrib=e.attributes)
-                weight_elem.text = e.name
-        _indent(root, lheformat)
-        return ET.tostring(root, encoding="unicode", method="xml")
+        match lheformat.version:
+            case LHEVersion.V3:
+                # weightgroups to xml
+                root = ET.Element("initrwgt")
+                for e in self.entries:
+                    if isinstance(e, LHEInitRWGTWeightGroup):
+                        weightgroup_elem = ET.SubElement(
+                            root, "weightgroup", attrib=e.attributes
+                        )
+                        for value in e.weights:
+                            weight_elem = ET.SubElement(
+                                weightgroup_elem, "weight", attrib=value.attributes
+                            )
+                            weight_elem.text = value.name
+                    else:
+                        weight_elem = ET.SubElement(root, "weight", attrib=e.attributes)
+                        weight_elem.text = e.name
+                _indent(root, lheformat)
+                return ET.tostring(root, encoding="unicode", method="xml")
+            case LHEVersion.V1:
+                return ""
 
 
 @dataclass(slots=True)
@@ -558,7 +575,9 @@ class LHEHeader:
         for element in self.extra_elements:
             root.append(_copy_xml_element(element))
         if self.initrwgt.entries:
-            root.append(ET.fromstring(self.initrwgt.tolhe(lheformat=lheformat)))
+            sinit = self.initrwgt.tolhe(lheformat=lheformat)
+            if sinit:
+                root.append(ET.fromstring(sinit))
 
         _indent(root, lheformat=lheformat)
         return ET.tostring(root, encoding="unicode", method="xml")
@@ -658,15 +677,19 @@ class LHEGenerator:
         self.extra_attributes.pop("name", None)
         self.extra_attributes.pop("version", None)
 
-    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:  # noqa: ARG002
+    def tolhe(self, lheformat: LHEXMLFormat = DEFAULT_FORMAT) -> str:
         """
         Return the generator information as a string in LHE XML format.
 
         Returns:
             str: The generator information as a string in LHE XML format.
         """
-        opening_tag = _open_xml_tag("generator", self.attributes)
-        return f"{opening_tag}{self.description}</generator>"
+        match lheformat.version:
+            case LHEVersion.V3:
+                opening_tag = _open_xml_tag("generator", self.attributes)
+                return f"{opening_tag}{self.description}</generator>"
+            case LHEVersion.V1:
+                return ""
 
 
 @dataclass(slots=True)
@@ -693,7 +716,9 @@ class LHEInit:
             + "\n"
             + "\n".join(
                 [p.tolhe(lheformat=lheformat) for p in self.procInfo]
-                + [g.tolhe(lheformat=lheformat) for g in self.generators]
+                + [
+                    s for g in self.generators if (s := g.tolhe(lheformat=lheformat))
+                ]  # We remove empty strings here since otherwise empty lines would be added to the init block, which is not allowed
             )
             + "\n"
             + "</init>"
@@ -773,24 +798,29 @@ class LHEEvent:
             str: The event as a string in LHE XML format.
         """
         sweights = ""
-        if lheformat.weights is LHEWeightFormat.RWGT and self.weights:
-            sweights = "<rwgt>\n"
-            for k, v in self.weights.items():
-                sweights += f" <wgt id='{k}'>{v:11.4e}</wgt>\n"
-            sweights += "</rwgt>\n"
-        elif lheformat.weights is LHEWeightFormat.WEIGHTS and self.weights:
-            sweights = "<weights>\n"
-            for v in self.weights.values():
-                sweights += f"{v:11.4e}\n"
-            sweights += "</weights>\n"
-
         sscales = ""
-        if self.scales:
-            sscales = (
-                "<scales "
-                + " ".join(f"{k}='{v}'" for k, v in self.scales.items())
-                + "/>\n"
-            )
+        match lheformat.version:
+            case LHEVersion.V3:
+                if lheformat.weights is LHEWeightFormat.RWGT and self.weights:
+                    sweights = "<rwgt>\n"
+                    for k, v in self.weights.items():
+                        sweights += f" <wgt id='{k}'>{v:11.4e}</wgt>\n"
+                    sweights += "</rwgt>\n"
+                elif lheformat.weights is LHEWeightFormat.WEIGHTS and self.weights:
+                    sweights = "<weights>\n"
+                    for v in self.weights.values():
+                        sweights += f"{v:11.4e}\n"
+                    sweights += "</weights>\n"
+
+                if self.scales:
+                    sscales = (
+                        "<scales "
+                        + " ".join(f"{k}='{v}'" for k, v in self.scales.items())
+                        + "/>\n"
+                    )
+            case LHEVersion.V1:
+                sweights = ""
+                sscales = ""
 
         soptional = ""
         if self.optional:
@@ -976,7 +1006,7 @@ class LesHouchesEvents:
     comment: str | None = None
     """Comment block"""
     version: str | None = None
-    """Version of the LHE file"""
+    """Version of the LHE file. None for undefined or LHEH5 files."""
     extra_attributes: dict[str, str] = field(default_factory=dict)
     """Attributes of the root LesHouchesEvents element"""
 
@@ -999,7 +1029,7 @@ class LesHouchesEvents:
         self, output_stream: TWriteable, lheformat: LHEXMLFormat = DEFAULT_FORMAT
     ) -> TWriteable:
         """
-        Write the LHE file to an output stream.
+        Write the LHE file to an output stream as LHE XML.
 
         Args:
             output_stream (TWriteable): Output stream to write the LHE file to.
@@ -1009,7 +1039,11 @@ class LesHouchesEvents:
             TWriteable: The output stream with the LHE file written to it.
 
         """
-        output_stream.write(_open_xml_tag("LesHouchesEvents", self.attributes) + "\n")
+        write_attributes = self.attributes.copy()
+        # Write the LHE file as v3.0, regardless of the version attribute in the LesHouchesEvents object, since pylhe always writes LHE v3.0 files as of now.
+        # Later it could be an option in LHEXMLFormat to set the version.
+        write_attributes["version"] = lheformat.version.value
+        output_stream.write(_open_xml_tag("LesHouchesEvents", write_attributes) + "\n")
         if self.comment is not None:
             output_stream.write(f"<!-- {self.comment} -->\n")
         if self.header is not None:
@@ -1036,7 +1070,7 @@ class LesHouchesEvents:
         | None = None,  # default format is None because we do file name suffix detection in _open_write_file
     ) -> None:
         """
-        Write the LHE file.
+        Write the LHE file as LHE.
 
         Args:
             filepath (PathLike): Path to the output file.
@@ -1115,6 +1149,7 @@ class LesHouchesEvents:
             return LesHouchesEvents(
                 init=init,
                 events=events if generator else list(events),
+                version=None,  # We leave the version as None since HDF5 versioning is unrelated to LHE XML versioning.
             )
 
         def _generator(lhef: LHEFile) -> Iterator[LHEEvent]:
