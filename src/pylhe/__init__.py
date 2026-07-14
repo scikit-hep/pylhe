@@ -1005,8 +1005,8 @@ class LesHouchesEvents:
     """Header block"""
     comment: str | None = None
     """Comment block"""
-    version: str | None = None  # None for undefined or LHEH5
-    """Version of the LHE file"""
+    version: str | None = None
+    """Version of the LHE file. None for undefined or LHEH5 files."""
     extra_attributes: dict[str, str] = field(default_factory=dict)
     """Attributes of the root LesHouchesEvents element"""
 
