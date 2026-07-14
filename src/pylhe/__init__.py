@@ -81,7 +81,7 @@ class LHEWeightFormat(enum.Enum):
 class LHEVersion(enum.Enum):
     """
     Selects the LHE XML version.
-    
+
     Note:
         Version 2 is not supported as of now since most attributes have been removed in Version 3, which is the present default.
     """
