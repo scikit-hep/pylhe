@@ -4,13 +4,14 @@ Les Houches Event Format
 The Les Houches Event (LHE) format uses an XML-like structure, but the content within the ``<init>` and ``<event>`` blocks consists of whitespace-separated values designed for straightforward parsing in Fortran.
 Its first version was defined in :cite:`Alwall:2006yp`.
 The ``<header>`` block can contain arbitrary XML content, usually metadata or comments explaining how the events were generated.
-The following skeleton example illustrates the overall structure of an LHE file using the ``pylhe`` naming of the attributes:
+The following skeleton example illustrates the overall structure of an LHE file using the ``pylhe`` naming of the attributes for version 1.0:
 
 .. code-block:: xml
 
    <LesHouchesEvents version="1.0">
    <!-- optional non XML content such as a powheg/madgraph input card go here -->
-   <header></header>
+   <header>
+   </header>
    <init>
    beamA beamB energyA energyB PDFgroupA PDFgroupB PDFsetA PDFsetB weightingStrategy numProcesses
    xSection error unitWeight procId
@@ -25,6 +26,79 @@ The following skeleton example illustrates the overall structure of an LHE file 
    </event>
    ...
    </LesHouchesEvents>
+
+And for version 3.0 in rwgt mode:
+
+.. code-block:: xml
+
+   <LesHouchesEvents version="3.0">
+   <!-- optional non XML content such as a powheg/madgraph input card go here -->
+   <header>
+   <initrwgt>
+   <weight id="weightname"></weight>
+   <weightgroup name="groupname" combine="method">
+      <weight id="weightname2"></weight>
+   </weightgroup>
+   </initrwgt>
+   </header>
+   <init>
+   beamA beamB energyA energyB PDFgroupA PDFgroupB PDFsetA PDFsetB weightingStrategy numProcesses
+   xSection error unitWeight procId
+   ...
+   <generator name="GeneratorName" version="X.Y.Z"> Description of the generator </generator>
+   # additional hash-commented information can go here
+   </init>
+   <event>
+   nparticles pid weight scale aqed aqcd
+   id status mother1 mother2 color1 color2 px py pz e m lifetime spin
+   ...
+   # additional hash-commented information can go here
+   <rwgt>
+   <wgt id="weightname"> 1.1 </weight>
+   <wgt id="weightname2"> 2.2 </weight>
+   </rwgt>
+   <scales scalename="1.0" scalename2="2.0"> </scales>
+   </event>
+   ...
+   </LesHouchesEvents>
+
+Or in weights mode:
+
+
+.. code-block:: xml
+
+   <LesHouchesEvents version="3.0">
+   <!-- optional non XML content such as a powheg/madgraph input card go here -->
+   <header>
+   <initrwgt>
+   <weight id="weightname"></weight>
+   <weightgroup name="groupname" combine="method">
+      <weight id="weightname2"></weight>
+   </weightgroup>
+   </initrwgt>
+   </header>
+   <init>
+   beamA beamB energyA energyB PDFgroupA PDFgroupB PDFsetA PDFsetB weightingStrategy numProcesses
+   xSection error unitWeight procId
+   ...
+   <generator name="GeneratorName" version="X.Y.Z"> Description of the generator </generator>
+   # additional hash-commented information can go here
+   </init>
+   <event>
+   nparticles pid weight scale aqed aqcd
+   id status mother1 mother2 color1 color2 px py pz e m lifetime spin
+   ...
+   # additional hash-commented information can go here
+   <weights>
+   1.1
+   2.2
+   </weights>
+   <scales scalename="1.0" scalename2="2.0"> </scales>
+   </event>
+   ...
+   </LesHouchesEvents>
+
+
 
 The table below summarizes the main parameters found in LHE files grouped by their ``dataclass`` representation in ``pylhe``.
 
@@ -108,5 +182,4 @@ The table below summarizes the main parameters found in LHE files grouped by the
 
 Further details can be found in the original definition of the LHE file standard.
 Besides the original publication there were two extensions to the LHE format, version 2.0 in 2009 :cite:`Butterworth:2010ym` and version 3.0 in 2013 :cite:`Andersen:2014efa`.
-However, ``pylhe`` currently only implements the widely adopted extension from version 1.0, that is the addition of multiple weights via ``<initrwgt>``, ``<rwgt>``, ``<weight>``, ``<weights>``, ``<wgt>``, and ``<weightgroup>``.
-If in the future there is a demand for ``<scales>``, ``<generator>``, ``<pdfinfo>``, or ``<clustering>``, support for these can be added as well.
+However, ``pylhe`` implements the widely adopted version 3.0 and thus also the subset version 1.0, that is the addition ``<scales>``, ``<generator>``, and of multiple weights via ``<initrwgt>``, ``<rwgt>``, ``<weight>``, ``<weights>``, ``<wgt>``, and ``<weightgroup>``.
