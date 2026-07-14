@@ -79,7 +79,12 @@ class LHEWeightFormat(enum.Enum):
 
 
 class LHEVersion(enum.Enum):
-    """Selects the LHE XML version."""
+    """
+    Selects the LHE XML version.
+    
+    Note:
+        Version 2 is not supported as of now since most attributes have been removed in Version 3, which is the present default.
+    """
 
     V1 = "1.0"  # Only comment, <header>, <init> and <event> blocks
     # V2 = "2.0" # Not supported as of now since most attributes have been removed in V3 again...

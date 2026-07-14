@@ -182,4 +182,4 @@ The table below summarizes the main parameters found in LHE files grouped by the
 
 Further details can be found in the original definition of the LHE file standard.
 Besides the original publication there were two extensions to the LHE format, version 2.0 in 2009 :cite:`Butterworth:2010ym` and version 3.0 in 2013 :cite:`Andersen:2014efa`.
-However, ``pylhe`` implements the widely adopted version 3.0 and thus also the subset version 1.0, that is the addition ``<scales>``, ``<generator>``, and of multiple weights via ``<initrwgt>``, ``<rwgt>``, ``<weight>``, ``<weights>``, ``<wgt>``, and ``<weightgroup>``.
+However, ``pylhe`` implements the widely adopted version 3.0 and thus also the subset version 1.0, that is the addition of ``<scales>``, ``<generator>``, and of multiple weights via ``<initrwgt>``, ``<rwgt>``, ``<weight>``, ``<weights>``, ``<wgt>``, and ``<weightgroup>``.
