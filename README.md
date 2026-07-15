@@ -26,7 +26,7 @@ Small and thin Python interface to read [Les Houches Event (LHE)](https://inspir
 
 ## Tested Monte Carlo Generators' LHE output
 
-### XML output
+### LHE XML
 
 | Generator                                      | Tested Versions       |
 |------------------------------------------------|-----------------------|
