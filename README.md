@@ -26,6 +26,8 @@ Small and thin Python interface to read [Les Houches Event (LHE)](https://inspir
 
 ## Tested Monte Carlo Generators' LHE output
 
+### XML output
+
 | Generator                                      | Tested Versions       |
 |------------------------------------------------|-----------------------|
 | [MadGraph5](https://launchpad.net/mg5amcnlo)   | 2.0.0, 2.2.1, 3.5.8   |
@@ -33,6 +35,14 @@ Small and thin Python interface to read [Les Houches Event (LHE)](https://inspir
 | [Pythia](https://pythia.org/)                  | 6.413, 8.3.14         |
 | [Sherpa](https://sherpa-team.gitlab.io/)       | 3.0.1                 |
 | [Whizard](https://whizard.hepforge.org/)       | 3.1.4                 |
+
+### LHEH5
+
+| Generator                                      | Tested Versions       |
+|------------------------------------------------|-----------------------|
+| [Sherpa](https://sherpa-team.gitlab.io/)       | 2.3.0                 |
+
+
 
 Note: test files are provided via the [scikit-hep-testdata](https://github.com/scikit-hep/scikit-hep-testdata) package. Please open an issue of create directly a PR for the inclusion of new files for testing.
 
