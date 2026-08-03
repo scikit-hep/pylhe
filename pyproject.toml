@@ -109,7 +109,7 @@ packages = ["src/pylhe"]
 [tool.mypy]
 warn_unused_configs = true
 warn_unused_ignores = true
-python_version = "3.10"
+python_version = "3.12" # numpy wants at least this version for type checking...
 files = "src"
 strict = true
 warn_unreachable = true

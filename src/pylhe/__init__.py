@@ -31,6 +31,8 @@ from particle.exceptions import MatchingIDNotFound
 from pylhe import lheh5
 from pylhe._version import version as __version__
 
+from .awkward import to_awkward
+
 __all__ = [
     "DEFAULT_FORMAT",
     "GZ_FORMAT",
@@ -1335,7 +1337,3 @@ def _open_write_file(filepath: PathLike, lheformat: LHEXMLFormat) -> TextIO:
     if lheformat.compress:
         return gzip.open(filepath, "wt")
     return open(filepath, "w")
-
-
-# we import this later to avoid circular imports
-from .awkward import to_awkward  # noqa: E402
