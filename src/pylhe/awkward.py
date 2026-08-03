@@ -7,7 +7,7 @@ from collections.abc import Iterable
 import awkward as ak  # type: ignore[import-untyped]
 import vector
 
-from pylhe import LHEEvent, LHEFile
+import pylhe
 
 __all__ = ["to_awkward"]
 
@@ -16,7 +16,7 @@ def __dir__() -> list[str]:
     return __all__
 
 
-def to_awkward(event_iterable: Iterable[LHEEvent] | LHEFile) -> ak.Array:
+def to_awkward(event_iterable: Iterable[pylhe.LHEEvent] | pylhe.LHEFile) -> ak.Array:
     """Convert an iterable of LHEEvent instances to an Awkward-Array.
 
     Uses Awkward's ArrayBuilder to construct the array by iterating over the events.
@@ -30,7 +30,7 @@ def to_awkward(event_iterable: Iterable[LHEEvent] | LHEFile) -> ak.Array:
     Returns:
         awkward.Array: An Awkward array of all the events.
     """
-    if isinstance(event_iterable, LHEFile):
+    if isinstance(event_iterable, pylhe.LHEFile):
         event_iterable = event_iterable.events
 
     builder = ak.ArrayBuilder()
