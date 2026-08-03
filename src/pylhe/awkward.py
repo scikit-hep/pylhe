@@ -2,6 +2,8 @@
 `Awkward array <https://github.com/scikit-hep/awkward>`_ interface for `pylhe`.
 """
 
+from __future__ import annotations
+
 from collections.abc import Iterable
 
 import awkward as ak  # type: ignore[import-untyped]
