@@ -22,6 +22,28 @@ title: "pylhe: v2.0.0"
 version: 2.0.0
 doi: 10.5281/zenodo.1217031
 repository-code: "https://github.com/scikit-hep/pylhe/releases/tag/v2.0.0"
+
+# TODO: Update preferred citation with the JOSS publication DOI once published.
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Neuwirth"
+      given-names: "Alexander Puck"
+      orcid: "https://orcid.org/0000-0002-2484-1328"
+    - family-names: "Feickert"
+      given-names: "Matthew"
+      orcid: "https://orcid.org/0000-0003-4124-7862"
+    - family-names: "Heinrich"
+      given-names: "Lukas"
+      orcid: "https://orcid.org/0000-0002-4048-7584"
+    - family-names: "Rodrigues"
+      given-names: "Eduardo"
+      orcid: "https://orcid.org/0000-0003-2846-7625"
+  title: "pylhe: A Lightweight Python interface to Les Houches Event files"
+  year: 2026
+  month: 7
+  repository-code: "https://arxiv.org/abs/2607.29352"
+
 keywords:
   - lhe
   - physics

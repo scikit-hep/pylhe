@@ -164,6 +164,8 @@ file.tofile("myevents.lhe.gz", lheformat=pylhe.LHEXMLFormat(compress=True))
 
 The preferred BibTeX entry for citation of `pylhe` is
 
+<!-- TODO: Update the preferred citation with the JOSS publication DOI once published. -->
+
 ```bibtex
 @article{PuckNeuwirth:2026nco,
     author = "Puck Neuwirth, Alexander and Feickert, Matthew and Heinrich, Lukas and Rodrigues, Eduardo",
