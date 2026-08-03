@@ -31,7 +31,6 @@ from particle.exceptions import MatchingIDNotFound
 from pylhe import lheh5
 from pylhe._version import version as __version__
 
-# we import this later to avoid circular imports
 from .awkward import to_awkward
 
 __all__ = [
