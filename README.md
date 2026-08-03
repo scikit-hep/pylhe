@@ -162,7 +162,7 @@ file.tofile("myevents.lhe.gz", lheformat=pylhe.LHEXMLFormat(compress=True))
 
 ## Citation
 
-The preferred BibTeX entry for citation of `pylhe` is
+The preferred BibTeX entry for citation of `pylhe` is the published paper and the Zenodo archive
 
 <!-- TODO: Update the preferred citation with the JOSS publication DOI once published. -->
 
@@ -176,11 +176,19 @@ The preferred BibTeX entry for citation of `pylhe` is
     month = "7",
     year = "2026"
 }
+@software{pylhe,
+  author = {Lukas Heinrich and Matthew Feickert and Eduardo Rodrigues and Alexander Puck Neuwirth},
+  title = "{pylhe: v2.0.0}",
+  version = {v2.0.0},
+  doi = {10.5281/zenodo.1217031},
+  url = {https://github.com/scikit-hep/pylhe},
+}
 ```
 
 `pylhe` has been referenced in:
 
 * [LHEREADER: simplified conversion from Les Houches event files to ROOT format](https://inspirehep.net/literature/3124696) (2026)
+* [Prompt diphoton production compared to measurements at 13 TeV in kT-factorization: A comparative analysis of unintegrated PDF models](https://inspirehep.net/literature/3081675) (2025)
 * [Flow Annealed Importance Sampling Bootstrap meets Differentiable Particle Physics](https://inspirehep.net/literature/2851739) (2024)
 * [Interference effects in resonant di-Higgs production at the LHC in the Higgs singlet extension](https://inspirehep.net/literature/2826958) (2024)
 * [Search for nearly degenerate higgsinos via photon fusion with the semileptonic channel at the LHC](https://inspirehep.net/literature/2788228) (2024)

@@ -45,6 +45,7 @@ preferred-citation:
   repository-code: "https://arxiv.org/abs/2607.29352"
 
 keywords:
+  - Les Houches Event files
   - lhe
   - physics
   - python
