@@ -178,6 +178,7 @@ The preferred BibTeX entry for citation of `pylhe` is
 
 `pylhe` has been referenced in:
 
+* [LHEREADER: simplified conversion from Les Houches event files to ROOT format](https://inspirehep.net/literature/3124696) (2026)
 * [Flow Annealed Importance Sampling Bootstrap meets Differentiable Particle Physics](https://inspirehep.net/literature/2851739) (2024)
 * [Interference effects in resonant di-Higgs production at the LHC in the Higgs singlet extension](https://inspirehep.net/literature/2826958) (2024)
 * [Search for nearly degenerate higgsinos via photon fusion with the semileptonic channel at the LHC](https://inspirehep.net/literature/2788228) (2024)
