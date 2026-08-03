@@ -162,7 +162,7 @@ file.tofile("myevents.lhe.gz", lheformat=pylhe.LHEXMLFormat(compress=True))
 
 ## Citation
 
-The preferred BibTeX entry for citation of `pylhe` is the published paper and the [Zenodo](https://zenodo.org/) archive
+The preferred BibTeX entry for citation of `pylhe` is both the published paper and the [Zenodo](https://zenodo.org/) archive:
 
 <!-- TODO: Update the preferred citation with the JOSS publication DOI once published. -->
 
