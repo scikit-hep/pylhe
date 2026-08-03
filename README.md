@@ -165,12 +165,14 @@ file.tofile("myevents.lhe.gz", lheformat=pylhe.LHEXMLFormat(compress=True))
 The preferred BibTeX entry for citation of `pylhe` is
 
 ```bibtex
-@software{pylhe,
-  author = {Lukas Heinrich and Matthew Feickert and Eduardo Rodrigues and Alexander Puck Neuwirth},
-  title = "{pylhe: v2.0.0}",
-  version = {v2.0.0},
-  doi = {10.5281/zenodo.1217031},
-  url = {https://github.com/scikit-hep/pylhe},
+@article{PuckNeuwirth:2026nco,
+    author = "Puck Neuwirth, Alexander and Feickert, Matthew and Heinrich, Lukas and Rodrigues, Eduardo",
+    title = "{pylhe: A Lightweight Python interface to Les Houches Event files}",
+    eprint = "2607.29352",
+    archivePrefix = "arXiv",
+    primaryClass = "hep-ph",
+    month = "7",
+    year = "2026"
 }
 ```
 
