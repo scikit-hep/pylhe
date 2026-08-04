@@ -2,9 +2,9 @@
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+import datetime
 import os
 import re
-import datetime
 
 # we use toml to read pyproject.toml
 # the python provided toml parser does not support older python versions
