@@ -2,9 +2,9 @@
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+import datetime
 import os
 import re
-from datetime import datetime
 
 # we use toml to read pyproject.toml
 # the python provided toml parser does not support older python versions
@@ -17,7 +17,7 @@ try:
 except FileNotFoundError:
     info = toml.load("pyproject.toml")
 project = info["project"]["name"]
-current_year = datetime.now().year
+current_year = datetime.datetime.now(tz=datetime.timezone.utc).year
 copyright = f"{current_year}, The Scikit-HEP admins"
 # Handle multiple authors
 authors_list = info.get("authors", [])
