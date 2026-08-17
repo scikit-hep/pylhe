@@ -7,7 +7,7 @@ See the [Scikit-HEP Developer introduction][skhep-dev-intro] for a detailed desc
 First create a fork of the `pylhe` repository on GitHub, then clone your fork locally and change into the `pylhe` directory:
 
 ```bash
-# fork scikit-hep/vector
+# fork scikit-hep/pylhe
 git clone https://github.com/<your_github_username>/pylhe.git
 cd pylhe
 ```
