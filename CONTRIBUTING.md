@@ -39,3 +39,15 @@ Use PyTest to run the unit checks:
 ```bash
 pytest
 ```
+
+# Documentation
+
+In order to produce the documentation webpage locally, you can run the following commands:
+
+```bash
+cd docs
+hatch run docs:make html
+```
+
+Now find the generated documentation in `docs/build/html/index.html`.
+You can also run `hatch run docs:make clean` to remove the generated files.

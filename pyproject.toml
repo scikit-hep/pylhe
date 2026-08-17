@@ -90,6 +90,10 @@ features = [
     "develop",
 ]
 
+[tool.hatch.envs.docs]
+features = [
+    "docs",
+]
 
 [tool.hatch.version]
 source = "vcs"
