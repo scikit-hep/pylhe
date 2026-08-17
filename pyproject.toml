@@ -85,6 +85,12 @@ Homepage = "https://github.com/scikit-hep/pylhe"
 "Issue Tracker" = "https://github.com/scikit-hep/pylhe/issues"
 "Releases" = "https://github.com/scikit-hep/pylhe/releases"
 
+[tool.hatch.envs.dev]
+features = [
+    "develop",
+]
+
+
 [tool.hatch.version]
 source = "vcs"
 
