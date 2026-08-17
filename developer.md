@@ -1,6 +1,6 @@
 # Release a new version of the software
 
-## PyPi
+## PyPI
 
 For a step-by-step video guide check out the [release video](https://www.youtube.com/watch?v=tsAWDumpcW8)
 
