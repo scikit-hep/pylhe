@@ -60,7 +60,7 @@ test = [
 ]
 develop = [
     "pylhe[lint,test]",
-    "pre-commit",
+    "prek",
     "tbump>=6.7.0",
 ]
 docs = [
