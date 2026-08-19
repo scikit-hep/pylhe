@@ -78,7 +78,7 @@ def to_numpy(
         event_iterable = event_iterable.events
 
     event_rows = []
-    particle_rows: list[tuple] = []
+    particle_rows: list[tuple[float, ...]] = []
     for event in event_iterable:
         ei = event.eventinfo
         event_rows.append(

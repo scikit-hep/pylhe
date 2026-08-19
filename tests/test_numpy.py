@@ -45,7 +45,7 @@ def test_roundtrip():
     back = list(pylhe.from_numpy(pylhe.to_numpy(original)))
 
     assert len(back) == len(original)
-    for orig_event, new_event in zip(original, back):
+    for orig_event, new_event in zip(original, back, strict=True):
         assert new_event.eventinfo == orig_event.eventinfo
         assert new_event.particles == orig_event.particles
 
