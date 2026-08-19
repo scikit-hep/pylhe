@@ -28,10 +28,10 @@ hatch shell dev
 You should prepare pre-commit, which will help you by checking that commits pass required checks:
 
 ```bash
-pre-commit install # Will install a pre-commit hook into the git repo
+prek install # Will install a pre-commit hook into the git repo
 ```
 
-You can also/alternatively run `pre-commit run` (changes only) or `pre-commit run --all-files` to check even without installing the hook.
+You can also/alternatively run `prek run` (changes only) or `prek run --all-files` to check even without installing the hook.
 
 # Testing
 
