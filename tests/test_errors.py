@@ -1,4 +1,5 @@
 import io
+import math
 import os
 import tempfile
 import xml.etree.ElementTree as ET
@@ -132,8 +133,8 @@ def test_lheh5_event_trials_returns_zero_for_missing_or_invalid_trials():
         attributes={"trials": "not-a-float"},
     )
 
-    assert pylhe.lheh5._event_trials(missing_trials_event) == 0.0
-    assert pylhe.lheh5._event_trials(invalid_trials_event) == 0.0
+    assert math.isnan(pylhe.lheh5._event_trials(missing_trials_event))
+    assert math.isnan(pylhe.lheh5._event_trials(invalid_trials_event))
 
 
 def test_lheh5_append_rows_returns_early_for_empty_rows(tmp_path):

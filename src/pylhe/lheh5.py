@@ -227,7 +227,7 @@ def _event_trials(event: pylhe.LHEEvent) -> float:
     try:
         return float(trials)
     except ValueError:
-        return 0.0
+        return float("nan")
 
 
 def get_particles(
@@ -443,8 +443,8 @@ def write(
                 start,
                 _event_trials(event),
                 event.eventinfo.scale,
-                _event_scale(event, "fscale", "muf", float("nan")),
-                _event_scale(event, "rscale", "mur", float("nan")),
+                _event_scale(event, "fscale", "muf", default=float("nan")),
+                _event_scale(event, "rscale", "mur", default=float("nan")),
                 event.eventinfo.aqed,
                 event.eventinfo.aqcd,
                 event.eventinfo.weight,
