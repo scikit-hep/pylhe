@@ -63,6 +63,9 @@ A typical consolidated LHEH5 file contains the following datasets:
    /procInfo
    /events
    /particles
+   /metadata
+      /generators
+      /comment
    /ctevents      # optional, for MC@NLO S-events, not in pylhe
    /ctparticles   # optional, for MC@NLO S-events, not in pylhe
 
@@ -94,6 +97,14 @@ A typical consolidated LHEH5 file contains the following datasets:
      - ``(K, 13)``
      - usually float64
      - Per-particle record across all events
+   * - ``metadata/generators``
+     - ``(G, 3)``
+     - UTF-8 string
+     - Generator metadata from LHEF ``<generator>`` elements
+   * - ``metadata/comment``
+     - scalar
+     - UTF-8 string
+     - Root-level XML comment text, when present
    * - ``ctevents``
      - ``(N_ct, 9)``
      - usually float64
@@ -104,7 +115,8 @@ A typical consolidated LHEH5 file contains the following datasets:
      - Counterterm four-momenta for MC@NLO ``S``-events
 
 Here ``P`` is the number of subprocess entries, ``N`` is the number of events,
-and ``K`` is the total number of particle rows.
+``K`` is the total number of particle rows, and ``G`` is the number of
+generator metadata rows.
 The ``+`` sign indicates that additional implementation-defined columns may be
 appended beyond the common core columns described below.
 
@@ -343,6 +355,37 @@ Its standard columns mirror the ordinary LHE particle record:
    1-based within the event, and ``0`` denotes an absent mother.
 
 
+``metadata``
+------------
+
+``metadata`` is a group for non-numeric LHE information that does not fit in
+the flat event, particle, init, or process tables.
+
+``metadata/generators`` is a two-dimensional UTF-8 string dataset with one row
+per generator block. Its columns are:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 18 10 52
+
+   * - Column
+     - Type
+     - Description
+   * - ``name``
+     - string
+     - Generator name
+   * - ``version``
+     - string
+     - Generator version
+   * - ``description``
+     - string
+     - Text content of the LHEF ``<generator>`` element
+
+``metadata/comment`` is a scalar UTF-8 string dataset containing the
+root-level XML comment text.
+Empty comments are represented by an empty string.
+
+
 ``ctevents`` and ``ctparticles``
 --------------------------------
 
@@ -428,5 +471,6 @@ Support in ``pylhe``
 --------------------
 
 ``pylhe`` implements reading and writing of the core consolidated LHEH5 datasets
-(``/version``, ``/init``, ``/procInfo``, ``/events``, ``/particles``) via
+(``/version``, ``/init``, ``/procInfo``, ``/events``, ``/particles``,
+``/metadata``) via
 :py:meth:`pylhe.LesHouchesEvents.fromfile` and :py:meth:`pylhe.LesHouchesEvents.tofile`.

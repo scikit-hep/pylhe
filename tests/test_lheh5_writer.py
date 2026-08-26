@@ -15,6 +15,10 @@ def _decode_attr_values(values: object) -> tuple[str, ...]:
     )
 
 
+def _decode_string(value: object) -> str:
+    return value.decode() if isinstance(value, bytes) else str(value)
+
+
 def _column_names(dataset: h5py.Dataset) -> tuple[str, ...]:
     dataset_name = dataset.name.rsplit("/", maxsplit=1)[-1]
 
@@ -32,7 +36,10 @@ def _assert_hdf5_core_equal(
         h5py.File(source_path, "r") as source,
         h5py.File(roundtrip_path, "r") as result,
     ):
-        assert set(source.keys()) == set(result.keys())
+        expected_result_keys = set(source.keys())
+        if "metadata" not in expected_result_keys:
+            expected_result_keys.add("metadata")
+        assert expected_result_keys == set(result.keys())
 
         for dataset_name in source:
             source_dataset = source[dataset_name]
@@ -83,7 +90,13 @@ def _make_lhe() -> pylhe.LesHouchesEvents:
                     npNLO=1,
                 )
             ],
-            generators=[],
+            generators=[
+                pylhe.LHEGenerator(
+                    name="SomeGen",
+                    version="1.2.3",
+                    description="some additional comments",
+                )
+            ],
         ),
         events=[
             pylhe.LHEEvent(
@@ -190,6 +203,7 @@ def _make_lhe() -> pylhe.LesHouchesEvents:
                 attributes={"trials": "3.5"},
             ),
         ],
+        comment="preserved run metadata",
     )
 
 
@@ -200,7 +214,14 @@ def test_lheh5_write_roundtrip(tmp_path):
     lhe.tofile(path)
 
     with h5py.File(path, "r") as h5:
-        assert set(h5.keys()) == {"events", "init", "particles", "procInfo", "version"}
+        assert set(h5.keys()) == {
+            "events",
+            "init",
+            "metadata",
+            "particles",
+            "procInfo",
+            "version",
+        }
         assert tuple(h5["version"][()]) == (2, 0, 0)
         assert h5["events"].compression is None
         assert h5["particles"].compression is None
@@ -216,11 +237,27 @@ def test_lheh5_write_roundtrip(tmp_path):
             "aqcd",
             "NOMINAL",
         )
+        assert set(h5["metadata"].keys()) == {"comment", "generators"}
+        assert _decode_string(h5["metadata/comment"][()]) == "preserved run metadata"
+        assert h5["metadata/generators"].shape == (
+            1,
+            len(pylhe.lheh5._GENERATOR_COLUMNS),
+        )
+        assert tuple(h5["metadata/generators"].attrs["properties"]) == (
+            "name",
+            "version",
+            "description",
+        )
+        assert [
+            [_decode_string(value) for value in row]
+            for row in h5["metadata/generators"]
+        ] == [["SomeGen", "1.2.3", "some additional comments"]]
 
     loaded = pylhe.LesHouchesEvents.fromfile(path, generator=False)
     loaded_lazy = pylhe.LesHouchesEvents.fromfile(path)
 
     assert loaded.init == lhe.init
+    assert loaded.comment == lhe.comment
     assert list(loaded.events) == list(lhe.events)
     assert list(loaded_lazy.events) == list(lhe.events)
 
@@ -239,6 +276,12 @@ def test_lheh5_hpcgen_roundtrip(tmp_path):
 
     with h5py.File(roundtrip_path, "r") as h5:
         assert tuple(h5["version"][()]) == (2, 0, 0)
+        assert set(h5["metadata"].keys()) == {"comment", "generators"}
+        assert _decode_string(h5["metadata/comment"][()]) == ""
+        assert h5["metadata/generators"].shape == (
+            0,
+            len(pylhe.lheh5._GENERATOR_COLUMNS),
+        )
 
 
 def test_lheh5_write_streams_generator_across_multiple_flushes(tmp_path):
