@@ -122,7 +122,7 @@ def test_lheh5_event_scale_returns_default_when_names_missing():
     assert pylhe.lheh5._event_scale(event, "fscale", "muf", default=9.5) == 9.5
 
 
-def test_lheh5_event_trials_returns_zero_for_missing_or_invalid_trials():
+def test_lheh5_event_trials_returns_nan_for_missing_or_invalid_trials():
     missing_trials_event = pylhe.LHEEvent(
         eventinfo=pylhe.LHEEventInfo(0, 0, 0.0, 0.0, 0.0, 0.0),
         particles=[],
