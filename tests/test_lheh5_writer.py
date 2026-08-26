@@ -15,6 +15,10 @@ def _decode_attr_values(values: object) -> tuple[str, ...]:
     )
 
 
+def _decode_string(value: object) -> str:
+    return value.decode() if isinstance(value, bytes) else str(value)
+
+
 def _column_names(dataset: h5py.Dataset) -> tuple[str, ...]:
     dataset_name = dataset.name.rsplit("/", maxsplit=1)[-1]
 
@@ -32,7 +36,10 @@ def _assert_hdf5_core_equal(
         h5py.File(source_path, "r") as source,
         h5py.File(roundtrip_path, "r") as result,
     ):
-        assert set(source.keys()) == set(result.keys())
+        expected_result_keys = set(source.keys())
+        if "metadata" not in expected_result_keys:
+            expected_result_keys.add("metadata")
+        assert expected_result_keys == set(result.keys())
 
         for dataset_name in source:
             source_dataset = source[dataset_name]
@@ -83,7 +90,13 @@ def _make_lhe() -> pylhe.LesHouchesEvents:
                     npNLO=1,
                 )
             ],
-            generators=[],
+            generators=[
+                pylhe.LHEGenerator(
+                    name="SomeGen",
+                    version="1.2.3",
+                    description="some additional comments",
+                )
+            ],
         ),
         events=[
             pylhe.LHEEvent(
@@ -190,7 +203,42 @@ def _make_lhe() -> pylhe.LesHouchesEvents:
                 attributes={"trials": "3.5"},
             ),
         ],
+        comment="preserved run metadata",
     )
+
+
+def _make_weighted_lhe() -> pylhe.LesHouchesEvents:
+    lhe = _make_lhe()
+    lhe.header = pylhe.LHEHeader(
+        initrwgt=pylhe.LHEInitRWGT(
+            entries=[
+                pylhe.LHEInitRWGTWeightGroup(
+                    name="scale_variation",
+                    combine="envelope",
+                    weights=[
+                        pylhe.LHEInitRWGTWeight(
+                            id="1001",
+                            name="muR=0.5 muF=0.5",
+                        ),
+                        pylhe.LHEInitRWGTWeight(
+                            id="1002",
+                            name="muR=1.0 muF=1.0",
+                        ),
+                    ],
+                ),
+                pylhe.LHEInitRWGTWeight(
+                    id="pdf1",
+                    name="PDF member 1",
+                ),
+            ]
+        )
+    )
+
+    events = list(lhe.events)
+    events[0].weights = {"1001": 2.25, "1002": 2.5, "pdf1": 2.75}
+    events[1].weights = {"1001": 3.25, "1002": 3.5, "pdf1": 3.75}
+
+    return lhe
 
 
 def test_lheh5_write_roundtrip(tmp_path):
@@ -200,7 +248,14 @@ def test_lheh5_write_roundtrip(tmp_path):
     lhe.tofile(path)
 
     with h5py.File(path, "r") as h5:
-        assert set(h5.keys()) == {"events", "init", "particles", "procInfo", "version"}
+        assert set(h5.keys()) == {
+            "events",
+            "init",
+            "metadata",
+            "particles",
+            "procInfo",
+            "version",
+        }
         assert tuple(h5["version"][()]) == (2, 0, 0)
         assert h5["events"].compression is None
         assert h5["particles"].compression is None
@@ -216,13 +271,143 @@ def test_lheh5_write_roundtrip(tmp_path):
             "aqcd",
             "NOMINAL",
         )
+        assert set(h5["metadata"].keys()) == {"comment", "generators"}
+        assert _decode_string(h5["metadata/comment"][()]) == "preserved run metadata"
+        assert h5["metadata/generators"].shape == (
+            1,
+            len(pylhe.lheh5._GENERATOR_COLUMNS),
+        )
+        assert tuple(h5["metadata/generators"].attrs["properties"]) == (
+            "name",
+            "version",
+            "description",
+        )
+        assert [
+            [_decode_string(value) for value in row]
+            for row in h5["metadata/generators"]
+        ] == [["SomeGen", "1.2.3", "some additional comments"]]
 
     loaded = pylhe.LesHouchesEvents.fromfile(path, generator=False)
     loaded_lazy = pylhe.LesHouchesEvents.fromfile(path)
 
     assert loaded.init == lhe.init
+    assert loaded.comment == lhe.comment
     assert list(loaded.events) == list(lhe.events)
     assert list(loaded_lazy.events) == list(lhe.events)
+
+
+def test_lheh5_write_roundtrip_preserves_declared_weights_and_metadata(tmp_path):
+    lhe = _make_weighted_lhe()
+    source_events = list(lhe.events)
+    weight_ids = lhe.header.initrwgt.list_weights_ids()
+    path = tmp_path / "weighted-roundtrip.hdf5"
+
+    lhe.tofile(path, lheformat=pylhe.HDF5_FORMAT)
+
+    expected_event_columns = (*pylhe.lheh5._EVENT_COLUMNS, *weight_ids)
+
+    with h5py.File(path, "r") as h5:
+        assert set(h5.keys()) == {
+            "events",
+            "init",
+            "metadata",
+            "particles",
+            "procInfo",
+            "version",
+        }
+        assert _column_names(h5["events"]) == expected_event_columns
+        assert h5["events"].shape == (
+            len(source_events),
+            len(expected_event_columns),
+        )
+        assert _decode_string(h5["metadata/comment"][()]) == lhe.comment
+
+        event_column_indices = {
+            name: index for index, name in enumerate(_column_names(h5["events"]))
+        }
+        for event_row, source_event in zip(h5["events"], source_events, strict=True):
+            for weight_id in weight_ids:
+                assert event_row[event_column_indices[weight_id]] == pytest.approx(
+                    source_event.weights[weight_id]
+                )
+
+    loaded = pylhe.LHEFile.fromfile(path, generator=False)
+    loaded_events = list(loaded.events)
+
+    assert loaded.header is not None
+    assert loaded.header.initrwgt.list_weights_ids() == weight_ids
+    assert [
+        weight.name for weight in loaded.header.initrwgt.iter_weights()
+    ] == weight_ids
+    assert loaded.init == lhe.init
+    assert loaded.comment == lhe.comment
+    assert len(loaded_events) == len(source_events)
+
+    for source_event, loaded_event in zip(source_events, loaded_events, strict=True):
+        assert loaded_event.eventinfo == source_event.eventinfo
+        assert loaded_event.particles == source_event.particles
+        assert loaded_event.weights == source_event.weights
+        assert list(loaded_event.weights) == weight_ids
+        assert loaded_event.scales == source_event.scales
+        assert loaded_event.attributes == source_event.attributes
+        assert loaded_event.optional == source_event.optional
+
+
+def test_lhe_to_lheh5_roundtrip_preserves_weights_and_metadata(tmp_path):
+    source = pylhe.LHEFile.fromfile(
+        skhep_testdata.data_path("pylhe-testlhef3.lhe"),
+        generator=False,
+    )
+    source_events = list(source.events)
+    weight_ids = source.header.initrwgt.list_weights_ids()
+    path = tmp_path / "xml-to-hdf5-roundtrip.hdf5"
+
+    assert weight_ids
+    assert source.init.generators
+    assert all(event.weights for event in source_events)
+
+    source.tofile(path, lheformat=pylhe.HDF5_FORMAT)
+
+    with h5py.File(path, "r") as h5:
+        assert _column_names(h5["events"]) == (
+            *pylhe.lheh5._EVENT_COLUMNS,
+            *weight_ids,
+        )
+        assert h5["metadata/generators"].shape == (
+            len(source.init.generators),
+            len(pylhe.lheh5._GENERATOR_COLUMNS),
+        )
+
+    result = pylhe.LHEFile.fromfile(path, generator=False)
+    result_events = list(result.events)
+
+    assert result.header is not None
+    assert result.header.initrwgt.list_weights_ids() == weight_ids
+    assert source.init == result.init
+    assert source.comment == result.comment
+    assert len(source_events) == len(result_events)
+
+    for source_event, result_event in zip(source_events, result_events, strict=True):
+        assert source_event.eventinfo == result_event.eventinfo
+        assert source_event.particles == result_event.particles
+        assert source_event.weights == result_event.weights
+        assert list(result_event.weights) == weight_ids
+
+
+def test_lheh5_write_rejects_weight_id_matching_event_column(tmp_path):
+    lhe = _make_lhe()
+    lhe.header = pylhe.LHEHeader(
+        initrwgt=pylhe.LHEInitRWGT(
+            entries=[pylhe.LHEInitRWGTWeight(id="NOMINAL", name="collision")]
+        )
+    )
+    path = tmp_path / "invalid-weight-id.hdf5"
+
+    with pytest.raises(
+        ValueError,
+        match=r"Weight name 'NOMINAL' is already present in default event columns",
+    ):
+        lhe.tofile(path, lheformat=pylhe.HDF5_FORMAT)
 
 
 def test_lheh5_hpcgen_roundtrip(tmp_path):
@@ -239,6 +424,12 @@ def test_lheh5_hpcgen_roundtrip(tmp_path):
 
     with h5py.File(roundtrip_path, "r") as h5:
         assert tuple(h5["version"][()]) == (2, 0, 0)
+        assert set(h5["metadata"].keys()) == {"comment", "generators"}
+        assert _decode_string(h5["metadata/comment"][()]) == ""
+        assert h5["metadata/generators"].shape == (
+            0,
+            len(pylhe.lheh5._GENERATOR_COLUMNS),
+        )
 
 
 def test_lheh5_write_streams_generator_across_multiple_flushes(tmp_path):

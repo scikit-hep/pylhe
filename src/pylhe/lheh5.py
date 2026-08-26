@@ -74,13 +74,26 @@ _EVENT_COLUMNS = (
     "aqed",
     "aqcd",
     "NOMINAL",
+    # + further weights are appended here
 )
+
+_GENERATOR_COLUMNS = (
+    "name",
+    "version",
+    "description",
+)
+
+_STRING_DTYPE = h5py.string_dtype(encoding="utf-8")
 
 
 def _decode_attr_values(values: Iterable[object]) -> list[str]:
     return [
         value.decode() if isinstance(value, bytes) else str(value) for value in values
     ]
+
+
+def _decode_string(value: object) -> str:
+    return value.decode() if isinstance(value, bytes) else str(value)
 
 
 def _column_names(dataset: h5py.Dataset, *, default: tuple[str, ...] = ()) -> list[str]:
@@ -156,6 +169,20 @@ def _row_float(
     raise KeyError(err)
 
 
+def _row_string(
+    row: Sequence[object],
+    columns: dict[str, int],
+    *names: str,
+    default: str = "",
+) -> str:
+    for name in names:
+        index = columns.get(name)
+        if index is not None and index < len(row):
+            return _decode_string(row[index])
+
+    return default
+
+
 def _encode_attr_values(values: Iterable[str]) -> list[bytes]:
     return [value.encode() for value in values]
 
@@ -208,6 +235,71 @@ def _append_rows(dataset: h5py.Dataset, rows: list[list[float]]) -> None:
     stop = start + len(rows)
     dataset.resize((stop, dataset.shape[1]))
     dataset[start:stop] = rows
+
+
+def _write_metadata(lhe: pylhe.LesHouchesEvents, file: h5py.File) -> None:
+    metadata = file.create_group("metadata")
+    generator_rows = [
+        [
+            generator.name,
+            generator.version,
+            generator.description,
+        ]
+        for generator in lhe.init.generators
+    ]
+
+    if generator_rows:
+        generators = metadata.create_dataset(
+            "generators", data=generator_rows, dtype=_STRING_DTYPE
+        )
+    else:
+        generators = metadata.create_dataset(
+            "generators",
+            shape=(0, len(_GENERATOR_COLUMNS)),
+            dtype=_STRING_DTYPE,
+        )
+    _set_column_attrs(generators, _GENERATOR_COLUMNS)
+
+    metadata.create_dataset(
+        "comment",
+        data="" if lhe.comment is None else lhe.comment,
+        dtype=_STRING_DTYPE,
+    )
+
+
+def read_generators(file: h5py.File) -> list[pylhe.LHEGenerator]:
+    """Read generator metadata from an HDF5 file in LHEH5 format."""
+    if "metadata/generators" not in file:
+        return []
+
+    generators = file["metadata/generators"]
+    if not isinstance(generators, h5py.Dataset):
+        return []
+
+    generator_columns = _column_indices(generators, default=_GENERATOR_COLUMNS)
+
+    return [
+        pylhe.LHEGenerator(
+            name=_row_string(row, generator_columns, "name"),
+            version=_row_string(row, generator_columns, "version"),
+            description=_row_string(row, generator_columns, "description"),
+            extra_attributes={},
+        )
+        for row in generators
+    ]
+
+
+def read_comment(file: h5py.File) -> str | None:
+    """Read root-level comment metadata from an HDF5 file in LHEH5 format."""
+    if "metadata/comment" not in file:
+        return None
+
+    comment = file["metadata/comment"]
+    if not isinstance(comment, h5py.Dataset):
+        return None
+
+    value = _decode_string(comment[()])
+    return value or None
 
 
 def _event_scale(event: pylhe.LHEEvent, *names: str, default: float = 0.0) -> float:
@@ -302,9 +394,47 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
                 aqcd=_row_float(event_row, event_columns, "aqcd", default=float("nan")),
             ),
             particles=get_particles(particles, start, nparticles),
+            weights=get_weights(event_row, event_columns),
             scales=scales,
             attributes=attributes,
         )
+
+
+def get_weights(
+    event_row: Sequence[float], event_columns: dict[str, int]
+) -> dict[str, float]:
+    """Get the weights from an event row."""
+    weightnames = _weight_columns(event_columns)
+    return {
+        name: _row_float(event_row, event_columns, name, default=float("nan"))
+        for name in weightnames
+    }
+
+
+def _weight_columns(event_columns: dict[str, int]) -> list[str]:
+    standard_columns = set(_EVENT_COLUMNS)
+    return [name for name in event_columns if name not in standard_columns]
+
+
+def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
+    """Read the header from an HDF5 file in LHEH5 format."""
+    events = file["events"]
+    event_columns = _column_indices(events, default=_EVENT_COLUMNS)
+    # Construct LHEInitRWGT using the weight names/ids.
+    weightnames = _weight_columns(event_columns)
+
+    if not weightnames:
+        return None
+
+    # We are not tracking weight groups for now.
+    # Also we lose the name definition of the weight as of now.
+    return pylhe.LHEHeader(
+        initrwgt=pylhe.LHEInitRWGT(
+            entries=[
+                pylhe.LHEInitRWGTWeight(id=name, name=name) for name in weightnames
+            ]
+        )
+    )
 
 
 def read_init(file: h5py.File) -> pylhe.LHEInit:
@@ -339,7 +469,7 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
             )
             for row in procinfo
         ],
-        generators=[],
+        generators=read_generators(file),
     )
 
 
@@ -394,15 +524,31 @@ def write(
     )
     _set_column_attrs(proc_dataset, _PROCINFO_COLUMNS)
 
+    _write_metadata(lhe, file)
+
+    event_columns_list = list(_EVENT_COLUMNS)
+    weightnames = []
+    if lhe.header is not None:
+        weightnames = lhe.header.initrwgt.list_weights_ids()
+    if weightnames:
+        for name in weightnames:
+            if name in event_columns_list:
+                err = (
+                    f"Weight name '{name}' is already present in default event columns."
+                )
+                raise ValueError(err)
+        event_columns_list += weightnames
+    event_columns = tuple(event_columns_list)
+
     events_write_args = _dataset_write_args(
         lheformat,
         chunk_rows=lheformat.event_chunk_rows,
-        ncolumns=len(_EVENT_COLUMNS),
+        ncolumns=len(event_columns),
     )
     events_dataset = _create_row_dataset(
         file,
         "events",
-        _EVENT_COLUMNS,
+        event_columns,
         write_args=events_write_args,
     )
     particles_write_args = _dataset_write_args(
@@ -448,6 +594,7 @@ def write(
                 event.eventinfo.aqed,
                 event.eventinfo.aqcd,
                 event.eventinfo.weight,
+                *[event.weights[wid] for wid in weightnames],
             ]
         )
 

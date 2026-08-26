@@ -5,7 +5,13 @@ import pytest
 import skhep_testdata
 
 import pylhe
-from pylhe.lheh5 import get_particles, read_init, read_iter_events
+from pylhe.lheh5 import (
+    get_particles,
+    read_comment,
+    read_generators,
+    read_init,
+    read_iter_events,
+)
 
 
 def test_get_particles_returns_lheparticles():
@@ -74,3 +80,36 @@ def test_read_init_matches_lheinit_specification():
     assert init.procInfo[0].xSection == pytest.approx(1661.5257101139289)
     assert init.procInfo[0].error == pytest.approx(6.367380198171124)
     assert init.procInfo[0].unitWeight == pytest.approx(2.330218119536726e-05)
+
+
+def test_read_generators_defaults_missing_string_columns(tmp_path):
+    path = tmp_path / "metadata-missing-columns.hdf5"
+
+    with h5py.File(path, "w") as h5:
+        metadata = h5.create_group("metadata")
+        metadata.create_dataset(
+            "generators",
+            data=[["SomeGen", "1.2.3"]],
+            dtype=pylhe.lheh5._STRING_DTYPE,
+        )
+
+        assert read_generators(h5) == [
+            pylhe.LHEGenerator(
+                name="SomeGen",
+                version="1.2.3",
+                description="",
+                extra_attributes={},
+            )
+        ]
+
+
+def test_metadata_readers_ignore_non_dataset_entries(tmp_path):
+    path = tmp_path / "metadata-groups.hdf5"
+
+    with h5py.File(path, "w") as h5:
+        metadata = h5.create_group("metadata")
+        metadata.create_group("generators")
+        metadata.create_group("comment")
+
+        assert read_generators(h5) == []
+        assert read_comment(h5) is None
