@@ -74,6 +74,7 @@ _EVENT_COLUMNS = (
     "aqed",
     "aqcd",
     "NOMINAL",
+    # + further weights are appended here
 )
 
 _GENERATOR_COLUMNS = (
@@ -393,9 +394,45 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
                 aqcd=_row_float(event_row, event_columns, "aqcd", default=float("nan")),
             ),
             particles=get_particles(particles, start, nparticles),
+            weights=get_weights(event_row, event_columns),
             scales=scales,
             attributes=attributes,
         )
+
+
+def get_weights(
+    event_row: Sequence[float], event_columns: dict[str, int]
+) -> dict[str, float]:
+    weightnames = _weight_columns(event_columns)
+    return {
+        name: _row_float(event_row, event_columns, name, default=float("nan"))
+        for name in weightnames
+    }
+
+
+def _weight_columns(event_columns: dict[str, int]) -> list[str]:
+    standard_columns = set(_EVENT_COLUMNS)
+    return [name for name in event_columns if name not in standard_columns]
+
+
+def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
+    events = file["events"]
+    event_columns = _column_indices(events, default=_EVENT_COLUMNS)
+    # Construct LHEInitRWGT using the weight names/ids.
+    weightnames = _weight_columns(event_columns)
+
+    if not weightnames:
+        return None
+
+    # We are not tracking weight groups for now.
+    # Also we lose the name definition of the weight as of now.
+    return pylhe.LHEHeader(
+        initrwgt=pylhe.LHEInitRWGT(
+            entries=[
+                pylhe.LHEInitRWGTWeight(id=name, name=name) for name in weightnames
+            ]
+        )
+    )
 
 
 def read_init(file: h5py.File) -> pylhe.LHEInit:
@@ -487,15 +524,29 @@ def write(
 
     _write_metadata(lhe, file)
 
+    event_columns_list = list(_EVENT_COLUMNS)
+    weightnames = []
+    if lhe.header is not None:
+        weightnames = lhe.header.initrwgt.list_weights_ids()
+    if weightnames:
+        for name in weightnames:
+            if name in event_columns_list:
+                err = (
+                    f"Weight name '{name}' is already present in default event columns."
+                )
+                raise ValueError(err)
+        event_columns_list += weightnames
+    event_columns = tuple(event_columns_list)
+
     events_write_args = _dataset_write_args(
         lheformat,
         chunk_rows=lheformat.event_chunk_rows,
-        ncolumns=len(_EVENT_COLUMNS),
+        ncolumns=len(event_columns),
     )
     events_dataset = _create_row_dataset(
         file,
         "events",
-        _EVENT_COLUMNS,
+        event_columns,
         write_args=events_write_args,
     )
     particles_write_args = _dataset_write_args(
@@ -541,6 +592,7 @@ def write(
                 event.eventinfo.aqed,
                 event.eventinfo.aqcd,
                 event.eventinfo.weight,
+                *[event.weights[wid] for wid in weightnames],
             ]
         )
 
