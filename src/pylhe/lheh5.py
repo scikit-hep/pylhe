@@ -312,8 +312,11 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
 
 def get_weights(event_row: Any, event_columns: dict[str, int]) -> dict[str, float]:
     # we skip the first 9 (len(_EVENT_COLUMNS)) entries others are weights
-    weightnames = event_row[len(_EVENT_COLUMNS) :]
-    return {name: _row_float(event_row, event_columns, name) for name in weightnames}
+    weightnames = event_columns.keys() - set(_EVENT_COLUMNS)
+    return {
+        name: _row_float(event_row, event_columns, name, default=float("nan"))
+        for name in weightnames
+    }
 
 
 def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
