@@ -403,6 +403,7 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
 def get_weights(
     event_row: Sequence[float], event_columns: dict[str, int]
 ) -> dict[str, float]:
+    """Get the weights from an event row."""
     weightnames = _weight_columns(event_columns)
     return {
         name: _row_float(event_row, event_columns, name, default=float("nan"))
@@ -416,6 +417,7 @@ def _weight_columns(event_columns: dict[str, int]) -> list[str]:
 
 
 def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
+    """Read the header from an HDF5 file in LHEH5 format."""
     events = file["events"]
     event_columns = _column_indices(events, default=_EVENT_COLUMNS)
     # Construct LHEInitRWGT using the weight names/ids.
