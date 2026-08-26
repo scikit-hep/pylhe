@@ -311,19 +311,23 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
 
 
 def get_weights(event_row: Any, event_columns: dict[str, int]) -> dict[str, float]:
-    # we skip the first 9 (len(_EVENT_COLUMNS)) entries others are weights
-    weightnames = event_columns.keys() - set(_EVENT_COLUMNS)
+    weightnames = _weight_columns(event_columns)
     return {
         name: _row_float(event_row, event_columns, name, default=float("nan"))
         for name in weightnames
     }
 
 
+def _weight_columns(event_columns: dict[str, int]) -> list[str]:
+    standard_columns = set(_EVENT_COLUMNS)
+    return [name for name in event_columns if name not in standard_columns]
+
+
 def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
     events = file["events"]
     event_columns = _column_indices(events, default=_EVENT_COLUMNS)
     # Construct LHEInitRWGT using the weight names/ids
-    weightnames = event_columns.keys() - set(_EVENT_COLUMNS)
+    weightnames = _weight_columns(event_columns)
 
     if not weightnames:
         return None
@@ -431,6 +435,13 @@ def write(
     if lhe.header is not None:
         weightnames = lhe.header.initrwgt.list_weights_ids()
     if weightnames:
+        # if any of the weightnames is also in _EVENT_COLUMNS
+        for name in weightnames:
+            if name in _event_columns:
+                err = (
+                    f"Weight name '{name}' is already present in default event columns."
+                )
+                raise ValueError(err)
         _event_columns += weightnames
     event_columns = tuple(_event_columns)
 

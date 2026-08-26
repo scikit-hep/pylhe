@@ -516,6 +516,7 @@ class LHEInitRWGT:
                 yield from entry.weights
 
     def list_weights_ids(self) -> list[str]:
+        """Return a list of all weight IDs in the <initrwgt> block, including those inside weight groups."""
         return [w.id for w in self.iter_weights()]
 
     def weights_by_id(self) -> dict[str, LHEInitRWGTWeight]:

@@ -193,6 +193,40 @@ def _make_lhe() -> pylhe.LesHouchesEvents:
     )
 
 
+def _make_weighted_lhe() -> pylhe.LesHouchesEvents:
+    lhe = _make_lhe()
+    lhe.header = pylhe.LHEHeader(
+        initrwgt=pylhe.LHEInitRWGT(
+            entries=[
+                pylhe.LHEInitRWGTWeightGroup(
+                    name="scale_variation",
+                    combine="envelope",
+                    weights=[
+                        pylhe.LHEInitRWGTWeight(
+                            id="1001",
+                            name="muR=0.5 muF=0.5",
+                        ),
+                        pylhe.LHEInitRWGTWeight(
+                            id="1002",
+                            name="muR=1.0 muF=1.0",
+                        ),
+                    ],
+                ),
+                pylhe.LHEInitRWGTWeight(
+                    id="pdf1",
+                    name="PDF member 1",
+                ),
+            ]
+        )
+    )
+
+    events = list(lhe.events)
+    events[0].weights = {"1001": 2.25, "1002": 2.5, "pdf1": 2.75}
+    events[1].weights = {"1001": 3.25, "1002": 3.5, "pdf1": 3.75}
+
+    return lhe
+
+
 def test_lheh5_write_roundtrip(tmp_path):
     lhe = _make_lhe()
     path = tmp_path / "roundtrip.hdf5"
@@ -223,6 +257,86 @@ def test_lheh5_write_roundtrip(tmp_path):
     assert loaded.init == lhe.init
     assert list(loaded.events) == list(lhe.events)
     assert list(loaded_lazy.events) == list(lhe.events)
+
+
+def test_lheh5_write_roundtrip_preserves_declared_weights(tmp_path):
+    lhe = _make_weighted_lhe()
+    source_events = list(lhe.events)
+    weight_ids = lhe.header.initrwgt.list_weights_ids()
+    path = tmp_path / "weighted-roundtrip.hdf5"
+
+    lhe.tofile(path, lheformat=pylhe.HDF5_FORMAT)
+
+    expected_event_columns = (*pylhe.lheh5._EVENT_COLUMNS, *weight_ids)
+
+    with h5py.File(path, "r") as h5:
+        assert _column_names(h5["events"]) == expected_event_columns
+        assert h5["events"].shape == (len(source_events), len(expected_event_columns))
+
+        event_column_indices = {
+            name: index for index, name in enumerate(_column_names(h5["events"]))
+        }
+        for event_row, source_event in zip(h5["events"], source_events, strict=True):
+            for weight_id in weight_ids:
+                assert event_row[event_column_indices[weight_id]] == pytest.approx(
+                    source_event.weights[weight_id]
+                )
+
+    loaded = pylhe.LHEFile.fromfile(path, generator=False)
+    loaded_events = list(loaded.events)
+
+    assert loaded.header is not None
+    assert loaded.header.initrwgt.list_weights_ids() == weight_ids
+    assert [
+        weight.name for weight in loaded.header.initrwgt.iter_weights()
+    ] == weight_ids
+    assert loaded.init == lhe.init
+    assert len(loaded_events) == len(source_events)
+
+    for source_event, loaded_event in zip(source_events, loaded_events, strict=True):
+        assert loaded_event.eventinfo == source_event.eventinfo
+        assert loaded_event.particles == source_event.particles
+        assert loaded_event.weights == source_event.weights
+        assert list(loaded_event.weights) == weight_ids
+        assert loaded_event.scales == source_event.scales
+        assert loaded_event.attributes == source_event.attributes
+        assert loaded_event.optional == source_event.optional
+
+
+def test_lhe_to_lheh5_roundtrip_preserves_weights(tmp_path):
+    source = pylhe.LHEFile.fromfile(
+        skhep_testdata.data_path("pylhe-testlhef3.lhe"),
+        generator=False,
+    )
+    source_events = list(source.events)
+    weight_ids = source.header.initrwgt.list_weights_ids()
+    path = tmp_path / "xml-to-hdf5-roundtrip.hdf5"
+
+    assert weight_ids
+    assert all(event.weights for event in source_events)
+
+    source.tofile(path, lheformat=pylhe.HDF5_FORMAT)
+
+    with h5py.File(path, "r") as h5:
+        assert _column_names(h5["events"]) == (
+            *pylhe.lheh5._EVENT_COLUMNS,
+            *weight_ids,
+        )
+
+    result = pylhe.LHEFile.fromfile(path, generator=False)
+    result_events = list(result.events)
+
+    assert result.header is not None
+    assert result.header.initrwgt.list_weights_ids() == weight_ids
+    assert source.init.initInfo == result.init.initInfo
+    assert source.init.procInfo == result.init.procInfo
+    assert len(source_events) == len(result_events)
+
+    for source_event, result_event in zip(source_events, result_events, strict=True):
+        assert source_event.eventinfo == result_event.eventinfo
+        assert source_event.particles == result_event.particles
+        assert source_event.weights == result_event.weights
+        assert list(result_event.weights) == weight_ids
 
 
 def test_lheh5_hpcgen_roundtrip(tmp_path):
