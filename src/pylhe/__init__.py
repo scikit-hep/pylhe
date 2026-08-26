@@ -515,6 +515,9 @@ class LHEInitRWGT:
             else:
                 yield from entry.weights
 
+    def list_weights_ids(self) -> list[str]:
+        return [w.id for w in self.iter_weights()]
+
     def weights_by_id(self) -> dict[str, LHEInitRWGTWeight]:
         """Return a dictionary mapping weight IDs to LHEInitRWGTWeight instances for all weights in the <initrwgt> block."""
         return {w.id: w for w in self.iter_weights()}
@@ -1142,6 +1145,7 @@ class LesHouchesEvents:
 
         if isinstance(fileobject, h5py.File):
             init = lheh5.read_init(fileobject)
+            header = lheh5.read_header(fileobject)
 
             def _hdf5_generator() -> Iterator[LHEEvent]:
                 with fileobject as h5:
@@ -1151,6 +1155,7 @@ class LesHouchesEvents:
             return LesHouchesEvents(
                 init=init,
                 events=events if generator else list(events),
+                header=header,
                 version=None,  # We leave the version as None since HDF5 versioning is unrelated to LHE XML versioning.
             )
 

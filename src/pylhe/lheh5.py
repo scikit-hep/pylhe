@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable, Iterator, Sequence
+from typing import Any
 
 import h5py  # type: ignore[import-untyped]
 
@@ -74,6 +75,7 @@ _EVENT_COLUMNS = (
     "aqed",
     "aqcd",
     "NOMINAL",
+    # + further weights are appended here
 )
 
 
@@ -302,9 +304,36 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
                 aqcd=_row_float(event_row, event_columns, "aqcd", default=float("nan")),
             ),
             particles=get_particles(particles, start, nparticles),
+            weights=get_weights(event_row, event_columns),
             scales=scales,
             attributes=attributes,
         )
+
+
+def get_weights(event_row: Any, event_columns: dict[str, int]) -> dict[str, float]:
+    # we skip the first 9 (len(_EVENT_COLUMNS)) entries others are weights
+    weightnames = event_row[len(_EVENT_COLUMNS) :]
+    return {name: _row_float(event_row, event_columns, name) for name in weightnames}
+
+
+def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
+    events = file["events"]
+    event_columns = _column_indices(events, default=_EVENT_COLUMNS)
+    # Construct LHEInitRWGT using the weight names/ids
+    weightnames = event_columns.keys() - set(_EVENT_COLUMNS)
+
+    if not weightnames:
+        return None
+
+    # We are not tracking weight groups for now.
+    # Also we loose the name definition of the weight as of now...
+    return pylhe.LHEHeader(
+        initrwgt=pylhe.LHEInitRWGT(
+            entries=[
+                pylhe.LHEInitRWGTWeight(id=name, name=name) for name in weightnames
+            ]
+        )
+    )
 
 
 def read_init(file: h5py.File) -> pylhe.LHEInit:
@@ -394,15 +423,23 @@ def write(
     )
     _set_column_attrs(proc_dataset, _PROCINFO_COLUMNS)
 
+    _event_columns = list(_EVENT_COLUMNS)
+    weightnames = []
+    if lhe.header is not None:
+        weightnames = lhe.header.initrwgt.list_weights_ids()
+    if weightnames:
+        _event_columns += weightnames
+    event_columns = tuple(_event_columns)
+
     events_write_args = _dataset_write_args(
         lheformat,
         chunk_rows=lheformat.event_chunk_rows,
-        ncolumns=len(_EVENT_COLUMNS),
+        ncolumns=len(event_columns),
     )
     events_dataset = _create_row_dataset(
         file,
         "events",
-        _EVENT_COLUMNS,
+        event_columns,
         write_args=events_write_args,
     )
     particles_write_args = _dataset_write_args(
@@ -448,6 +485,7 @@ def write(
                 event.eventinfo.aqed,
                 event.eventinfo.aqcd,
                 event.eventinfo.weight,
+                *[event.weights[wid] for wid in weightnames],
             ]
         )
 
