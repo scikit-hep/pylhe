@@ -335,7 +335,7 @@ def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
         return None
 
     # We are not tracking weight groups for now.
-    # Also we loose the name definition of the weight as of now...
+    # Also we lose the name definition of the weight as of now...
     return pylhe.LHEHeader(
         initrwgt=pylhe.LHEInitRWGT(
             entries=[
