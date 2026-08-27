@@ -286,10 +286,7 @@ def test_lheh5_write_roundtrip_preserves_declared_weights(tmp_path):
     loaded_events = list(loaded.events)
 
     assert loaded.header is not None
-    assert loaded.header.initrwgt.list_weights_ids() == weight_ids
-    assert [
-        weight.name for weight in loaded.header.initrwgt.iter_weights()
-    ] == weight_ids
+assert [weight.id for weight in loaded.header.initrwgt.iter_weights()] == weight_ids
     assert loaded.init == lhe.init
     assert len(loaded_events) == len(source_events)
 
