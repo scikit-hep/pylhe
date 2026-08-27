@@ -303,6 +303,22 @@ def test_lheh5_write_roundtrip_preserves_declared_weights(tmp_path):
         assert loaded_event.optional == source_event.optional
 
 
+def test_lheh5_write_rejects_weight_name_in_default_event_columns(tmp_path):
+    lhe = _make_weighted_lhe()
+    assert lhe.header is not None
+    next(lhe.header.initrwgt.iter_weights()).id = "pid"
+    path = tmp_path / "duplicate-weight-column.hdf5"
+
+    with (
+        h5py.File(path, "w") as h5,
+        pytest.raises(
+            ValueError,
+            match=r"Weight name 'pid' is already present in default event columns\.",
+        ),
+    ):
+        pylhe.lheh5.write(lhe, h5, lheformat=pylhe.HDF5_FORMAT)
+
+
 def test_lhe_to_lheh5_roundtrip_preserves_weights(tmp_path):
     source = pylhe.LHEFile.fromfile(
         skhep_testdata.data_path("pylhe-testlhef3.lhe"),
