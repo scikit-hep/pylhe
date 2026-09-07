@@ -1,4 +1,5 @@
 import io
+import math
 import os
 import tempfile
 import xml.etree.ElementTree as ET
@@ -121,7 +122,7 @@ def test_lheh5_event_scale_returns_default_when_names_missing():
     assert pylhe.lheh5._event_scale(event, "fscale", "muf", default=9.5) == 9.5
 
 
-def test_lheh5_event_trials_returns_zero_for_missing_or_invalid_trials():
+def test_lheh5_event_trials_returns_nan_for_missing_or_invalid_trials():
     missing_trials_event = pylhe.LHEEvent(
         eventinfo=pylhe.LHEEventInfo(0, 0, 0.0, 0.0, 0.0, 0.0),
         particles=[],
@@ -132,8 +133,8 @@ def test_lheh5_event_trials_returns_zero_for_missing_or_invalid_trials():
         attributes={"trials": "not-a-float"},
     )
 
-    assert pylhe.lheh5._event_trials(missing_trials_event) == 0.0
-    assert pylhe.lheh5._event_trials(invalid_trials_event) == 0.0
+    assert math.isnan(pylhe.lheh5._event_trials(missing_trials_event))
+    assert math.isnan(pylhe.lheh5._event_trials(invalid_trials_event))
 
 
 def test_lheh5_append_rows_returns_early_for_empty_rows(tmp_path):

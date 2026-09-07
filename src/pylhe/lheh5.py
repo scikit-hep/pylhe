@@ -210,7 +210,7 @@ def _append_rows(dataset: h5py.Dataset, rows: list[list[float]]) -> None:
     dataset[start:stop] = rows
 
 
-def _event_scale(event: pylhe.LHEEvent, *names: str, default: float = 0.0) -> float:
+def _event_scale(event: pylhe.LHEEvent, *names: str, default: float) -> float:
     for name in names:
         value = event.scales.get(name)
         if value is not None:
@@ -222,12 +222,12 @@ def _event_scale(event: pylhe.LHEEvent, *names: str, default: float = 0.0) -> fl
 def _event_trials(event: pylhe.LHEEvent) -> float:
     trials = event.attributes.get("trials")
     if trials is None:
-        return 0.0
+        return float("nan")
 
     try:
         return float(trials)
     except ValueError:
-        return 0.0
+        return float("nan")
 
 
 def get_particles(
@@ -443,8 +443,8 @@ def write(
                 start,
                 _event_trials(event),
                 event.eventinfo.scale,
-                _event_scale(event, "fscale", "muf"),
-                _event_scale(event, "rscale", "mur"),
+                _event_scale(event, "fscale", "muf", default=float("nan")),
+                _event_scale(event, "rscale", "mur", default=float("nan")),
                 event.eventinfo.aqed,
                 event.eventinfo.aqcd,
                 event.eventinfo.weight,
