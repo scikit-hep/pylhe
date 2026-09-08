@@ -444,18 +444,17 @@ def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
 
         # check weightnames are the same as in lheheader.initrwgt
         if weightnames != lheheader.initrwgt.list_weights_ids():
-            raise ValueError(
-                "Weight names in the header do not match the weight names in the events."
-            )
-    else:
-        # We do not have weight group information nor how weights were defined by default in LHEH5
-        return pylhe.LHEHeader(
-            initrwgt=pylhe.LHEInitRWGT(
-                entries=[
-                    pylhe.LHEInitRWGTWeight(id=name, name=name) for name in weightnames
-                ]
-            )
+            err = "Weight names in the header do not match the weight names in the events. "
+            raise ValueError(err)
+        return lheheader
+    # We do not have weight group information nor how weights were defined by default in LHEH5
+    return pylhe.LHEHeader(
+        initrwgt=pylhe.LHEInitRWGT(
+            entries=[
+                pylhe.LHEInitRWGTWeight(id=name, name=name) for name in weightnames
+            ]
         )
+    )
 
 
 def read_init(file: h5py.File) -> pylhe.LHEInit:

@@ -590,12 +590,11 @@ class LHEHeader:
 
     @classmethod
     def fromstring(cls, s: str) -> LHEHeader:
-        obj = ET.fromstring(s)
-        return cls._fromcontext(obj, ET.iterparse(obj, events=("start", "end")))
+        return cls._fromcontext(None, ET.iterparse(s, events=("start", "end")))
 
     @classmethod
     def _fromcontext(
-        cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
+        cls, _root: ET.Element | None, context: Iterator[tuple[str, ET.Element]]
     ) -> LHEHeader:
         initrwgtentries: list[InitRWGTEntry] = []
         extra_elements: list[ET.Element] = []
