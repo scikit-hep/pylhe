@@ -14,7 +14,9 @@ References:
 
 from __future__ import annotations
 
+import json
 import math
+import warnings
 from collections.abc import Iterable, Iterator, Sequence
 from typing import Any
 
@@ -78,11 +80,37 @@ _EVENT_COLUMNS = (
     # + further weights are appended here
 )
 
+_GENERATOR_COLUMNS = (
+    "name",
+    "version",
+    "description",
+    "extra_attributes",
+)
+_STRING_DTYPE = h5py.string_dtype(encoding="utf-8")
+
+
+def _decode_dict_json(s: str) -> Any:
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError:
+        warnings.warn(f"Failed to decode JSON attribute: {s}", stacklevel=2)
+        return {}
+
+
+def _encode_dict_json(value: dict[str, str]) -> str:
+    return json.dumps(value)
+
 
 def _decode_attr_values(values: Iterable[object]) -> list[str]:
     return [
         value.decode() if isinstance(value, bytes) else str(value) for value in values
     ]
+
+
+def _decode_string(value: object) -> str:
+    if value is None:
+        return ""
+    return value.decode() if isinstance(value, bytes) else str(value)
 
 
 def _column_names(dataset: h5py.Dataset, *, default: tuple[str, ...] = ()) -> list[str]:
@@ -158,6 +186,19 @@ def _row_float(
     raise KeyError(err)
 
 
+def _row_string(
+    row: Sequence[object],
+    columns: dict[str, int],
+    *names: str,
+    default: str = "",
+) -> str:
+    for name in names:
+        index = columns.get(name)
+        if index is not None and index < len(row):
+            return _decode_string(row[index])
+    return default
+
+
 def _encode_attr_values(values: Iterable[str]) -> list[bytes]:
     return [value.encode() for value in values]
 
@@ -210,6 +251,68 @@ def _append_rows(dataset: h5py.Dataset, rows: list[list[float]]) -> None:
     stop = start + len(rows)
     dataset.resize((stop, dataset.shape[1]))
     dataset[start:stop] = rows
+
+
+def _write_generators(lhe: pylhe.LesHouchesEvents, file: h5py.File) -> None:
+    generator_rows = [
+        [
+            generator.name,
+            generator.version,
+            generator.description,
+            _encode_dict_json(generator.extra_attributes),
+        ]
+        for generator in lhe.init.generators
+    ]
+    if generator_rows:
+        generators = file.create_dataset(
+            "generators", data=generator_rows, dtype=_STRING_DTYPE
+        )
+    else:
+        generators = file.create_dataset(
+            "generators",
+            shape=(0, len(_GENERATOR_COLUMNS)),
+            dtype=_STRING_DTYPE,
+        )
+    _set_column_attrs(generators, _GENERATOR_COLUMNS)
+
+
+def read_generators(file: h5py.File) -> list[pylhe.LHEGenerator]:
+    """Read generator metadata from an HDF5 file in LHEH5 format."""
+    if "metadata/generators" not in file:
+        return []
+    generators = file["generators"]
+    if not isinstance(generators, h5py.Dataset):
+        # Now we try the pepper init attrs
+        init = file["init"]
+        if (
+            "generatorName" in init.attrs
+            or "generatorVersion" in init.attrs
+            or "generatorDescription" in init.attrs
+            or "generatorExtraAttributes" in init.attrs
+        ):
+            return [
+                pylhe.LHEGenerator(
+                    name=_decode_string(init.attrs["generatorName"]),
+                    version=_decode_string(init.attrs["generatorVersion"]),
+                    description=_decode_string(init.attrs["generatorDescription"]),
+                    extra_attributes=_decode_dict_json(
+                        _decode_string(init.attrs.get("generatorExtraAttributes", "{}"))
+                    ),
+                )
+            ]
+        return []
+    generator_columns = _column_indices(generators, default=_GENERATOR_COLUMNS)
+    return [
+        pylhe.LHEGenerator(
+            name=_row_string(row, generator_columns, "name"),
+            version=_row_string(row, generator_columns, "version"),
+            description=_row_string(row, generator_columns, "description"),
+            extra_attributes=_decode_dict_json(
+                _row_string(row, generator_columns, "extra_attributes", default="{}")
+            ),
+        )
+        for row in generators
+    ]
 
 
 def _event_scale(event: pylhe.LHEEvent, *names: str, default: float) -> float:
@@ -377,8 +480,14 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
             )
             for row in procinfo
         ],
-        generators=[],
+        generators=read_generators(file),
     )
+
+
+def read_comment(file: h5py.File) -> str:
+    """Read the comment attribute from an HDF5 file in LHEH5 format."""
+    init = file["init"]
+    return _decode_string(init.attrs.get("description", ""))
 
 
 def write(
@@ -412,6 +521,19 @@ def write(
         dtype="f8",
     )
     _set_column_attrs(init_dataset, _INIT_COLUMNS)
+
+    _write_generators(lhe, file)
+
+    init_dataset.attrs["description"] = lhe.comment
+    if lhe.init.generators:
+        # Pepper only wants one generator https://gitlab.com/spice-mc/pepper/-/merge_requests/320/
+        gen = lhe.init.generators[0]
+        init_dataset.attrs["generatorName"] = gen.name
+        init_dataset.attrs["generatorVersion"] = gen.version
+        init_dataset.attrs["generatorDescription"] = gen.description
+        init_dataset.attrs["generatorExtraAttributes"] = _encode_dict_json(
+            gen.extra_attributes
+        )
 
     proc_rows = [
         [
