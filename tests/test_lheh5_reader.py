@@ -5,7 +5,7 @@ import pytest
 import skhep_testdata
 
 import pylhe
-from pylhe.lheh5 import get_particles, read_init, read_iter_events
+from pylhe.lheh5 import get_particles, read_header, read_init, read_iter_events
 
 
 def test_get_particles_returns_lheparticles():
@@ -120,3 +120,22 @@ def test_read_init_reads_generators_dataset(tmp_path):
     ]
     assert init.generators[0].extra_attributes == {}
     assert init.generators[1].extra_attributes == {"custom": "yes"}
+
+
+def test_read_header_synthesizes_weights_without_xml_header(tmp_path):
+    path = tmp_path / "weights-without-xml-header.hdf5"
+    event_columns = (*pylhe.lheh5._EVENT_COLUMNS, "1001", "1002")
+
+    with h5py.File(path, "w") as h5:
+        events = h5.create_dataset("events", shape=(0, len(event_columns)), dtype="f8")
+        events.attrs["properties"] = [name.encode() for name in event_columns]
+
+    with h5py.File(path, "r") as h5:
+        header = read_header(h5)
+
+    assert header is not None
+    assert header.initrwgt.list_weights_ids() == ["1001", "1002"]
+    assert [weight.name for weight in header.initrwgt.iter_weights()] == [
+        "1001",
+        "1002",
+    ]

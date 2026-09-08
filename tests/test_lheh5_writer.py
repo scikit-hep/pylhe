@@ -259,6 +259,73 @@ def test_lheh5_write_roundtrip(tmp_path):
     assert list(loaded_lazy.events) == list(lhe.events)
 
 
+def test_lheh5_write_preserves_comment_and_generator_attrs(tmp_path):
+    lhe = _make_lhe()
+    lhe.comment = "run comment"
+    lhe.init.generators = [
+        pylhe.LHEGenerator(
+            name="Sherpa",
+            version="3.0.0",
+            description="generator description",
+            extra_attributes={"custom": "yes"},
+        )
+    ]
+    path = tmp_path / "metadata.hdf5"
+
+    lhe.tofile(path)
+
+    with h5py.File(path, "r") as h5:
+        assert h5["init"].attrs["description"] == "run comment"
+        assert h5["init"].attrs["generatorName"] == "Sherpa"
+        assert h5["init"].attrs["generatorVersion"] == "3.0.0"
+        assert h5["init"].attrs["generatorDescription"] == "generator description"
+        assert h5["init"].attrs["generatorExtraAttributes"] == '{"custom": "yes"}'
+
+    loaded = pylhe.LesHouchesEvents.fromfile(path, generator=False)
+
+    assert loaded.comment == "run comment"
+    assert loaded.init.generators == lhe.init.generators
+
+
+def test_lheh5_write_generators_creates_generators_dataset(tmp_path):
+    lhe = _make_lhe()
+    lhe.init.generators = [
+        pylhe.LHEGenerator(
+            name="Sherpa",
+            version="3.0.0",
+            description="first generator",
+            extra_attributes={"custom": "yes"},
+        )
+    ]
+    path = tmp_path / "generators.hdf5"
+
+    with h5py.File(path, "w") as h5:
+        pylhe.lheh5._write_generators(lhe, h5)
+
+    with h5py.File(path, "r") as h5:
+        assert _column_names(h5["generators"]) == (
+            "name",
+            "version",
+            "description",
+            "extraAttributes",
+        )
+        assert h5["generators"].asstr()[()].tolist() == [
+            ["Sherpa", "3.0.0", "first generator", '{"custom": "yes"}']
+        ]
+
+
+def test_lheh5_write_generators_creates_empty_generators_dataset(tmp_path):
+    lhe = _make_lhe()
+    path = tmp_path / "empty-generators.hdf5"
+
+    with h5py.File(path, "w") as h5:
+        pylhe.lheh5._write_generators(lhe, h5)
+
+    with h5py.File(path, "r") as h5:
+        assert h5["generators"].shape == (0, len(pylhe.lheh5._GENERATOR_COLUMNS))
+        assert _column_names(h5["generators"]) == pylhe.lheh5._GENERATOR_COLUMNS
+
+
 def test_lheh5_write_roundtrip_preserves_declared_weights(tmp_path):
     lhe = _make_weighted_lhe()
     source_events = list(lhe.events)
