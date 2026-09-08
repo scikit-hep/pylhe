@@ -1142,6 +1142,7 @@ class LesHouchesEvents:
 
         if isinstance(fileobject, h5py.File):
             init = lheh5.read_init(fileobject)
+            comment = lheh5.read_comment(fileobject)
 
             def _hdf5_generator() -> Iterator[LHEEvent]:
                 with fileobject as h5:
@@ -1150,6 +1151,7 @@ class LesHouchesEvents:
             events = _hdf5_generator()
             return LesHouchesEvents(
                 init=init,
+                comment=comment,
                 events=events if generator else list(events),
                 version=None,  # We leave the version as None since HDF5 versioning is unrelated to LHE XML versioning.
             )
