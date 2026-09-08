@@ -235,7 +235,7 @@ def test_lheh5_write_roundtrip(tmp_path):
 
     with h5py.File(path, "r") as h5:
         assert set(h5.keys()) == {"events", "init", "particles", "procInfo", "version"}
-        assert tuple(h5["version"][()]) == (2, 0, 0)
+        assert tuple(h5["version"][()]) == pylhe.lheh5._LHEH5_VERSION
         assert h5["events"].compression is None
         assert h5["particles"].compression is None
         assert tuple(h5["events"].attrs["properties"]) == (
@@ -365,7 +365,7 @@ def test_lheh5_hpcgen_roundtrip(tmp_path):
     _assert_hdf5_core_equal(source_path, roundtrip_path, compare_version=False)
 
     with h5py.File(roundtrip_path, "r") as h5:
-        assert tuple(h5["version"][()]) == (2, 0, 0)
+        assert tuple(h5["version"][()]) == pylhe.lheh5._LHEH5_VERSION
 
 
 def test_lheh5_write_streams_generator_across_multiple_flushes(tmp_path):

@@ -299,20 +299,19 @@ def read_generators(file: h5py.File) -> list[pylhe.LHEGenerator]:
             ]
     # Now we try the pepper init attrs
     init = file["init"]
-    if (
-        "generatorName" in init.attrs
-        or "generatorVersion" in init.attrs
-        or "generatorDescription" in init.attrs
-        or "generatorExtraAttributes" in init.attrs
-    ):
+    name = _decode_string(init.attrs.get("generatorName", ""))
+    version = _decode_string(init.attrs.get("generatorVersion", ""))
+    description = _decode_string(init.attrs.get("generatorDescription", ""))
+    extra_attributes = _decode_dict_json(
+        _decode_string(init.attrs.get("generatorExtraAttributes", "{}"))
+    )
+    if name or version or description or extra_attributes:
         return [
             pylhe.LHEGenerator(
-                name=_decode_string(init.attrs["generatorName"]),
-                version=_decode_string(init.attrs["generatorVersion"]),
-                description=_decode_string(init.attrs["generatorDescription"]),
-                extra_attributes=_decode_dict_json(
-                    _decode_string(init.attrs.get("generatorExtraAttributes", "{}"))
-                ),
+                name=name,
+                version=version,
+                description=description,
+                extra_attributes=extra_attributes,
             )
         ]
     return []
@@ -437,9 +436,9 @@ def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
     # Construct LHEInitRWGT using the weight names/ids
     weightnames = _weight_columns(event_columns)
 
-    header = file["xml/header"]
+    header = file.get("xml/header")
 
-    if header:
+    if isinstance(header, h5py.Dataset):
         lheheader = pylhe.LHEHeader.fromstring(header.asstr()[()])
 
         # check weightnames are the same as in lheheader.initrwgt
@@ -447,6 +446,9 @@ def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
             err = "Weight names in the header do not match the weight names in the events. "
             raise ValueError(err)
         return lheheader
+    if not weightnames:
+        return None
+
     # We do not have weight group information nor how weights were defined by default in LHEH5
     return pylhe.LHEHeader(
         initrwgt=pylhe.LHEInitRWGT(
@@ -493,10 +495,10 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
     )
 
 
-def read_comment(file: h5py.File) -> str:
+def read_comment(file: h5py.File) -> str | None:
     """Read the comment attribute from an HDF5 file in LHEH5 format."""
     init = file["init"]
-    return _decode_string(init.attrs.get("description", ""))
+    return _decode_string(init.attrs.get("description", "")) or None
 
 
 def write(
@@ -531,9 +533,10 @@ def write(
     )
     _set_column_attrs(init_dataset, _INIT_COLUMNS)
 
-    _write_generators(lhe, file)
-
-    init_dataset.attrs["description"] = lhe.comment
+    init_dataset.attrs["description"] = lhe.comment or ""
+    init_dataset.attrs["generatorName"] = ""
+    init_dataset.attrs["generatorVersion"] = ""
+    init_dataset.attrs["phasespaceGenerator"] = ""
     if lhe.init.generators:
         # Pepper only wants one generator https://gitlab.com/spice-mc/pepper/-/merge_requests/320/
         gen = lhe.init.generators[0]

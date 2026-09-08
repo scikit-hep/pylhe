@@ -590,7 +590,10 @@ class LHEHeader:
 
     @classmethod
     def fromstring(cls, s: str) -> LHEHeader:
-        return cls._fromcontext(None, ET.iterparse(s, events=("start", "end")))
+        """Create an LHEHeader from a string in LHE XML format."""
+        return cls._fromcontext(
+            None, ET.iterparse(io.StringIO(s), events=("start", "end"))
+        )
 
     @classmethod
     def _fromcontext(
