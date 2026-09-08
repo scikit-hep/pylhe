@@ -24,7 +24,7 @@ import h5py  # type: ignore[import-untyped]
 
 import pylhe
 
-_LHEH5_VERSION = (2, 0, 0)
+_LHEH5_VERSION = (2, 6, 0)
 
 # Below column names are used for reading and writing datasets in LHEH5 format v2.
 
@@ -66,6 +66,13 @@ _PROCINFO_COLUMNS = (
     "unitWeight",
 )
 
+_GENERATOR_COLUMNS = (
+    "name",
+    "version",
+    "description",
+    "extraAttributes",
+)
+
 _EVENT_COLUMNS = (
     "pid",
     "nparticles",
@@ -80,12 +87,7 @@ _EVENT_COLUMNS = (
     # + further weights are appended here
 )
 
-_GENERATOR_COLUMNS = (
-    "name",
-    "version",
-    "description",
-    "extra_attributes",
-)
+
 _STRING_DTYPE = h5py.string_dtype(encoding="utf-8")
 
 
@@ -278,41 +280,42 @@ def _write_generators(lhe: pylhe.LesHouchesEvents, file: h5py.File) -> None:
 
 def read_generators(file: h5py.File) -> list[pylhe.LHEGenerator]:
     """Read generator metadata from an HDF5 file in LHEH5 format."""
-    if "metadata/generators" not in file:
-        return []
-    generators = file["generators"]
-    if not isinstance(generators, h5py.Dataset):
-        # Now we try the pepper init attrs
-        init = file["init"]
-        if (
-            "generatorName" in init.attrs
-            or "generatorVersion" in init.attrs
-            or "generatorDescription" in init.attrs
-            or "generatorExtraAttributes" in init.attrs
-        ):
+    if "generators" in file:
+        generators = file["generators"]
+        if isinstance(generators, h5py.Dataset):
+            generator_columns = _column_indices(generators, default=_GENERATOR_COLUMNS)
             return [
                 pylhe.LHEGenerator(
-                    name=_decode_string(init.attrs["generatorName"]),
-                    version=_decode_string(init.attrs["generatorVersion"]),
-                    description=_decode_string(init.attrs["generatorDescription"]),
+                    name=_row_string(row, generator_columns, "name"),
+                    version=_row_string(row, generator_columns, "version"),
+                    description=_row_string(row, generator_columns, "description"),
                     extra_attributes=_decode_dict_json(
-                        _decode_string(init.attrs.get("generatorExtraAttributes", "{}"))
+                        _row_string(
+                            row, generator_columns, "extraAttributes", default="{}"
+                        )
                     ),
                 )
+                for row in generators
             ]
-        return []
-    generator_columns = _column_indices(generators, default=_GENERATOR_COLUMNS)
-    return [
-        pylhe.LHEGenerator(
-            name=_row_string(row, generator_columns, "name"),
-            version=_row_string(row, generator_columns, "version"),
-            description=_row_string(row, generator_columns, "description"),
-            extra_attributes=_decode_dict_json(
-                _row_string(row, generator_columns, "extra_attributes", default="{}")
-            ),
-        )
-        for row in generators
-    ]
+    # Now we try the pepper init attrs
+    init = file["init"]
+    if (
+        "generatorName" in init.attrs
+        or "generatorVersion" in init.attrs
+        or "generatorDescription" in init.attrs
+        or "generatorExtraAttributes" in init.attrs
+    ):
+        return [
+            pylhe.LHEGenerator(
+                name=_decode_string(init.attrs["generatorName"]),
+                version=_decode_string(init.attrs["generatorVersion"]),
+                description=_decode_string(init.attrs["generatorDescription"]),
+                extra_attributes=_decode_dict_json(
+                    _decode_string(init.attrs.get("generatorExtraAttributes", "{}"))
+                ),
+            )
+        ]
+    return []
 
 
 def _event_scale(event: pylhe.LHEEvent, *names: str, default: float) -> float:
@@ -434,18 +437,25 @@ def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
     # Construct LHEInitRWGT using the weight names/ids
     weightnames = _weight_columns(event_columns)
 
-    if not weightnames:
-        return None
+    header = file["xml/header"]
 
-    # We are not tracking weight groups for now.
-    # Also we lose the name definition of the weight as of now...
-    return pylhe.LHEHeader(
-        initrwgt=pylhe.LHEInitRWGT(
-            entries=[
-                pylhe.LHEInitRWGTWeight(id=name, name=name) for name in weightnames
-            ]
+    if header:
+        lheheader = pylhe.LHEHeader.fromstring(header.asstr()[()])
+
+        # check weightnames are the same as in lheheader.initrwgt
+        if weightnames != lheheader.initrwgt.list_weights_ids():
+            raise ValueError(
+                "Weight names in the header do not match the weight names in the events."
+            )
+    else:
+        # We do not have weight group information nor how weights were defined by default in LHEH5
+        return pylhe.LHEHeader(
+            initrwgt=pylhe.LHEInitRWGT(
+                entries=[
+                    pylhe.LHEInitRWGTWeight(id=name, name=name) for name in weightnames
+                ]
+            )
         )
-    )
 
 
 def read_init(file: h5py.File) -> pylhe.LHEInit:
@@ -557,6 +567,14 @@ def write(
     _event_columns = list(_EVENT_COLUMNS)
     weightnames = []
     if lhe.header is not None:
+        xml = file.create_group("xml")
+        # write header as a string dataset
+        header_dataset = xml.create_dataset(
+            "header",
+            data=lhe.header.tolhe(lheformat=pylhe.DEFAULT_FORMAT).encode("utf-8"),
+            dtype=_STRING_DTYPE,
+        )
+        _set_column_attrs(header_dataset, ("header",))
         weightnames = lhe.header.initrwgt.list_weights_ids()
     if weightnames:
         # if any of the weightnames is also in _EVENT_COLUMNS

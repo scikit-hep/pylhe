@@ -589,6 +589,11 @@ class LHEHeader:
         return ET.tostring(root, encoding="unicode", method="xml")
 
     @classmethod
+    def fromstring(cls, s: str) -> LHEHeader:
+        obj = ET.fromstring(s)
+        return cls._fromcontext(obj, ET.iterparse(obj, events=("start", "end")))
+
+    @classmethod
     def _fromcontext(
         cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
     ) -> LHEHeader:
