@@ -498,7 +498,10 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
 def read_comment(file: h5py.File) -> str | None:
     """Read the comment attribute from an HDF5 file in LHEH5 format."""
     init = file["init"]
-    return _decode_string(init.attrs.get("description", "")) or None
+    comment = init.attrs.get("description", None)
+    if comment is None:
+        return None
+    return _decode_string(comment)
 
 
 def write(
@@ -533,10 +536,8 @@ def write(
     )
     _set_column_attrs(init_dataset, _INIT_COLUMNS)
 
-    init_dataset.attrs["description"] = lhe.comment or ""
-    init_dataset.attrs["generatorName"] = ""
-    init_dataset.attrs["generatorVersion"] = ""
-    init_dataset.attrs["phasespaceGenerator"] = ""
+    if lhe.comment is not None:
+        init_dataset.attrs["description"] = lhe.comment
     if lhe.init.generators:
         # Pepper only wants one generator https://gitlab.com/spice-mc/pepper/-/merge_requests/320/
         gen = lhe.init.generators[0]
