@@ -515,6 +515,10 @@ class LHEInitRWGT:
             else:
                 yield from entry.weights
 
+    def list_weights_ids(self) -> list[str]:
+        """Return a list of all weight IDs in the <initrwgt> block, including those inside weight groups."""
+        return [w.id for w in self.iter_weights()]
+
     def weights_by_id(self) -> dict[str, LHEInitRWGTWeight]:
         """Return a dictionary mapping weight IDs to LHEInitRWGTWeight instances for all weights in the <initrwgt> block."""
         return {w.id: w for w in self.iter_weights()}
@@ -585,8 +589,15 @@ class LHEHeader:
         return ET.tostring(root, encoding="unicode", method="xml")
 
     @classmethod
+    def fromstring(cls, s: str) -> LHEHeader:
+        """Create an `LHEHeader` from a string in LHE XML format."""
+        return cls._fromcontext(
+            None, ET.iterparse(io.StringIO(s), events=("start", "end"))
+        )
+
+    @classmethod
     def _fromcontext(
-        cls, _root: ET.Element, context: Iterator[tuple[str, ET.Element]]
+        cls, _root: ET.Element | None, context: Iterator[tuple[str, ET.Element]]
     ) -> LHEHeader:
         initrwgtentries: list[InitRWGTEntry] = []
         extra_elements: list[ET.Element] = []
@@ -1142,6 +1153,8 @@ class LesHouchesEvents:
 
         if isinstance(fileobject, h5py.File):
             init = lheh5.read_init(fileobject)
+            header = lheh5.read_header(fileobject)
+            comment = lheh5.read_comment(fileobject)
 
             def _hdf5_generator() -> Iterator[LHEEvent]:
                 with fileobject as h5:
@@ -1150,7 +1163,9 @@ class LesHouchesEvents:
             events = _hdf5_generator()
             return LesHouchesEvents(
                 init=init,
+                comment=comment,
                 events=events if generator else list(events),
+                header=header,
                 version=None,  # We leave the version as None since HDF5 versioning is unrelated to LHE XML versioning.
             )
 

@@ -14,14 +14,17 @@ References:
 
 from __future__ import annotations
 
+import json
 import math
+import warnings
 from collections.abc import Iterable, Iterator, Sequence
+from typing import Any
 
 import h5py  # type: ignore[import-untyped]
 
 import pylhe
 
-_LHEH5_VERSION = (2, 0, 0)
+_LHEH5_VERSION = (2, 6, 0)
 
 # Below column names are used for reading and writing datasets in LHEH5 format v2.
 
@@ -63,6 +66,13 @@ _PROCINFO_COLUMNS = (
     "unitWeight",
 )
 
+_GENERATOR_COLUMNS = (
+    "name",
+    "version",
+    "description",
+    "extraAttributes",
+)
+
 _EVENT_COLUMNS = (
     "pid",
     "nparticles",
@@ -74,13 +84,44 @@ _EVENT_COLUMNS = (
     "aqed",
     "aqcd",
     "NOMINAL",
+    # + further weights are appended here
 )
+
+
+_STRING_DTYPE = h5py.string_dtype(encoding="utf-8")
+
+
+def _decode_dict_json(s: str) -> dict[str, str]:
+    try:
+        value = json.loads(s)
+    except json.JSONDecodeError:
+        warnings.warn(f"Failed to decode JSON attribute: {s}", stacklevel=2)
+        return {}
+
+    if not isinstance(value, dict):
+        warnings.warn(
+            f"Expected JSON object for attribute, got {type(value).__name__}: {s}",
+            stacklevel=2,
+        )
+        return {}
+
+    return {str(k): str(v) for k, v in value.items()}
+
+
+def _encode_dict_json(value: dict[str, str]) -> str:
+    return json.dumps(value)
 
 
 def _decode_attr_values(values: Iterable[object]) -> list[str]:
     return [
         value.decode() if isinstance(value, bytes) else str(value) for value in values
     ]
+
+
+def _decode_string(value: object) -> str:
+    if value is None:
+        return ""
+    return value.decode() if isinstance(value, bytes) else str(value)
 
 
 def _column_names(dataset: h5py.Dataset, *, default: tuple[str, ...] = ()) -> list[str]:
@@ -156,6 +197,19 @@ def _row_float(
     raise KeyError(err)
 
 
+def _row_string(
+    row: Sequence[object],
+    columns: dict[str, int],
+    *names: str,
+    default: str = "",
+) -> str:
+    for name in names:
+        index = columns.get(name)
+        if index is not None and index < len(row):
+            return _decode_string(row[index])
+    return default
+
+
 def _encode_attr_values(values: Iterable[str]) -> list[bytes]:
     return [value.encode() for value in values]
 
@@ -208,6 +262,68 @@ def _append_rows(dataset: h5py.Dataset, rows: list[list[float]]) -> None:
     stop = start + len(rows)
     dataset.resize((stop, dataset.shape[1]))
     dataset[start:stop] = rows
+
+
+def _write_generators(lhe: pylhe.LesHouchesEvents, file: h5py.File) -> None:
+    generator_rows = [
+        [
+            generator.name,
+            generator.version,
+            generator.description,
+            _encode_dict_json(generator.extra_attributes),
+        ]
+        for generator in lhe.init.generators
+    ]
+    if generator_rows:
+        generators = file.create_dataset(
+            "generators", data=generator_rows, dtype=_STRING_DTYPE
+        )
+    else:
+        generators = file.create_dataset(
+            "generators",
+            shape=(0, len(_GENERATOR_COLUMNS)),
+            dtype=_STRING_DTYPE,
+        )
+    _set_column_attrs(generators, _GENERATOR_COLUMNS)
+
+
+def read_generators(file: h5py.File) -> list[pylhe.LHEGenerator]:
+    """Read generator metadata from an HDF5 file in to LHEH5 format."""
+    if "generators" in file:
+        generators = file["generators"]
+        if isinstance(generators, h5py.Dataset):
+            generator_columns = _column_indices(generators, default=_GENERATOR_COLUMNS)
+            return [
+                pylhe.LHEGenerator(
+                    name=_row_string(row, generator_columns, "name"),
+                    version=_row_string(row, generator_columns, "version"),
+                    description=_row_string(row, generator_columns, "description"),
+                    extra_attributes=_decode_dict_json(
+                        _row_string(
+                            row, generator_columns, "extraAttributes", default="{}"
+                        )
+                    ),
+                )
+                for row in generators
+            ]
+    # Now we try the pepper mc init attrs (see https://gitlab.com/spice-mc/pepper/-/merge_requests/320)
+    init = file["init"]
+    name = _decode_string(init.attrs.get("generatorName", ""))
+    version = _decode_string(init.attrs.get("generatorVersion", ""))
+    description = _decode_string(init.attrs.get("generatorDescription", ""))
+    extra_attributes = _decode_dict_json(
+        _decode_string(init.attrs.get("generatorExtraAttributes", "{}"))
+    )
+    if name or version or description or extra_attributes:
+        return [
+            pylhe.LHEGenerator(
+                name=name,
+                version=version,
+                description=description,
+                extra_attributes=extra_attributes,
+            )
+        ]
+    return []
 
 
 def _event_scale(event: pylhe.LHEEvent, *names: str, default: float) -> float:
@@ -302,9 +418,54 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
                 aqcd=_row_float(event_row, event_columns, "aqcd", default=float("nan")),
             ),
             particles=get_particles(particles, start, nparticles),
+            weights=_get_weights(event_row, event_columns),
             scales=scales,
             attributes=attributes,
         )
+
+
+def _get_weights(event_row: Any, event_columns: dict[str, int]) -> dict[str, float]:
+    """Get the weights from an event row in an HDF5 file in to LHEH5 format."""
+    weightnames = _weight_columns(event_columns)
+    return {
+        name: _row_float(event_row, event_columns, name, default=float("nan"))
+        for name in weightnames
+    }
+
+
+def _weight_columns(event_columns: dict[str, int]) -> list[str]:
+    standard_columns = set(_EVENT_COLUMNS)
+    return [name for name in event_columns if name not in standard_columns]
+
+
+def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
+    """Read the header from an HDF5 file in to LHEH5 format."""
+    events = file["events"]
+    event_columns = _column_indices(events, default=_EVENT_COLUMNS)
+    # Construct LHEInitRWGT using the weight names/ids
+    weightnames = _weight_columns(event_columns)
+
+    header = file.get("xml/header")
+
+    if isinstance(header, h5py.Dataset):
+        lheheader = pylhe.LHEHeader.fromstring(header.asstr()[()])
+
+        header_weight_ids = lheheader.initrwgt.list_weights_ids()
+        if set(weightnames) != set(header_weight_ids):
+            err = "Weight names in the header do not match the weight names in the events."
+            raise ValueError(err)
+        return lheheader
+    if not weightnames:
+        return None
+
+    # We do not have weight group information nor how weights were defined by default in LHEH5 <=2.6.0
+    return pylhe.LHEHeader(
+        initrwgt=pylhe.LHEInitRWGT(
+            entries=[
+                pylhe.LHEInitRWGTWeight(id=name, name=name) for name in weightnames
+            ]
+        )
+    )
 
 
 def read_init(file: h5py.File) -> pylhe.LHEInit:
@@ -339,8 +500,17 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
             )
             for row in procinfo
         ],
-        generators=[],
+        generators=read_generators(file),
     )
+
+
+def read_comment(file: h5py.File) -> str | None:
+    """Read the comment attribute from an HDF5 file in to LHEH5 format."""
+    init = file["init"]
+    comment = init.attrs.get("description", None)
+    if comment is None:
+        return None
+    return _decode_string(comment)
 
 
 def write(
@@ -375,6 +545,19 @@ def write(
     )
     _set_column_attrs(init_dataset, _INIT_COLUMNS)
 
+    if lhe.comment is not None:
+        init_dataset.attrs["description"] = lhe.comment
+    if lhe.init.generators:
+        # Pepper only wants one generator https://gitlab.com/spice-mc/pepper/-/merge_requests/320/
+        gen = lhe.init.generators[0]
+        init_dataset.attrs["generatorName"] = gen.name
+        init_dataset.attrs["generatorVersion"] = gen.version
+        init_dataset.attrs["generatorDescription"] = gen.description
+        init_dataset.attrs["generatorExtraAttributes"] = _encode_dict_json(
+            gen.extra_attributes
+        )
+        _write_generators(lhe, file)
+
     proc_rows = [
         [
             proc.procId,
@@ -394,15 +577,38 @@ def write(
     )
     _set_column_attrs(proc_dataset, _PROCINFO_COLUMNS)
 
+    _event_columns = list(_EVENT_COLUMNS)
+    weightnames = []
+    if lhe.header is not None:
+        xml = file.create_group("xml")
+        # write header as a string dataset
+        header_dataset = xml.create_dataset(
+            "header",
+            data=lhe.header.tolhe(lheformat=pylhe.DEFAULT_FORMAT),
+            dtype=_STRING_DTYPE,
+        )
+        _set_column_attrs(header_dataset, ("header",))
+        weightnames = lhe.header.initrwgt.list_weights_ids()
+    if weightnames:
+        # if any of the weightnames is also in _EVENT_COLUMNS
+        for name in weightnames:
+            if name in _event_columns:
+                err = (
+                    f"Weight name '{name}' is already present in default event columns."
+                )
+                raise ValueError(err)
+        _event_columns += weightnames
+    event_columns = tuple(_event_columns)
+
     events_write_args = _dataset_write_args(
         lheformat,
         chunk_rows=lheformat.event_chunk_rows,
-        ncolumns=len(_EVENT_COLUMNS),
+        ncolumns=len(event_columns),
     )
     events_dataset = _create_row_dataset(
         file,
         "events",
-        _EVENT_COLUMNS,
+        event_columns,
         write_args=events_write_args,
     )
     particles_write_args = _dataset_write_args(
@@ -448,6 +654,7 @@ def write(
                 event.eventinfo.aqed,
                 event.eventinfo.aqcd,
                 event.eventinfo.weight,
+                *[event.weights[wid] for wid in weightnames],
             ]
         )
 
