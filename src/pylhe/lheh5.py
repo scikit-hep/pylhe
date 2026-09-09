@@ -279,7 +279,7 @@ def _write_generators(lhe: pylhe.LesHouchesEvents, file: h5py.File) -> None:
 
 
 def read_generators(file: h5py.File) -> list[pylhe.LHEGenerator]:
-    """Read generator metadata from an HDF5 file in LHEH5 format."""
+    """Read generator metadata from an HDF5 file in to LHEH5 format."""
     if "generators" in file:
         generators = file["generators"]
         if isinstance(generators, h5py.Dataset):
@@ -416,7 +416,7 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
 
 
 def _get_weights(event_row: Any, event_columns: dict[str, int]) -> dict[str, float]:
-    """Get the weights from an event row in an HDF5 file in LHEH5 format."""
+    """Get the weights from an event row in an HDF5 file in to LHEH5 format."""
     weightnames = _weight_columns(event_columns)
     return {
         name: _row_float(event_row, event_columns, name, default=float("nan"))
@@ -430,7 +430,7 @@ def _weight_columns(event_columns: dict[str, int]) -> list[str]:
 
 
 def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
-    """Read the header from an HDF5 file in LHEH5 format."""
+    """Read the header from an HDF5 file in to LHEH5 format."""
     events = file["events"]
     event_columns = _column_indices(events, default=_EVENT_COLUMNS)
     # Construct LHEInitRWGT using the weight names/ids
@@ -496,7 +496,7 @@ def read_init(file: h5py.File) -> pylhe.LHEInit:
 
 
 def read_comment(file: h5py.File) -> str | None:
-    """Read the comment attribute from an HDF5 file in LHEH5 format."""
+    """Read the comment attribute from an HDF5 file in to LHEH5 format."""
     init = file["init"]
     comment = init.attrs.get("description", None)
     if comment is None:
