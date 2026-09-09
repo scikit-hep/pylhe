@@ -99,7 +99,10 @@ def _decode_dict_json(s: str) -> dict[str, str]:
         return {}
 
     if not isinstance(value, dict):
-        warnings.warn(f"Expected JSON object for attribute, got {type(value).__name__}: {s}", stacklevel=2)
+        warnings.warn(
+            f"Expected JSON object for attribute, got {type(value).__name__}: {s}",
+            stacklevel=2,
+        )
         return {}
 
     return {str(k): str(v) for k, v in value.items()}
@@ -550,7 +553,9 @@ def write(
         init_dataset.attrs["generatorName"] = gen.name
         init_dataset.attrs["generatorVersion"] = gen.version
         init_dataset.attrs["generatorDescription"] = gen.description
-        init_dataset.attrs["generatorExtraAttributes"] = _encode_dict_json(gen.extra_attributes)
+        init_dataset.attrs["generatorExtraAttributes"] = _encode_dict_json(
+            gen.extra_attributes
+        )
         _write_generators(lhe, file)
 
     proc_rows = [
