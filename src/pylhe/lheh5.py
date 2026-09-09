@@ -297,7 +297,7 @@ def read_generators(file: h5py.File) -> list[pylhe.LHEGenerator]:
                 )
                 for row in generators
             ]
-    # Now we try the pepper init attrs
+    # Now we try the pepper mc init attrs (see https://gitlab.com/spice-mc/pepper/-/merge_requests/320)
     init = file["init"]
     name = _decode_string(init.attrs.get("generatorName", ""))
     version = _decode_string(init.attrs.get("generatorVersion", ""))
@@ -449,7 +449,7 @@ def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
     if not weightnames:
         return None
 
-    # We do not have weight group information nor how weights were defined by default in LHEH5
+    # We do not have weight group information nor how weights were defined by default in LHEH5 <=2.6.0
     return pylhe.LHEHeader(
         initrwgt=pylhe.LHEInitRWGT(
             entries=[
