@@ -37,7 +37,7 @@ bibliography: paper.bib
 # Summary
 
 `pylhe` is a lightweight Python library that provides a simple and efficient interface for reading and writing Les Houches Event (LHE) files, a standard format used by Monte Carlo event generators in high-energy physics [@Alwall:2006yp].
-The library enables memory-efficient streaming of events from `.lhe` and compressed `.lhe.gz` files through a pythonic iterator interface, allowing researchers to process arbitrarily large event files without loading all events into memory simultaneously.
+The library, part of the Scikit-HEP project [@Scikit-HEP_site;@Rodrigues:2020syo], enables memory-efficient streaming of events from `.lhe` and compressed `.lhe.gz` files through a pythonic iterator interface, allowing researchers to process arbitrarily large event files without loading all events into memory simultaneously.
 
 Historically, the first standards for event representation in high-energy physics were the HEPEVT and HEPRUP common blocks [@Boos:2001cv], which provided a Fortran-based structure for storing event information.
 As the complexity of Monte Carlo event generators increased, the need for a more flexible and extensible format led to the development of the LHE file format.
