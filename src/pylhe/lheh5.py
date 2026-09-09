@@ -91,12 +91,18 @@ _EVENT_COLUMNS = (
 _STRING_DTYPE = h5py.string_dtype(encoding="utf-8")
 
 
-def _decode_dict_json(s: str) -> Any:
+def _decode_dict_json(s: str) -> dict[str, str]:
     try:
-        return json.loads(s)
+        value = json.loads(s)
     except json.JSONDecodeError:
         warnings.warn(f"Failed to decode JSON attribute: {s}", stacklevel=2)
         return {}
+
+    if not isinstance(value, dict):
+        warnings.warn(f"Expected JSON object for attribute, got {type(value).__name__}: {s}", stacklevel=2)
+        return {}
+
+    return {str(k): str(v) for k, v in value.items()}
 
 
 def _encode_dict_json(value: dict[str, str]) -> str:
@@ -441,9 +447,9 @@ def read_header(file: h5py.File) -> pylhe.LHEHeader | None:
     if isinstance(header, h5py.Dataset):
         lheheader = pylhe.LHEHeader.fromstring(header.asstr()[()])
 
-        # check weightnames are the same as in lheheader.initrwgt
-        if weightnames != lheheader.initrwgt.list_weights_ids():
-            err = "Weight names in the header do not match the weight names in the events. "
+        header_weight_ids = lheheader.initrwgt.list_weights_ids()
+        if set(weightnames) != set(header_weight_ids):
+            err = "Weight names in the header do not match the weight names in the events."
             raise ValueError(err)
         return lheheader
     if not weightnames:
@@ -544,9 +550,8 @@ def write(
         init_dataset.attrs["generatorName"] = gen.name
         init_dataset.attrs["generatorVersion"] = gen.version
         init_dataset.attrs["generatorDescription"] = gen.description
-        init_dataset.attrs["generatorExtraAttributes"] = _encode_dict_json(
-            gen.extra_attributes
-        )
+        init_dataset.attrs["generatorExtraAttributes"] = _encode_dict_json(gen.extra_attributes)
+        _write_generators(lhe, file)
 
     proc_rows = [
         [
@@ -574,7 +579,7 @@ def write(
         # write header as a string dataset
         header_dataset = xml.create_dataset(
             "header",
-            data=lhe.header.tolhe(lheformat=pylhe.DEFAULT_FORMAT).encode("utf-8"),
+            data=lhe.header.tolhe(lheformat=pylhe.DEFAULT_FORMAT),
             dtype=_STRING_DTYPE,
         )
         _set_column_attrs(header_dataset, ("header",))
