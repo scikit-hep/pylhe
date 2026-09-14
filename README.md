@@ -41,6 +41,7 @@ Small and thin Python interface to read [Les Houches Event (LHE)](https://inspir
 | Generator                                      | Tested Versions       |
 |------------------------------------------------|-----------------------|
 | [Sherpa](https://sherpa-team.gitlab.io/)       | 2.3.0                 |
+| [Pepper](https://spice-mc.gitlab.io/pepper/)   | 1.13.1                |
 
 
 

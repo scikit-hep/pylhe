@@ -7,6 +7,23 @@ import skhep_testdata
 import pylhe
 from pylhe.lheh5 import get_particles, read_header, read_init, read_iter_events
 
+LHEH5_TEST_FILES = (
+    "pylhe-testfile-hpcgen.hdf5",
+    "pylhe-testfile-sherpa.hdf5",
+    "pylhe-testfile-pepper.hdf5",
+)
+
+
+@pytest.fixture(params=LHEH5_TEST_FILES)
+def lheh5_test_file(request):
+    return skhep_testdata.data_path(request.param)
+
+
+def test_iterate_read_file(lheh5_test_file):
+    assert pylhe.LHEFile.count_events(lheh5_test_file) == sum(
+        1 for _ in pylhe.LHEFile.fromfile(lheh5_test_file).events
+    )
+
 
 def test_get_particles_returns_lheparticles():
     with h5py.File(skhep_testdata.data_path("pylhe-testfile-hpcgen.hdf5"), "r") as h5:
