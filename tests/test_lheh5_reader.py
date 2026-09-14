@@ -122,6 +122,38 @@ def test_read_init_reads_generators_dataset(tmp_path):
     assert init.generators[1].extra_attributes == {"custom": "yes"}
 
 
+def test_read_init_reads_pepper_generator_attrs_without_generators_dataset(tmp_path):
+    path = tmp_path / "pepper-generator-attrs.hdf5"
+
+    with h5py.File(path, "w") as h5:
+        init = h5.create_dataset(
+            "init",
+            data=[2212, 2212, 7000.0, 7000.0, 0, 0, 13000, 13000, 1, 1],
+            dtype="f8",
+        )
+        init.attrs["generatorName"] = "Sherpa"
+        init.attrs["generatorVersion"] = "3.0.0"
+        init.attrs["generatorDescription"] = "Pepper metadata"
+        init.attrs["generatorExtraAttributes"] = '{"custom": "yes"}'
+        h5.create_dataset(
+            "procInfo",
+            data=[[1, 2, 0, 1.5, 0.1, 1.0]],
+            dtype="f8",
+        )
+
+    with h5py.File(path, "r") as h5:
+        init = read_init(h5)
+
+    assert init.generators == [
+        pylhe.LHEGenerator(
+            name="Sherpa",
+            version="3.0.0",
+            description="Pepper metadata",
+            extra_attributes={"custom": "yes"},
+        )
+    ]
+
+
 def test_read_header_synthesizes_weights_without_xml_header(tmp_path):
     path = tmp_path / "weights-without-xml-header.hdf5"
     event_columns = (*pylhe.lheh5._EVENT_COLUMNS, "1001", "1002")
