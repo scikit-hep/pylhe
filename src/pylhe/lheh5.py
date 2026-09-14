@@ -24,8 +24,6 @@ import h5py  # type: ignore[import-untyped]
 
 import pylhe
 
-_LHEH5_VERSION = (2, 6, 0)
-
 # Below column names are used for reading and writing datasets in LHEH5 format v2.
 
 _PARTICLE_COLUMNS = (
@@ -687,4 +685,11 @@ def write(
 
     _flush_pending_rows()
 
-    file.create_dataset("version", data=_LHEH5_VERSION, dtype="i8")
+    file.create_dataset(
+        "version", data=enum_version_to_int_tuple(lheformat.version), dtype="i8"
+    )
+
+
+def enum_version_to_int_tuple(version: pylhe.LHEHDF5Version) -> tuple[int, ...]:
+    """Convert a LHEHDF5Version enum to a tuple of integers."""
+    return tuple(int(x) for x in version.value.split("."))

@@ -98,6 +98,7 @@ class LHEXMLFormat:
     """Selects the XML format."""
 
     version: LHEVersion = LHEVersion.V3
+    """LHE XML version"""
     indent: str = "  "
     """indentation string for XML output"""
     compress: bool = False
@@ -111,10 +112,18 @@ class LHEXMLFormat:
     procinfo: str = "{xSection: 14.7e} {error: 14.7e} {unitWeight: 14.7e} {procId: 5d}"
 
 
+class LHEHDF5Version(enum.Enum):
+    """Selects the HDF5 format version."""
+
+    V2_6_0 = "2.6.0"  # LHEH5 v2.6.0
+
+
 @dataclass(slots=True, frozen=True)
 class LHEHDF5Format:
     """Selects the HDF5 format."""
 
+    version: LHEHDF5Version = LHEHDF5Version.V2_6_0
+    """LHEH5 format version"""
     compression: str | None = None
     """Dataset compression filter passed to h5py, e.g. ``\"gzip\"``."""
     compression_opts: int | None = None
