@@ -25,6 +25,10 @@ def _column_names(dataset: h5py.Dataset) -> tuple[str, ...]:
     return ()
 
 
+def _hdf5_format_version() -> tuple[int, ...]:
+    return tuple(int(part) for part in pylhe.HDF5_FORMAT.version.value.split("."))
+
+
 def _assert_hdf5_core_equal(
     source_path, roundtrip_path, *, compare_version: bool = True
 ) -> None:
@@ -235,7 +239,7 @@ def test_lheh5_write_roundtrip(tmp_path):
 
     with h5py.File(path, "r") as h5:
         assert set(h5.keys()) == {"events", "init", "particles", "procInfo", "version"}
-        assert tuple(h5["version"][()]) == pylhe.lheh5._LHEH5_VERSION
+        assert tuple(h5["version"][()]) == _hdf5_format_version()
         assert h5["events"].compression is None
         assert h5["particles"].compression is None
         assert tuple(h5["events"].attrs["properties"]) == (
@@ -432,7 +436,7 @@ def test_lheh5_hpcgen_roundtrip(tmp_path):
     _assert_hdf5_core_equal(source_path, roundtrip_path, compare_version=False)
 
     with h5py.File(roundtrip_path, "r") as h5:
-        assert tuple(h5["version"][()]) == pylhe.lheh5._LHEH5_VERSION
+        assert tuple(h5["version"][()]) == _hdf5_format_version()
 
 
 def test_lheh5_write_streams_generator_across_multiple_flushes(tmp_path):
