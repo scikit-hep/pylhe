@@ -103,6 +103,14 @@ def test_lheh5_row_float_returns_default_for_missing_columns():
     assert pylhe.lheh5._row_float([], {}, "scale", "aqed", default=3.5) == 3.5
 
 
+def test_lheh5_decode_string_returns_empty_for_none():
+    assert pylhe.lheh5._decode_string(None) == ""
+
+
+def test_lheh5_row_string_returns_default_for_missing_columns():
+    assert pylhe.lheh5._row_string([], {}, "name", default="fallback") == "fallback"
+
+
 def test_lheh5_column_names_returns_default_when_attrs_missing(tmp_path):
     path = tmp_path / "missing-column-names.hdf5"
 
@@ -151,6 +159,57 @@ def test_lheh5_append_rows_returns_early_for_empty_rows(tmp_path):
         pylhe.lheh5._append_rows(dataset, [])
 
         assert dataset.shape == (0, 2)
+
+
+def test_lheh5_read_generators_warns_for_invalid_extra_attributes_json(tmp_path):
+    path = tmp_path / "invalid-generator-extra-attributes.hdf5"
+
+    with h5py.File(path, "w") as h5:
+        generators = h5.create_dataset(
+            "generators",
+            shape=(1, 4),
+            dtype=h5py.string_dtype(encoding="utf-8"),
+        )
+        generators.attrs["properties"] = [
+            b"name",
+            b"version",
+            b"description",
+            b"extraAttributes",
+        ]
+        generators[...] = [["Sherpa", "3.0.0", "description", "{not-json"]]
+
+    with (
+        h5py.File(path, "r") as h5,
+        pytest.warns(UserWarning, match=r"Failed to decode JSON attribute"),
+    ):
+        generators = pylhe.lheh5.read_generators(h5)
+
+    assert generators[0].extra_attributes == {}
+
+
+def test_lheh5_read_header_raises_for_mismatched_weight_names(tmp_path):
+    path = tmp_path / "mismatched-header-weights.hdf5"
+    event_columns = (*pylhe.lheh5._EVENT_COLUMNS, "1001")
+
+    with h5py.File(path, "w") as h5:
+        events = h5.create_dataset("events", shape=(0, len(event_columns)), dtype="f8")
+        events.attrs["properties"] = [name.encode() for name in event_columns]
+        xml = h5.create_group("xml")
+        xml.create_dataset(
+            "header",
+            data="""<header>
+  <initrwgt>
+    <weight id="1002">different weight</weight>
+  </initrwgt>
+</header>""",
+            dtype=h5py.string_dtype(encoding="utf-8"),
+        )
+
+    with (
+        h5py.File(path, "r") as h5,
+        pytest.raises(ValueError, match=r"Weight names in the header do not match"),
+    ):
+        pylhe.lheh5.read_header(h5)
 
 
 def test_missing_init_block_error_with_only_events():
