@@ -39,8 +39,8 @@ bibliography: paper.bib
 `pylhe` is a lightweight Python library that provides a simple and efficient interface for reading and writing Les Houches Event (LHE) files, a standard format used by Monte Carlo event generators in high-energy physics [@Alwall:2006yp].
 The library enables memory-efficient streaming of events from `.lhe` and compressed `.lhe.gz` files through a pythonic iterator interface, allowing researchers to process arbitrarily large event files without loading all events into memory simultaneously.
 It is a standalone, event-generator-independent package, installable from PyPI and Conda.
-It is well maintained and integrated within the broader scientific Python ecosystem,
-part of the Scikit-HEP community project [@Scikit-HEP_site;@Rodrigues:2020syo].
+`pylhe`, part of the Scikit-HEP community project [@Scikit-HEP_site;@Rodrigues:2020syo],
+is well maintained and integrated within the broader scientific Python ecosystem.
 
 Historically, the first standards for event representation in high-energy physics were the HEPEVT and HEPRUP common blocks [@Boos:2001cv], which provided a Fortran-based structure for storing event information.
 As the complexity of Monte Carlo event generators increased, the need for a more flexible and extensible format led to the development of the LHE file format.
@@ -82,7 +82,8 @@ Internally, `pylhe` uses `xml.etree.ElementTree` to parse the XML structure, sin
 For LHEH5 files the library uses `h5py` [@collette2013pythonhdf5] to read and write the HDF5 format, via the same pythonic data structures, making it easy to convert between the standard XML and newer HDF5 formats.
 
 The library facilitates quick validation of event files through programmatic access to event structure and particle properties, making it straightforward to perform sanity checks on generated events.
-This can be done for example via the integration with Awkward Array [@Pivarski_Awkward_Array_2018] through the `to_awkward()` function, which converts LHE events into columnar data structures optimized for vectorized operations and efficient analysis of large datasets.
+This can be done for example via the integration with Scikit-HEP's Awkward Array package [@Pivarski_Awkward_Array_2018] through the `to_awkward()` function,
+which converts LHE events into columnar data structures optimized for vectorized operations and efficient analysis of large datasets.
 
 # Research impact statement
 
