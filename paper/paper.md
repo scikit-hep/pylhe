@@ -61,8 +61,10 @@ Features that were introduced in version 2.0 but removed in version 3.0, such as
 # Statement of need
 
 The LHE format is used by all major Monte Carlo event generators such as MadGraph [@Alwall:2014hca], POWHEG-BOX [@Nason:2004rx;@Frixione:2007vw;@Alioli:2010xd], Sherpa [@Gleisberg:2008ta;@Sherpa:2019gpd], HERWIG [@Corcella:2000bw;@Bahr:2008pv;@Bellm:2015jjp;@Bellm:2019zci;@Bewick:2023tfi], Pythia [@Sjostrand:2006za;@Sjostrand:2007gs;@Sjostrand:2014zea;@Bierlich:2022pfr], Whizard [@Kilian:2007gr;@Moretti:2001zz].
-While interfaces for C/C++/Fortran exist in the respective generators, a lightweight and easy-to-use Python interface was missing until the inception of `pylhe` in 2015.
+While interfaces for C/C++/Fortran exist in the respective generators, a lightweight, standalone and easy-to-use Python interface equally supporting all these event generators was missing until the inception of `pylhe` in 2015.
 Additionally, `pylhe` can serve as a crucial interface for emerging machine learning applications in particle physics, allowing researchers to efficiently extract event data for training neural networks and other machine learning models used in event classification, anomaly detection, and physics analysis.
+As a library, `pylhe` is straighforwardly installable via the standard means, and is maintained within the
+Scikit-HEP community project that is very well integrated within the broader scientific Python ecosystem.
 
 # State of the field
 
@@ -82,7 +84,7 @@ Internally, `pylhe` uses `xml.etree.ElementTree` to parse the XML structure, sin
 For LHEH5 files the library uses `h5py` [@collette2013pythonhdf5] to read and write the HDF5 format, via the same pythonic data structures, making it easy to convert between the standard XML and newer HDF5 formats.
 
 The library facilitates quick validation of event files through programmatic access to event structure and particle properties, making it straightforward to perform sanity checks on generated events.
-This can be done for example via the integration with Scikit-HEP's Awkward Array package [@Pivarski_Awkward_Array_2018] through the `to_awkward()` function,
+This can be done for example via the integration with Scikit-HEP's Awkward Array package `awkward` [@Pivarski_Awkward_Array_2018] through the `to_awkward()` function,
 which converts LHE events into columnar data structures optimized for vectorized operations and efficient analysis of large datasets.
 
 # Research impact statement
