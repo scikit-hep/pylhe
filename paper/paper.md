@@ -87,6 +87,8 @@ The library facilitates quick validation of event files through programmatic acc
 This can be done for example via the integration with Scikit-HEP's Awkward Array package `awkward` [@Pivarski_Awkward_Array_2018] through the `to_awkward()` function,
 which converts LHE events into columnar data structures optimized for vectorized operations and efficient analysis of large datasets.
 
+The library endeavours to support all major Monte Carlo event generators and relies on example XML and HDF5 format files to ensure test coverage.
+
 # Research impact statement
 
 `pylhe` is regularly used in various research projects and publications within high-energy physics.
