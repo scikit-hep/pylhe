@@ -346,11 +346,9 @@ def _event_trials(event: pylhe.LHEEvent) -> float:
 
 
 def get_particles(
-    particles: h5py.Dataset, start: int, n: int
+    particles: h5py.Dataset, start: int, n: int, particle_columns: dict[str, int]
 ) -> list[pylhe.LHEParticle]:
     """Get a list of LHEParticle objects from a particles dataset."""
-    particle_columns = _column_indices(particles, default=_PARTICLE_COLUMNS)
-
     return [
         pylhe.LHEParticle(
             id=_row_int(row, particle_columns, "id"),
@@ -384,6 +382,7 @@ def read_iter_events(
     events = file["events"]
     particles = file["particles"]
     event_columns = _column_indices(events, default=_EVENT_COLUMNS)
+    particle_columns = _column_indices(particles, default=_PARTICLE_COLUMNS)
 
     if events.chunks:
         batches = events.iter_chunks()
@@ -392,6 +391,11 @@ def read_iter_events(
         batches = (np.s_[i : i + batch_size] for i in range(0, len(events), batch_size))
 
     for event_chunk in batches:
+        first_particle_index = _row_int(events[event_chunk][0], event_columns, "start")
+        last_particle_index = _row_int(
+            events[event_chunk][-1], event_columns, "start"
+        ) + _row_int(events[event_chunk][-1], event_columns, "nparticles")
+        particle_chunk = particles[first_particle_index:last_particle_index]
         for event_row in events[event_chunk]:
             start = _row_int(event_row, event_columns, "start")
             nparticles = _row_int(event_row, event_columns, "nparticles")
@@ -435,7 +439,12 @@ def read_iter_events(
                         event_row, event_columns, "aqcd", default=float("nan")
                     ),
                 ),
-                particles=get_particles(particles, start, nparticles),
+                particles=get_particles(
+                    particle_chunk,
+                    start - first_particle_index,
+                    nparticles,
+                    particle_columns,
+                ),
                 weights=_get_weights(event_row, event_columns),
                 scales=scales,
                 attributes=attributes,
