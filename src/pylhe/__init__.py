@@ -103,6 +103,8 @@ class LHEXMLFormat:
     """indentation string for XML output"""
     compress: bool = False
     """compress as gzip"""
+    compresslevel: int = 9  # default as in the gzip library
+    """gzip compression level"""
 
     weights: LHEWeightFormat = LHEWeightFormat.RWGT
 
@@ -156,7 +158,9 @@ NO_WEIGHTS_FORMAT = LHEXMLFormat(weights=LHEWeightFormat.NONE)
 """Output format with no WEIGHTS weights block and (default) plain text file format."""
 HDF5_FORMAT = LHEHDF5Format()
 """Output format for HDF5-based LHEH5 files."""
-HDF5_GZ_FORMAT = LHEHDF5Format(compression="gzip", compression_opts=4, shuffle=True)
+HDF5_GZ_FORMAT = LHEHDF5Format(
+    compression="gzip", compression_opts=4, shuffle=True
+)  # HDF5 gzip compress level default is 4
 """Output format for HDF5-based LHEH5 files with gzip-compressed datasets."""
 
 
@@ -1359,5 +1363,5 @@ def _open_write_file(filepath: PathLike, lheformat: LHEXMLFormat) -> TextIO:
         lheformat: The LHEXMLFormat to use for writing.
     """
     if lheformat.compress:
-        return gzip.open(filepath, "wt")
+        return gzip.open(filepath, mode="wt", compresslevel=lheformat.compresslevel)
     return open(filepath, "w")
