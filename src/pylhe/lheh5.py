@@ -21,6 +21,7 @@ from collections.abc import Iterable, Iterator, Sequence
 from typing import Any
 
 import h5py  # type: ignore[import-untyped]
+import numpy as np
 
 import pylhe
 
@@ -376,50 +377,69 @@ def count_events(file: h5py.File) -> int:
     return len(events)
 
 
-def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
+def read_iter_events(
+    file: h5py.File, batch_size: int = 1000
+) -> Iterator[pylhe.LHEEvent]:
     """Read events from an HDF5 file in LHEH5 format."""
     events = file["events"]
     particles = file["particles"]
     event_columns = _column_indices(events, default=_EVENT_COLUMNS)
 
-    for event_row in events:
-        start = _row_int(event_row, event_columns, "start")
-        nparticles = _row_int(event_row, event_columns, "nparticles")
-        trials = _row_float(event_row, event_columns, "trials", default=float("nan"))
-        fscale = _row_float(event_row, event_columns, "fscale", default=float("nan"))
-        rscale = _row_float(event_row, event_columns, "rscale", default=float("nan"))
-        attributes: dict[str, str] = {}
-        scales: dict[str, float] = {}
+    if events.chunks:
+        batches = events.iter_chunks()
+    else:
+        batch_size = 8192
+        batches = (np.s_[i : i + batch_size] for i in range(0, len(events), batch_size))
 
-        if not math.isnan(trials):
-            attributes["trials"] = str(trials)
-        if not math.isnan(fscale):
-            scales["fscale"] = fscale
-        if not math.isnan(rscale):
-            scales["rscale"] = rscale
+    for event_chunk in batches:
+        for event_row in events[event_chunk]:
+            start = _row_int(event_row, event_columns, "start")
+            nparticles = _row_int(event_row, event_columns, "nparticles")
+            trials = _row_float(
+                event_row, event_columns, "trials", default=float("nan")
+            )
+            fscale = _row_float(
+                event_row, event_columns, "fscale", default=float("nan")
+            )
+            rscale = _row_float(
+                event_row, event_columns, "rscale", default=float("nan")
+            )
+            attributes: dict[str, str] = {}
+            scales: dict[str, float] = {}
 
-        yield pylhe.LHEEvent(
-            eventinfo=pylhe.LHEEventInfo(
-                nparticles=nparticles,
-                pid=_row_int(event_row, event_columns, "pid"),
-                weight=_row_float(
-                    event_row,
-                    event_columns,
-                    "weight",
-                    "NOMINAL",
-                    default=0.0,
+            if not math.isnan(trials):
+                attributes["trials"] = str(trials)
+            if not math.isnan(fscale):
+                scales["fscale"] = fscale
+            if not math.isnan(rscale):
+                scales["rscale"] = rscale
+
+            yield pylhe.LHEEvent(
+                eventinfo=pylhe.LHEEventInfo(
+                    nparticles=nparticles,
+                    pid=_row_int(event_row, event_columns, "pid"),
+                    weight=_row_float(
+                        event_row,
+                        event_columns,
+                        "weight",
+                        "NOMINAL",
+                        default=0.0,
+                    ),
+                    scale=_row_float(
+                        event_row, event_columns, "scale", default=float("nan")
+                    ),
+                    aqed=_row_float(
+                        event_row, event_columns, "aqed", default=float("nan")
+                    ),
+                    aqcd=_row_float(
+                        event_row, event_columns, "aqcd", default=float("nan")
+                    ),
                 ),
-                scale=_row_float(
-                    event_row, event_columns, "scale", default=float("nan")
-                ),
-                aqed=_row_float(event_row, event_columns, "aqed", default=float("nan")),
-                aqcd=_row_float(event_row, event_columns, "aqcd", default=float("nan")),
-            ),
-            particles=get_particles(particles, start, nparticles),
-            weights=_get_weights(event_row, event_columns),
-            scales=scales,
-            attributes=attributes,
-        )
+                particles=get_particles(particles, start, nparticles),
+                weights=_get_weights(event_row, event_columns),
+                scales=scales,
+                attributes=attributes,
+            )
 
 
 def _get_weights(event_row: Any, event_columns: dict[str, int]) -> dict[str, float]:
