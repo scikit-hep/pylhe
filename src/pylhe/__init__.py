@@ -103,7 +103,7 @@ class LHEXMLFormat:
     """indentation string for XML output"""
     compress: bool = False
     """compress as gzip"""
-    compresslevel: int = 9
+    compresslevel: int = 9  # default as in the gzip library
     """gzip compression level"""
 
     weights: LHEWeightFormat = LHEWeightFormat.RWGT
