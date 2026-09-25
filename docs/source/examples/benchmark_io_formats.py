@@ -17,16 +17,16 @@ is a convenient summary, not a universal definition of the "best" format.
 Examples:
 
     # Deterministic synthetic sample with 1,000,000 events (the default)
-    python benchmarks/benchmark_io_formats.py
+    python docs/source/examples/benchmark_io_formats.py
 
     # Fast smoke run
-    python benchmarks/benchmark_io_formats.py --events 100 --repeats 1 --warmups 0
+    python docs/source/examples/benchmark_io_formats.py --events 100 --repeats 1 --warmups 0
 
     # Use an existing LHE/LHE.gz/LHEH5 sample and keep the generated files
-    python benchmarks/benchmark_io_formats.py --input sample.lhe.gz --keep-files
+    python docs/source/examples/benchmark_io_formats.py --input sample.lhe.gz --keep-files
 
     # Also test the optional hdf5plugin Bitshuffle + Zstandard filter
-    python benchmarks/benchmark_io_formats.py --include-bitshuffle
+    python docs/source/examples/benchmark_io_formats.py --include-bitshuffle
 
 The optional chart needs matplotlib.  The Bitshuffle case needs hdf5plugin.
 Neither package is required by pylhe itself.
