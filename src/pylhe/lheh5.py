@@ -375,9 +375,7 @@ def count_events(file: h5py.File) -> int:
     return len(events)
 
 
-def read_iter_events(
-    file: h5py.File, batch_size: int = 1000
-) -> Iterator[pylhe.LHEEvent]:
+def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
     """Read events from an HDF5 file in LHEH5 format."""
     events = file["events"]
     particles = file["particles"]
