@@ -23,6 +23,11 @@
 
 Small and thin Python interface to read [Les Houches Event (LHE)](https://inspirehep.net/literature/725284) files
 
+## Why pylhe?
+
+A small script can parse the basic particle records in a simple LHE file, but production files contain LHE3 weights and weight groups, scale and generator metadata, optional attributes and comments, compression, and generator-specific variations.
+`pylhe` provides event-generator users and analysts with a maintained and tested implementation of these details, exposed through a common typed data model.
+It supports streaming, writing, conversion between LHE and LHEH5, and integration with Awkward Array.
 
 ## Tested Monte Carlo Generators' LHE output
 
