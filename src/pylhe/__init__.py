@@ -158,7 +158,9 @@ NO_WEIGHTS_FORMAT = LHEXMLFormat(weights=LHEWeightFormat.NONE)
 """Output format with no WEIGHTS weights block and (default) plain text file format."""
 HDF5_FORMAT = LHEHDF5Format()
 """Output format for HDF5-based LHEH5 files."""
-HDF5_GZ_FORMAT = LHEHDF5Format(compression="gzip", compression_opts=4, shuffle=True) # HDF5 gzip compress level default is 4
+HDF5_GZ_FORMAT = LHEHDF5Format(
+    compression="gzip", compression_opts=4, shuffle=True
+)  # HDF5 gzip compress level default is 4
 """Output format for HDF5-based LHEH5 files with gzip-compressed datasets."""
 
 
