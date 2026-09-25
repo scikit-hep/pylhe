@@ -348,7 +348,7 @@ def _event_trials(event: pylhe.LHEEvent) -> float:
 def get_particles(
     particles: h5py.Dataset, start: int, n: int, particle_columns: dict[str, int]
 ) -> list[pylhe.LHEParticle]:
-    """Get a list of LHEParticle objects from a particles dataset."""
+    """Get a list of `LHEParticle` objects from a particles dataset."""
     return [
         pylhe.LHEParticle(
             id=_row_int(row, particle_columns, "id"),
