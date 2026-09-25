@@ -17,6 +17,7 @@
 
    lhe.rst
    lheh5.rst
+   comparison.rst
    bibliography.rst
 
 .. autosummary::

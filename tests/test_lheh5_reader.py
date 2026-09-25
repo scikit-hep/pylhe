@@ -5,7 +5,14 @@ import pytest
 import skhep_testdata
 
 import pylhe
-from pylhe.lheh5 import get_particles, read_header, read_init, read_iter_events
+from pylhe.lheh5 import (
+    _PARTICLE_COLUMNS,
+    _column_indices,
+    get_particles,
+    read_header,
+    read_init,
+    read_iter_events,
+)
 
 LHEH5_TEST_FILES = (
     "pylhe-testfile-hpcgen.hdf5",
@@ -27,7 +34,9 @@ def test_iterate_read_file(lheh5_test_file):
 
 def test_get_particles_returns_lheparticles():
     with h5py.File(skhep_testdata.data_path("pylhe-testfile-hpcgen.hdf5"), "r") as h5:
-        particles = get_particles(h5["particles"], 0, 4)
+        particle_dataset = h5["particles"]
+        particle_columns = _column_indices(particle_dataset, default=_PARTICLE_COLUMNS)
+        particles = get_particles(particle_dataset, 0, 4, particle_columns)
 
     assert len(particles) == 4
     assert all(isinstance(particle, pylhe.LHEParticle) for particle in particles)
