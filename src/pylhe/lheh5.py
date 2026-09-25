@@ -391,12 +391,13 @@ def read_iter_events(
         batches = (np.s_[i : i + batch_size] for i in range(0, len(events), batch_size))
 
     for event_chunk in batches:
-        first_particle_index = _row_int(events[event_chunk][0], event_columns, "start")
+        event_rows = events[event_chunk]
+        first_particle_index = _row_int(event_rows[0], event_columns, "start")
         last_particle_index = _row_int(
-            events[event_chunk][-1], event_columns, "start"
-        ) + _row_int(events[event_chunk][-1], event_columns, "nparticles")
+            event_rows[-1], event_columns, "start"
+        ) + _row_int(event_rows[-1], event_columns, "nparticles")
         particle_chunk = particles[first_particle_index:last_particle_index]
-        for event_row in events[event_chunk]:
+        for event_row in event_rows:
             start = _row_int(event_row, event_columns, "start")
             nparticles = _row_int(event_row, event_columns, "nparticles")
             trials = _row_float(
