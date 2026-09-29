@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-29
+
+### Added
+
+- Support event weights and preserve header, generator, and comment metadata in LHEH5 files.
+- Allow configuring the gzip compression level for LHE XML output.
+
+### Changed
+
+- Improve LHEH5 read performance with batched HDF5 reads.
+
+### Fixed
+
+- Store missing LHEH5 event scales and trial counts as `NaN` instead of zero.
+
 ## [2.0.0] - 2026-07-13
 
 ### Added
@@ -56,7 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Raise an error when weight format is requested to be both `rwgt` and `weights` simultaneously.
 
-[unreleased]: https://github.com/scikit-hep/pylhe/compare/v2.0.0...HEAD
+[unreleased]: https://github.com/scikit-hep/pylhe/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/scikit-hep/pylhe/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/scikit-hep/pylhe/compare/v1.0.4...v2.0.0
 [1.0.4]: https://github.com/scikit-hep/pylhe/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/scikit-hep/pylhe/compare/v1.0.2...v1.0.3
