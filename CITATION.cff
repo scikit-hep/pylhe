@@ -18,10 +18,10 @@ authors:
   given-names: "Alexander Puck"
   orcid: "https://orcid.org/0000-0002-2484-1328"
   affiliation: "Institut für Theoretische Physik, Universität Münster"
-title: "pylhe: v2.0.0"
-version: 2.0.0
+title: "pylhe: v2.1.0"
+version: 2.1.0
 doi: 10.5281/zenodo.1217031
-repository-code: "https://github.com/scikit-hep/pylhe/releases/tag/v2.0.0"
+repository-code: "https://github.com/scikit-hep/pylhe/releases/tag/v2.1.0"
 
 # TODO: Update preferred citation with the JOSS publication DOI once published.
 preferred-citation:
