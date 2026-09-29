@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Improve LHEH5 read performance with batched HDF5 reads.
+- JOSS paper review comments addressed, including improved documentation.
 
 ### Fixed
 
