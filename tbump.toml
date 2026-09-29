@@ -34,6 +34,7 @@ search = "Bump version: {current_version} → "
 
 [[file]]
 src = "README.md"
+search = 'v{current_version}' # don't bump maddgraph and other versions in readme
 
 [[file]]
 src = ".zenodo.json"
