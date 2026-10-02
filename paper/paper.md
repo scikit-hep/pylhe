@@ -76,7 +76,7 @@ Unlike the existing C/C++/Fortran interfaces provided by the Monte Carlo event g
 When `pylhe` was first developed, there were no other standalone Python libraries available for reading and writing LHE files.
 However, a Python parser is distributed as part of MadGraph [@Alwall:2014hca], while MadAnalysis 5 exposes its C++ LHE reader and writer through a Python interface [@Conte:2012fm].
 Nowadays, there are a few other smaller Python libraries with less adoption than `pylhe`, which provide only read functionality and are no longer actively maintained, such as `lhereader` [@lhereader1;@lhereader2].
-For completeness, it should be mentioned that several LHE libraries exist in other programming languages, such as Go (`go-hep` [@Binet2017]), Rust (`lhe` [@lhe-rs], `lhef` [@lhef;@lhef-rs], `event_file_reader` [@event_file_reader]), Julia (`LHEF.jl` [@LHEF_jl]) and Haskell (`lhe.hs` [@lhehs]).
+For completeness, it should be mentioned that several LHE libraries exist in other programming languages, such as Go [`go-hep`, @Binet2017], Rust [`lhe`, @lhe-rs; `lhef`, @lhef; @lhef-rs; `event_file_reader`, @event_file_reader], Julia [`LHEF.jl`, @LHEF_jl] and Haskell [`lhe.hs`, @lhehs].
 These provide varying degrees of completeness, but none support the LHEH5 format yet.
 
 # Software design
