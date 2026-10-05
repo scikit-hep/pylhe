@@ -1,5 +1,5 @@
 {
-    "description": "A small package to get structured data out of Les Houches Event files",
+    "description": "A small package to get structured data out of Les Houches Event files. Creators are listed in the order in which they joined the project.",
     "license": "Apache-2.0",
     "title": "scikit-hep/pylhe: v2.1.0",
     "version": "v2.1.0",
