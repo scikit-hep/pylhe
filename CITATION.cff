@@ -1,6 +1,7 @@
 cff-version: 1.2.0
 message: "Please cite the following works when using this software."
 type: software
+
 authors:
 - family-names: "Heinrich"
   given-names: "Lukas"
@@ -18,31 +19,44 @@ authors:
   given-names: "Alexander Puck"
   orcid: "https://orcid.org/0000-0002-2484-1328"
   affiliation: "Institut für Theoretische Physik, Universität Münster"
+
+contact:
+- family-names: Neuwirth
+  given-names: Alexander Puck
+  orcid: "https://orcid.org/0000-0002-2484-1328"
+
 title: "pylhe: v2.1.0"
 version: 2.1.0
 doi: 10.5281/zenodo.1217031
 repository-code: "https://github.com/scikit-hep/pylhe/releases/tag/v2.1.0"
 
-# TODO: Update preferred citation with the JOSS publication DOI once published.
 preferred-citation:
-  type: article
   authors:
-    - family-names: "Neuwirth"
-      given-names: "Alexander Puck"
-      orcid: "https://orcid.org/0000-0002-2484-1328"
-    - family-names: "Feickert"
-      given-names: "Matthew"
-      orcid: "https://orcid.org/0000-0003-4124-7862"
-    - family-names: "Heinrich"
-      given-names: "Lukas"
-      orcid: "https://orcid.org/0000-0002-4048-7584"
-    - family-names: "Rodrigues"
-      given-names: "Eduardo"
-      orcid: "https://orcid.org/0000-0003-2846-7625"
-  title: "pylhe: A Lightweight Python interface to Les Houches Event files"
-  year: 2026
-  month: 7
-  repository-code: "https://arxiv.org/abs/2607.29352"
+  - family-names: Neuwirth
+    given-names: Alexander Puck
+    orcid: "https://orcid.org/0000-0002-2484-1328"
+  - family-names: Feickert
+    given-names: Matthew
+    orcid: "https://orcid.org/0000-0003-4124-7862"
+  - family-names: Heinrich
+    given-names: Lukas
+    orcid: "https://orcid.org/0000-0002-4048-7584"
+  - family-names: Rodrigues
+    given-names: Eduardo
+    orcid: "https://orcid.org/0000-0003-2846-7625"
+  date-published: 2026-10-06
+  doi: 10.21105/joss.11128
+  issn: 2475-9066
+  issue: 126
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 11128
+  title: "pylhe: A Lightweight Python interface to Les Houches Event
+    files"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.11128"
+  volume: 11
 
 keywords:
   - Les Houches Event files
@@ -50,6 +64,8 @@ keywords:
   - physics
   - python
   - scikit-hep
+
 license: "Apache-2.0"
+
 abstract: |
   A small package to get structured data out of Les Houches Event files.
