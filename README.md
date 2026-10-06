@@ -3,6 +3,8 @@
 <img src="https://raw.githubusercontent.com/scikit-hep/pylhe/main/docs/source/_static/img/pylhe-logo.png" alt="pylhe logo" width="250"/>
 
 [![GitHub Project](https://img.shields.io/badge/GitHub--blue?style=social&logo=GitHub)](https://github.com/scikit-hep/pylhe)
+[![JOSS](https://joss.theoj.org/papers/10.21105/joss.11128/status.svg)](https://doi.org/10.21105/joss.11128)
+[![arXiv](https://img.shields.io/badge/arXiv-2607.29352-b31b1b.svg)](https://arxiv.org/abs/2607.29352)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1217031.svg)](https://doi.org/10.5281/zenodo.1217031)
 [![Scikit-HEP](https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg)](https://scikit-hep.org/)
 
