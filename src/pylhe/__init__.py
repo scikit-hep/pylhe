@@ -32,6 +32,7 @@ from pylhe import lheh5
 from pylhe._version import version as __version__
 
 from .awkward import to_awkward
+from .numpy import from_numpy, to_numpy
 
 __all__ = [
     "DEFAULT_FORMAT",
@@ -58,7 +59,9 @@ __all__ = [
     "LHEWeightFormat",
     "LHEXMLFormat",
     "__version__",
+    "from_numpy",
     "to_awkward",
+    "to_numpy",
 ]
 
 

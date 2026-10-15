@@ -27,12 +27,23 @@ def test_top_level_api():
         "WEIGHTS_FORMAT",
         "WEIGHTS_GZ_FORMAT",
         "__version__",
+        "from_numpy",
         "to_awkward",
+        "to_numpy",
     ]
 
 
 def test_awkward_api():
     assert dir(pylhe.awkward) == ["to_awkward"]
+
+
+def test_numpy_api():
+    assert dir(pylhe.numpy) == [
+        "EVENT_DTYPE",
+        "PARTICLE_DTYPE",
+        "from_numpy",
+        "to_numpy",
+    ]
 
 
 def test_load_version():
