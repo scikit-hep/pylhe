@@ -27,7 +27,7 @@ jobs:
       - name: Install base
         run: |
           git checkout ${{ github.event.pull_request.base.sha }}
-          uv pip install --system '.[test]'
+          uv pip install --system '.[test]' 'pytest<9.2'  # pytest-benchmark#321, base may lack the cap
 
       # Run benchmarks on base
       - name: Run benchmarks on base
