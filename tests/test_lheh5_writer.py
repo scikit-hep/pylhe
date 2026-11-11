@@ -585,3 +585,96 @@ def test_lheh5_write_rejects_inconsistent_num_processes(tmp_path):
         ),
     ):
         pylhe.lheh5.write(lhe, h5, lheformat=pylhe.HDF5_FORMAT)
+
+
+@pytest.mark.parametrize("layout", ["contiguous", "row-chunked", "column-chunked"])
+@pytest.mark.parametrize("generator", [True, False])
+def test_lheh5_read_preserves_events_across_storage_layouts(
+    tmp_path, layout, generator
+):
+    lhe = _make_weighted_lhe()
+    templates = list(lhe.events)
+    expected_events = []
+    for index, nparticles in enumerate([0, 2, 1, 3, 0]):
+        event = deepcopy(templates[index % len(templates)])
+        event.eventinfo.pid = 1000 + index
+        event.eventinfo.nparticles = nparticles
+        event.eventinfo.weight = 10.0 + index
+        event.particles = deepcopy(templates[1].particles[:nparticles])
+        for particle in event.particles:
+            particle.mother1 = particle.mother2 = 0
+            for name in ("px", "py", "pz", "e", "m"):
+                setattr(particle, name, getattr(particle, name) * (index + 1))
+        event.weights = {name: weight + index for name, weight in event.weights.items()}
+        event.scales = {name: scale + index for name, scale in event.scales.items()}
+        event.attributes["trials"] = str(float(index))
+        expected_events.append(event)
+    lhe.events = expected_events
+    path = tmp_path / "storage-layout.hdf5"
+    lhe.tofile(
+        path,
+        lheformat=pylhe.LHEHDF5Format(event_chunk_rows=2, particle_chunk_rows=3),
+    )
+
+    # Change only physical storage: preserve every value and both column attributes.
+    with h5py.File(path, "r+") as h5:
+        data = h5["events"][()]
+        attributes = dict(h5["events"].attrs)
+        del h5["events"]
+        chunks = None
+        if layout != "contiguous":
+            chunks = (2, data.shape[1] if layout == "row-chunked" else 3)
+        events = h5.create_dataset("events", data=data, chunks=chunks)
+        events.attrs.update(attributes)
+
+    loaded = pylhe.LesHouchesEvents.fromfile(path, generator=generator)
+    event_iter = iter(loaded.events)
+    for expected in expected_events:
+        actual = next(event_iter)
+        assert actual.eventinfo == expected.eventinfo
+        assert actual.particles == expected.particles
+        assert actual.weights == expected.weights
+        assert actual.scales == expected.scales
+        assert actual.attributes == expected.attributes
+    with pytest.raises(StopIteration):
+        next(event_iter)
+
+
+@pytest.mark.parametrize("lheformat", [pylhe.HDF5_FORMAT, pylhe.HDF5_GZ_FORMAT])
+@pytest.mark.parametrize("generator", [True, False])
+def test_lheh5_write_empty_events_roundtrip(tmp_path, lheformat, generator):
+    lhe = _make_weighted_lhe()
+    lhe.events = iter(())
+    path = tmp_path / "empty-events.hdf5"
+    lhe.tofile(path, lheformat=lheformat)
+
+    assert pylhe.LesHouchesEvents.count_events(path) == 0
+    loaded = pylhe.LesHouchesEvents.fromfile(path, generator=generator)
+    assert list(loaded.events) == []
+
+
+def test_lheh5_read_events_lazily_in_row_batches(tmp_path, monkeypatch):
+    lhe = _make_weighted_lhe()
+    lhe.events = list(lhe.events) * 3
+    path = tmp_path / "lazy-events.hdf5"
+    lhe.tofile(path, lheformat=pylhe.LHEHDF5Format(event_chunk_rows=2))
+    rows_read = []
+    original_getitem = h5py.Dataset.__getitem__
+
+    def tracked_getitem(dataset, selection):
+        if dataset.name == "/events":
+            row_selection = selection[0] if isinstance(selection, tuple) else selection
+            assert isinstance(row_selection, slice)
+            start, stop, step = row_selection.indices(len(dataset))
+            rows_read.append(len(range(start, stop, step)))
+        return original_getitem(dataset, selection)
+
+    monkeypatch.setattr(h5py.Dataset, "__getitem__", tracked_getitem)
+    loaded = pylhe.LesHouchesEvents.fromfile(path)
+    assert rows_read == []
+    event_iter = iter(loaded.events)
+    next(event_iter)
+    assert rows_read
+    assert max(rows_read) <= 2
+    assert sum(rows_read) < len(lhe.events)
+    event_iter.close()
