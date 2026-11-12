@@ -21,7 +21,6 @@ from collections.abc import Iterable, Iterator, Sequence
 from typing import Any
 
 import h5py  # type: ignore[import-untyped]
-import numpy as np
 
 import pylhe
 
@@ -382,14 +381,9 @@ def read_iter_events(file: h5py.File) -> Iterator[pylhe.LHEEvent]:
     event_columns = _column_indices(events, default=_EVENT_COLUMNS)
     particle_columns = _column_indices(particles, default=_PARTICLE_COLUMNS)
 
-    if events.chunks:
-        batches = events.iter_chunks()
-    else:
-        batch_size = 8192
-        batches = (np.s_[i : i + batch_size] for i in range(0, len(events), batch_size))
-
-    for event_chunk in batches:
-        event_rows = events[event_chunk]
+    batch_size = events.chunks[0] if events.chunks else 8192
+    for batch_start in range(0, len(events), batch_size):
+        event_rows = events[batch_start : batch_start + batch_size]
         first_particle_index = _row_int(event_rows[0], event_columns, "start")
         last_particle_index = _row_int(
             event_rows[-1], event_columns, "start"
