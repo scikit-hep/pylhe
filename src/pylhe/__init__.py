@@ -780,7 +780,11 @@ class LHEInit:
                     raise ValueError(err)
                 data = element.text.split("\n")[1:-1]
                 initInfo = LHEInitInfo.fromstring(data[0])
-                procInfo = [LHEProcInfo.fromstring(d) for d in data[1:]]
+                procInfo = [
+                    LHEProcInfo.fromstring(d)
+                    for d in data[1:]
+                    if not d.strip().startswith("#")
+                ]
                 break
         if initInfo is None:
             err = "No <init> block found in the LHE file."
