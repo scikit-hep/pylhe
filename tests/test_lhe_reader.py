@@ -175,6 +175,24 @@ def test_read_lhe_header_additional_xml_elements():
     assert header_xml.index("<RunSettings") < header_xml.index("<initrwgt>")
 
 
+def test_read_lhe_init_comment_lines():
+    """
+    Test that lines starting with "#" in the <init> block are skipped.
+    """
+    lhefile = pylhe.LHEFile.fromstring(
+        """<LesHouchesEvents version="3.0">
+<init>
+  2212   2212  6.5000000e+03  6.5000000e+03    -1    -1  260000  260000     3     1
+  1.0000000e+00  0.0000000e+00  1.0000000e+00     1
+# additional information
+</init>
+</LesHouchesEvents>"""
+    )
+
+    assert len(lhefile.init.procInfo) == 1
+    assert lhefile.init.procInfo[0].procId == 1
+
+
 def test_read_lhe_powheg_xml_comment_is_nonempty():
     """
     Test that the top-level XML comment in a POWHEG LHE file is captured.
