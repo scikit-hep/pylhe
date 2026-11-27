@@ -986,7 +986,8 @@ class LHEEvent:
         """
         Return the positional indices of the particle's mothers in ``self.particles``.
 
-        The LHE ``mother1``/``mother2`` fields are 1-based; absent mothers (0) are dropped.
+        The LHE ``mother1``/``mother2`` fields are 1-based; absent mothers (0) are dropped,
+        and equal non-zero mother indices (``mother1 == mother2``) are deduplicated.
         """
         idxs = [particle.mother1 - 1, particle.mother2 - 1]
         out: list[int] = []
@@ -996,7 +997,8 @@ class LHEEvent:
             if idx >= len(self.particles):
                 err = f"Mother index {idx + 1} out of range for event with {len(self.particles)} particles."
                 raise IndexError(err)
-            out.append(idx)
+            if idx not in out:
+                out.append(idx)
         return out
 
     def mothers(self, particle: LHEParticle) -> list[LHEParticle]:

@@ -114,3 +114,31 @@ def test_graph_field_excluded_from_eq_and_repr():
 
     # repr must not leak the Digraph object
     assert "Digraph" not in repr(event_a)
+
+
+def test_single_mother_equal_indices_not_duplicated():
+    """
+    In LHE files, a single resonance mother is commonly encoded with
+    mother1 == mother2 > 0 (e.g. Z -> e- e+ with mother1=3, mother2=3).
+    mother_indices(), mothers(), and the DOT graph should list that mother once.
+    """
+    lhe_file = skhep_testdata.data_path("pylhe-testfile-powheg-box-v2-Z.lhe")
+    event = next(pylhe.LHEFile.fromfile(lhe_file).events)
+
+    # Particle index 2 (1-based 3) is the Z0; indices 3 and 4 are its e-/e+ daughters
+    # with mother1 == mother2 == 3.
+    electron = event.particles[3]
+    positron = event.particles[4]
+    assert electron.mother1 == electron.mother2 == 3
+    assert positron.mother1 == positron.mother2 == 3
+
+    assert event.mother_indices(electron) == [2]
+    assert event.mothers(electron) == [event.particles[2]]
+    assert event.mother_indices(positron) == [2]
+    assert event.mothers(positron) == [event.particles[2]]
+
+    source = event.graph.source
+    assert source.count("2 -> 3") == 1
+    assert source.count("2 -> 4") == 1
+    assert source.count("0 -> 2") == 1
+    assert source.count("1 -> 2") == 1
